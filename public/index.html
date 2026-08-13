@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vivero Sol y Sombra — Inventario Pro</title>
+  <style>
+    * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; }
+    body { background-color: #eef2f0; color: #333; padding: 20px; }
+    
+    header { display: flex; justify-content: space-between; align-items: center; background-color: #1b4d2e; color: white; padding: 15px 25px; border-radius: 8px; margin-bottom: 20px; }
+    .header-brand { display: flex; align-items: center; gap: 15px; }
+    .header-logo { width: 55px; height: 55px; border-radius: 50%; object-fit: cover; background: white; border: 2px solid #d4af37; }
+    h1 { font-size: 20px; font-weight: bold; }
+    
+    .top-buttons { display: flex; gap: 10px; }
+    
+    .dashboard { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px; }
+    .card { background: white; padding: 18px; border-radius: 8px; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.04); }
+    .card h3 { font-size: 13px; color: #555; margin-bottom: 6px; font-weight: bold; text-transform: uppercase; }
+    .card .val { font-size: 26px; font-weight: 800; color: #1b4d2e; }
+
+    .main-container { display: grid; grid-template-columns: 290px 1fr; gap: 20px; }
+    .form-box { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); }
+    .form-box h2 { font-size: 18px; margin-bottom: 15px; color: #1b4d2e; font-weight: bold; }
+    .form-group { margin-bottom: 12px; }
+    .form-group label { display: block; font-size: 12px; margin-bottom: 4px; font-weight: 600; color: #444; }
+    .form-group input, .form-group select { width: 100%; padding: 8px 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; }
+    
+    .btn { padding: 9px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; }
+    .btn-green-main { background-color: #1b4d2e; color: white; width: 100%; justify-content: center; margin-top: 10px; }
+    .btn-cancel { background-color: #718096; color: white; width: 100%; justify-content: center; margin-top: 5px; display: none; }
+    .btn-excel { background-color: #107c41; color: white; }
+    .btn-excel:hover { background-color: #0b5c30; }
+    .btn-reporte { background-color: #2b6cb0; color: white; }
+    .btn-reporte:hover { background-color: #1d4ed8; }
+
+    .table-box { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); }
+    .top-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+    .top-actions input { width: 320px; padding: 8px 12px; border: 1px solid #ccc; border-radius: 5px; font-size: 13px; }
+
+    table { width: 100%; border-collapse: collapse; }
+    th { background-color: #1b4d2e; color: white; padding: 10px 12px; text-align: left; font-size: 13px; font-weight: 600; }
+    td { padding: 10px 12px; border-bottom: 1px solid #eee; vertical-align: middle; font-size: 13px; }
+    tr:nth-child(even) { background-color: #fafafa; }
+    
+    .img-thumb { width: 45px; height: 45px; object-fit: cover; border-radius: 4px; border: 1px solid #ddd; background: #f0f0f0; }
+    
+    .action-btn { border: none; padding: 6px 10px; border-radius: 4px; font-size: 12px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; margin-right: 3px; }
+    .btn-venta { background-color: #e2e8f0; color: #2d3748; }
+    .btn-edit { background-color: #edf2f7; color: #4a5568; padding: 6px 8px; }
+    .btn-delete { background-color: #fed7d7; color: #9b2c2c; padding: 6px 8px; }
+
+    .badge-bajo { background-color: #feebc8; color: #c05621; font-size: 11px; padding: 2px 6px; border-radius: 10px; font-weight: bold; margin-left: 4px; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-brand">
+      <!-- Apunta directo a tu archivo /logo.jpeg -->
+      <img src="/logo/logo.jpeg" alt="Logo" class="header-logo"> 
+      <h1>🌿 Agro Servicio Sol y Sombra — Inventario Pro</h1>
+    </div>
+    <div class="top-buttons">
+      <button class="btn btn-excel" onclick="exportarExcel()">📊 Exportar Excel</button>
+      <button class="btn btn-reporte" onclick="imprimirReporte()">📄 Reporte Imprimible / PDF</button>
+    </div>
+  </header>
+
+  <div class="dashboard">
+    <div class="card">
+      <h3>Especies Distintas</h3>
+      <div class="val" id="total-especies">0</div>
+    </div>
+    <div class="card">
+      <h3>Total Plantas en Stock</h3>
+      <div class="val" id="total-stock">0</div>
+    </div>
+    <div class="card">
+      <h3>Valor Total Inventario</h3>
+      <div class="val" id="total-valor">$0</div>
+    </div>
+  </div>
+
+  <div class="main-container">
+    <div class="form-box">
+      <h2 id="form-titulo">Registrar Planta</h2>
+      <form id="form-planta" enctype="multipart/form-data">
+        <input type="hidden" id="edit-id" name="edit-id">
+        <div class="form-group">
+          <label>Nombre común *</label>
+          <input type="text" id="nombre" name="nombre" required placeholder="Ej: Níspero">
+        </div>
+        <div class="form-group">
+          <label>Nombre científico</label>
+          <input type="text" id="nombre_cientifico" name="nombre_cientifico" placeholder="Ej: Eriobotrya japonica">
+        </div>
+        <div class="form-group">
+          <label>Categoría</label>
+          <input type="text" id="categoria" name="categoria" placeholder="Ej: Frutal, Interior">
+        </div>
+        <div class="form-group">
+          <label>Ubicación física</label>
+          <input type="text" id="ubicacion" name="ubicacion" placeholder="Ej: Nave sombra">
+        </div>
+        <div class="form-group">
+          <label>Precio ($) *</label>
+          <input type="number" id="precio" name="precio" required placeholder="5000">
+        </div>
+        <div class="form-group">
+          <label>Stock inicial *</label>
+          <input type="number" id="stock" name="stock" required placeholder="10">
+        </div>
+        <div class="form-group">
+          <label>📷 Foto (Cámara celular o galería):</label>
+          <input type="file" id="foto" name="foto" accept="image/*" capture="environment">
+        </div>
+        <button type="submit" id="btn-submit" class="btn btn-green-main">Agregar Planta</button>
+        <button type="button" id="btn-cancelar" class="btn btn-cancel" onclick="cancelarEdicion()">Cancelar Edición</button>
+      </form>
+    </div>
+
+    <div class="table-box">
+      <div class="top-actions">
+        <input type="text" id="buscar" placeholder="🔍 Buscar por nombre o ubicación..." onkeyup="filtrarTabla()">
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Foto</th>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Ubicación</th>
+            <th>Precio</th>
+            <th>Stock</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tabla-plantas">
+          <!-- Carga dinámicamente -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    let plantasData = [];
+
+    // Fallback por si la imagen tiene otra variación de nombre
+    const variantesLogo = ['/logo.jpg', '/logo.png', '/logo.JPG', '/logo.PNG'];
+    let idxVar = 0;
+    function intentarOtrosLogos(img) {
+      if (idxVar < variantesLogo.length) {
+        img.src = variantesLogo[idxVar];
+        idxVar++;
+      }
+    }
+
+    // Cargar inventario desde el servidor
+    async function cargarInventario() {
+      let res;
+      try {
+        res = await fetch('/api/plantas');
+        if (!res.ok) throw new Error();
+      } catch (e1) {
+        try {
+          res = await fetch('/plantas');
+        } catch (e2) {
+          console.error("Error al conectar con la API");
+          return;
+        }
+      }
+      if (res && res.ok) {
+        plantasData = await res.json();
+        renderTabla(plantasData);
+      }
+    }
+
+    // Renderizar tabla y actualizar Dashboard
+    function renderTabla(lista) {
+      const tbody = document.getElementById('tabla-plantas');
+      tbody.innerHTML = '';
+
+      let totalStock = 0;
+      let totalValor = 0;
+
+      lista.forEach(p => {
+        const stockNum = Number(p.stock || 0);
+        const precioNum = Number(p.precio || 0);
+        totalStock += stockNum;
+        totalValor += precioNum * stockNum;
+
+        const imgTag = p.foto ? `<img src="${p.foto}" class="img-thumb">` : `<div class="img-thumb" style="display:flex;align-items:center;justify-content:center;color:#aaa;">🌱</div>`;
+        const badgeBajo = stockNum <= 3 ? `<span class="badge-bajo">¡Bajo!</span>` : '';
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${imgTag}</td>
+          <td style="font-weight:bold; color:#555;">#${p.id}</td>
+          <td>
+            <strong style="font-size:14px; color:#1b4d2e;">${p.nombre}</strong><br>
+            <span style="color:#777; font-size:12px;">${p.nombre_cientifico || ''} ${p.categoria ? '| ' + p.categoria : ''}</span>
+          </td>
+          <td>📍 ${p.ubicacion || 'Sin definir'}</td>
+          <td style="font-weight:bold;">$${precioNum.toLocaleString('es-CL')}</td>
+          <td><strong>${stockNum}</strong> ${badgeBajo}</td>
+          <td>
+            <button class="action-btn btn-venta" onclick="descontarVenta(${p.id})">🏷️ -1 Venta</button>
+            <button class="action-btn btn-edit" onclick="prepararEdicion(${p.id})">✏️</button>
+            <button class="action-btn btn-delete" onclick="eliminarPlanta(${p.id})">🗑️</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      document.getElementById('total-especies').innerText = lista.length;
+      document.getElementById('total-stock').innerText = totalStock;
+      document.getElementById('total-valor').innerText = '$' + totalValor.toLocaleString('es-CL');
+    }
+
+    // Buscador
+    function filtrarTabla() {
+      const q = document.getElementById('buscar').value.toLowerCase();
+      const filtradas = plantasData.filter(p => 
+        (p.nombre && p.nombre.toLowerCase().includes(q)) || 
+        (p.ubicacion && p.ubicacion.toLowerCase().includes(q))
+      );
+      renderTabla(filtradas);
+    }
+
+    // Descontar venta (-1)
+    async function descontarVenta(id) {
+      try {
+        await fetch(`/api/plantas/${id}/venta`, { method: 'POST' });
+      } catch (e) {
+        await fetch(`/plantas/${id}/venta`, { method: 'POST' });
+      }
+      cargarInventario();
+    }
+
+    // Eliminar
+    async function eliminarPlanta(id) {
+      if (confirm(`¿Estás seguro de eliminar la planta #${id}?`)) {
+        try {
+          await fetch(`/api/plantas/${id}`, { method: 'DELETE' });
+        } catch (e) {
+          await fetch(`/api/plantas/${id}/delete`, { method: 'POST' });
+        }
+        cargarInventario();
+      }
+    }
+
+    // Preparar Edición
+    function prepararEdicion(id) {
+      const planta = plantasData.find(p => p.id === id);
+      if (!planta) return;
+
+      document.getElementById('edit-id').value = planta.id;
+      document.getElementById('nombre').value = planta.nombre || '';
+      document.getElementById('nombre_cientifico').value = planta.nombre_cientifico || '';
+      document.getElementById('categoria').value = planta.categoria || '';
+      document.getElementById('ubicacion').value = planta.ubicacion || '';
+      document.getElementById('precio').value = planta.precio || '';
+      document.getElementById('stock').value = planta.stock || '';
+
+      document.getElementById('form-titulo').innerText = `Editar Planta #${planta.id}`;
+      document.getElementById('btn-submit').innerText = 'Guardar Cambios';
+      document.getElementById('btn-cancelar').style.display = 'block';
+    }
+
+    function cancelarEdicion() {
+      document.getElementById('edit-id').value = '';
+      document.getElementById('form-planta').reset();
+      document.getElementById('form-titulo').innerText = 'Registrar Planta';
+      document.getElementById('btn-submit').innerText = 'Agregar Planta';
+      document.getElementById('btn-cancelar').style.display = 'none';
+    }
+
+    // Submit Guardar / Editar
+    document.getElementById('form-planta').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const editId = document.getElementById('edit-id').value;
+
+      try {
+        if (editId) {
+          await fetch(`/api/plantas/${editId}`, { method: 'PUT', body: formData });
+        } else {
+          await fetch('/api/plantas', { method: 'POST', body: formData });
+        }
+      } catch (err) {
+        if (editId) {
+          await fetch(`/api/plantas/${editId}/edit`, { method: 'POST', body: formData });
+        } else {
+          await fetch('/plantas', { method: 'POST', body: formData });
+        }
+      }
+
+      cancelarEdicion();
+      cargarInventario();
+    });
+
+    // Exportar Excel
+    function exportarExcel() {
+      let csv = 'ID;Nombre;Cientifico;Categoria;Ubicacion;Precio;Stock\n';
+      plantasData.forEach(p => {
+        csv += `${p.id};"${p.nombre || ''}";"${p.nombre_cientifico || ''}";"${p.categoria || ''}";"${p.ubicacion || ''}";${p.precio || 0};${p.stock || 0}\n`;
+      });
+      const blob = new Blob(["\ufeff" + csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `inventario_vivero_${new Date().toISOString().slice(0,10)}.csv`;
+      link.click();
+    }
+
+    // Generar Reporte Imprimible
+    function imprimirReporte() {
+      const ventana = window.open('', '', 'width=900,height=700');
+      
+      let filasHTML = '';
+      plantasData.forEach(p => {
+        filasHTML += `
+          <tr>
+            <td style="padding: 8px; border-bottom: 1px solid #ddd;">#${p.id}</td>
+            <td style="padding: 8px; border-bottom: 1px solid #ddd;">
+              <strong>${p.nombre}</strong><br>
+              <span style="color: #666; font-size: 12px;">${p.nombre_cientifico || ''}</span>
+            </td>
+            <td style="padding: 8px; border-bottom: 1px solid #ddd;">${p.categoria || '-'}</td>
+            <td style="padding: 8px; border-bottom: 1px solid #ddd;">${p.ubicacion || '-'}</td>
+            <td style="padding: 8px; border-bottom: 1px solid #ddd; text-align: right;">$${Number(p.precio || 0).toLocaleString('es-CL')}</td>
+            <td style="padding: 8px; border-bottom: 1px solid #ddd; text-align: center;">${p.stock}</td>
+          </tr>
+        `;
+      });
+
+      const contenidoDoc = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Reporte de Inventario - Vivero Sol y Sombra</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 30px; color: #2d3748; }
+            .header { border-bottom: 3px solid #1b4d2e; padding-bottom: 10px; margin-bottom: 20px; }
+            h1 { margin: 0; color: #1b4d2e; font-size: 22px; }
+            .fecha { color: #718096; font-size: 13px; margin-top: 5px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+            th { background-color: #1b4d2e; color: white; padding: 10px; text-align: left; font-size: 13px; }
+            button { display: inline-block; margin-bottom: 15px; padding: 10px 18px; background: #1b4d2e; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+            @media print { button { display: none; } }
+          </style>
+        </head>
+        <body>
+          <button onclick="window.print()">🖨️ Imprimir / Guardar como PDF</button>
+          <div class="header">
+            <h1>🌿 Agro Servicio Sol y Sombra — Reporte Oficial de Inventario</h1>
+            <div class="fecha">Fecha de emisión: ${new Date().toLocaleDateString('es-CL')}</div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Nombre / Especie</th>
+                <th>Categoría</th>
+                <th>Ubicación</th>
+                <th style="text-align: right;">Precio</th>
+                <th style="text-align: center;">Stock</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${filasHTML}
+            </tbody>
+          </table>
+        </body>
+        </html>
+      `;
+
+      ventana.document.write(contenidoDoc);
+      ventana.document.close();
+    }
+
+    // Cargar datos al iniciar
+    cargarInventario();
+  </script>
+</body>
+</html>
