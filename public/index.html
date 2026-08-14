@@ -40,7 +40,7 @@
 
     .table-box { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); }
     .top-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-    .top-actions input { width: 320px; padding: 8px 12px; border: 1px solid #ccc; border-radius: 5px; font-size: 13px; }
+    .top-actions input, .top-actions select { padding: 8px 12px; border: 1px solid #ccc; border-radius: 5px; font-size: 13px; }
 
     table { width: 100%; border-collapse: collapse; }
     th { background-color: #1b4d2e; color: white; padding: 10px 12px; text-align: left; font-size: 13px; font-weight: 600; }
@@ -133,7 +133,7 @@
 
       <div class="table-box">
         <div class="top-actions">
-          <input type="text" id="buscar" placeholder="🔍 Buscar por nombre o ubicación..." onkeyup="filtrarTabla()">
+          <input type="text" id="buscar" style="width: 320px;" placeholder="🔍 Buscar por nombre o ubicación..." onkeyup="filtrarTabla()">
         </div>
         <table>
           <thead>
@@ -166,7 +166,17 @@
     </div>
 
     <div class="table-box">
-      <h2>Historial de Transacciones</h2>
+      <div class="top-actions">
+        <h2>Historial de Transacciones</h2>
+        <div>
+          <label style="font-weight: bold; font-size: 13px; margin-right: 5px;">Filtrar por:</label>
+          <select id="filtro-ventas" onchange="filtrarVentas()">
+            <option value="hoy">📅 Ventas de Hoy</option>
+            <option value="mes">📆 Este Mes</option>
+            <option value="todas">📜 Histórico Completo</option>
+          </select>
+        </div>
+      </div>
       <br>
       <table>
         <thead>
@@ -231,11 +241,35 @@
         let res = await fetch('/api/ventas');
         if (res.ok) {
           ventasData = await res.json();
-          renderTablaVentas(ventasData);
+          filtrarVentas();
         }
       } catch (e) {
         console.error("Error al cargar ventas:", e);
       }
+    }
+
+    function filtrarVentas() {
+      const opcion = document.getElementById('filtro-ventas').value;
+      const hoy = new Date();
+      
+      // Formato DD-MM-YYYY de hoy
+      const dia = String(hoy.getDate()).padStart(2, '0');
+      const mes = String(hoy.getMonth() + 1).padStart(2, '0');
+      const anio = hoy.getFullYear();
+      const fechaHoyStr = `${dia}-${mes}-${anio}`;
+      const mesAnioStr = `-${mes}-${anio}`;
+
+      let ventasFiltradas = [];
+
+      if (opcion === 'hoy') {
+        ventasFiltradas = ventasData.filter(v => v.fecha && v.fecha.includes(fechaHoyStr));
+      } else if (opcion === 'mes') {
+        ventasFiltradas = ventasData.filter(v => v.fecha && v.fecha.includes(mesAnioStr));
+      } else {
+        ventasFiltradas = [...ventasData];
+      }
+
+      renderTablaVentas(ventasFiltradas);
     }
 
     function renderTabla(lista) {
@@ -282,17 +316,21 @@
       tbody.innerHTML = '';
       let totalMonto = 0;
 
-      ventas.forEach(v => {
-        totalMonto += Number(v.precio || 0);
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>📅 ${v.fecha}</td>
-          <td>#${v.plantaId}</td>
-          <td><strong>${v.nombre}</strong></td>
-          <td style="font-weight:bold; color:#1b4d2e;">$${Number(v.precio).toLocaleString('es-CL')}</td>
-        `;
-        tbody.appendChild(tr);
-      });
+      if (ventas.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#888; padding:20px;">No hay ventas registradas para este periodo.</td></tr>';
+      } else {
+        ventas.forEach(v => {
+          totalMonto += Number(v.precio || 0);
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>📅 ${v.fecha}</td>
+            <td>#${v.plantaId}</td>
+            <td><strong>${v.nombre}</strong></td>
+            <td style="font-weight:bold; color:#1b4d2e;">$${Number(v.precio).toLocaleString('es-CL')}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
 
       document.getElementById('cant-ventas-total').innerText = ventas.length;
       document.getElementById('monto-ventas-total').innerText = '$' + totalMonto.toLocaleString('es-CL');
