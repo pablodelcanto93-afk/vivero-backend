@@ -6,12 +6,12 @@ const multer = require('multer');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// CLAVE DE SEGURIDAD (Puedes cambiar '1234' por la clave que quieras)
+// CLAVE DE SEGURIDAD
 const CLAVE_ADMIN = '1234';
 
 app.use(express.static('public'));
 
-// Configuración para subir imágenes de plantas
+// Configuración de subida de fotos
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const dir = path.join(__dirname, 'public', 'uploads');
@@ -26,17 +26,14 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-// Archivos JSON de base de datos
+// Archivos de base de datos
 const DATA_FILE = path.join(__dirname, 'plantas.json');
 const VENTAS_FILE = path.join(__dirname, 'ventas.json');
 
 function obtenerPlantas() {
   if (!fs.existsSync(DATA_FILE)) {
     const iniciales = [
-      { id: 11, nombre: "Níspero", nombre_cientifico: "Nispero", categoria: "Frutal", ubicacion: "Nave sombra", precio: 5000, stock: 6 },
-      { id: 12, nombre: "Olivos", nombre_cientifico: "", categoria: "Frutal", ubicacion: "Nave sombra", precio: 15000, stock: 3 },
-      { id: 13, nombre: "Aloe vera", nombre_cientifico: "", categoria: "", ubicacion: "nave sombra", precio: 5000, stock: 6 },
-      { id: 14, nombre: "Stenocarpus rojo M", nombre_cientifico: "", categoria: "Cierre", ubicacion: "nave sombra", precio: 1000, stock: 20 }
+      { id: 1, nombre: "Níspero", nombre_cientifico: "Eriobotrya japonica", categoria: "Frutal", ubicacion: "Nave sombra", precio: 5000, stock: 6 }
     ];
     fs.writeFileSync(DATA_FILE, JSON.stringify(iniciales, null, 2));
     return iniciales;
@@ -60,7 +57,7 @@ function obtenerVentas() {
 
 function guardarVenta(venta) {
   const ventas = obtenerVentas();
-  ventas.unshift(venta); // Agregar al principio
+  ventas.unshift(venta);
   fs.writeFileSync(VENTAS_FILE, JSON.stringify(ventas, null, 2));
 }
 
@@ -73,9 +70,9 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// --- RUTAS DE LA API ---
+// --- RUTAS API ---
 
-// Validar clave desde el frontend
+// Validar clave
 app.post('/api/login', (req, res) => {
   const { pin } = req.body;
   if (pin === CLAVE_ADMIN) {
@@ -85,20 +82,19 @@ app.post('/api/login', (req, res) => {
   }
 });
 
-// 1. Obtener todas las plantas
+// Obtener plantas
 const GET_PLANTAS_HANDLER = (req, res) => {
   res.json(obtenerPlantas());
 };
 app.get('/api/plantas', GET_PLANTAS_HANDLER);
 app.get('/plantas', GET_PLANTAS_HANDLER);
-app.get('/api/inventario', GET_PLANTAS_HANDLER);
 
-// 2. Obtener Historial de Ventas
+// Obtener Ventas
 app.get('/api/ventas', (req, res) => {
   res.json(obtenerVentas());
 });
 
-// 3. Agregar nueva planta
+// Agregar planta
 const POST_PLANTA_HANDLER = (req, res) => {
   const plantas = obtenerPlantas();
   const { nombre, nombre_cientifico, categoria, ubicacion, precio, stock } = req.body;
@@ -119,9 +115,8 @@ const POST_PLANTA_HANDLER = (req, res) => {
   res.status(201).json(nuevaPlanta);
 };
 app.post('/api/plantas', upload.single('foto'), POST_PLANTA_HANDLER);
-app.post('/plantas', upload.single('foto'), POST_PLANTA_HANDLER);
 
-// 4. Editar planta
+// Editar planta
 const PUT_PLANTA_HANDLER = (req, res) => {
   const id = Number(req.params.id);
   let plantas = obtenerPlantas();
@@ -148,9 +143,8 @@ const PUT_PLANTA_HANDLER = (req, res) => {
   }
 };
 app.put('/api/plantas/:id', upload.single('foto'), PUT_PLANTA_HANDLER);
-app.post('/api/plantas/:id/edit', upload.single('foto'), PUT_PLANTA_HANDLER);
 
-// 5. Eliminar planta
+// Eliminar planta
 const DELETE_PLANTA_HANDLER = (req, res) => {
   const id = Number(req.params.id);
   let plantas = obtenerPlantas();
@@ -164,9 +158,8 @@ const DELETE_PLANTA_HANDLER = (req, res) => {
   }
 };
 app.delete('/api/plantas/:id', DELETE_PLANTA_HANDLER);
-app.post('/api/plantas/:id/delete', DELETE_PLANTA_HANDLER);
 
-// 6. Registrar Venta (-1 unidad + Registro Histórico)
+// Descontar venta
 const VENTA_HANDLER = (req, res) => {
   const id = Number(req.params.id);
   let plantas = obtenerPlantas();
@@ -177,7 +170,6 @@ const VENTA_HANDLER = (req, res) => {
       plantas[index].stock -= 1;
       guardarPlantas(plantas);
 
-      // Guardar en el historial de ventas
       const fechaActual = new Date().toLocaleString('es-CL', { timeZone: 'America/Santiago' });
       guardarVenta({
         idVenta: Date.now(),
@@ -193,9 +185,7 @@ const VENTA_HANDLER = (req, res) => {
   }
 };
 app.post('/api/plantas/:id/venta', VENTA_HANDLER);
-app.post('/plantas/:id/venta', VENTA_HANDLER);
 
-// Iniciar Servidor
 app.listen(PORT, () => {
-  console.log(`🚀 Servidor Vivero Sol y Sombra activo en http://localhost:${PORT}`);
+  console.log(`🚀 Servidor activo en http://localhost:${PORT}`);
 });
