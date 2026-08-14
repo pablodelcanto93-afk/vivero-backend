@@ -6,6 +6,7 @@ const multer = require('multer');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+app.use(express.static('public'));
 // Configuración para subir imágenes de plantas
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
