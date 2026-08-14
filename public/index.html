@@ -7,99 +7,90 @@
   <link rel="icon" type="image/png" href="logo.png">
   <style>
     * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; }
-    body { background-color: #eef2f0; color: #333; padding: 20px; }
+    body { background-color: #eef2f0; color: #333; padding: 15px; }
     
-    /* Pantalla de Bloqueo / Login Inicial */
+    /* Pantalla de Bloqueo */
     #lock-screen {
       position: fixed;
       top: 0; left: 0; width: 100%; height: 100%;
       background: #1b4d2e;
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      display: flex; justify-content: center; align-items: center;
       z-index: 9999;
     }
     .login-box {
-      background: white;
-      padding: 30px 25px;
-      border-radius: 12px;
-      width: 320px;
-      text-align: center;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      background: white; padding: 30px 25px; border-radius: 12px;
+      width: 320px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.3);
     }
-    .login-box img {
-      width: 70px; height: 70px;
-      border-radius: 50%;
-      object-fit: cover;
-      margin-bottom: 12px;
-      border: 2px solid #d4af37;
-    }
-    .login-box h2 {
-      font-size: 18px;
-      color: #1b4d2e;
-      margin-bottom: 5px;
-    }
-    .login-box p {
-      font-size: 13px;
-      color: #666;
-      margin-bottom: 15px;
-    }
-    .login-box input {
-      width: 100%;
-      padding: 10px;
-      font-size: 20px;
-      text-align: center;
-      letter-spacing: 5px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      margin-bottom: 15px;
-    }
+    .login-box img { width: 70px; height: 70px; border-radius: 50%; object-fit: cover; margin-bottom: 12px; border: 2px solid #d4af37; }
+    .login-box h2 { font-size: 18px; color: #1b4d2e; margin-bottom: 5px; }
+    .login-box p { font-size: 13px; color: #666; margin-bottom: 15px; }
+    .login-box input { width: 100%; padding: 10px; font-size: 20px; text-align: center; letter-spacing: 5px; border: 1px solid #ccc; border-radius: 6px; margin-bottom: 15px; }
 
     /* Estilos del Sistema */
-    header { display: flex; justify-content: space-between; align-items: center; background-color: #1b4d2e; color: white; padding: 15px 25px; border-radius: 8px; margin-bottom: 15px; }
-    .header-brand { display: flex; align-items: center; gap: 15px; }
-    .header-logo { width: 55px; height: 55px; border-radius: 50%; object-fit: cover; background: white; border: 2px solid #d4af37; }
-    h1 { font-size: 20px; font-weight: bold; }
+    header { display: flex; justify-content: space-between; align-items: center; background-color: #1b4d2e; color: white; padding: 12px 20px; border-radius: 8px; margin-bottom: 15px; }
+    .header-brand { display: flex; align-items: center; gap: 12px; }
+    .header-logo { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; background: white; border: 2px solid #d4af37; }
+    h1 { font-size: 18px; font-weight: bold; }
     
-    .nav-tabs { display: flex; gap: 10px; margin-bottom: 20px; }
-    .tab-btn { padding: 10px 20px; border: none; background: #cbd5e0; color: #2d3748; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; }
+    .nav-tabs { display: flex; gap: 10px; margin-bottom: 15px; }
+    .tab-btn { padding: 9px 18px; border: none; background: #cbd5e0; color: #2d3748; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px; }
     .tab-btn.active { background: #1b4d2e; color: white; }
 
-    .top-buttons { display: flex; gap: 10px; }
+    .top-buttons { display: flex; gap: 8px; }
     
-    .dashboard { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px; }
-    .card { background: white; padding: 18px; border-radius: 8px; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.04); }
-    .card h3 { font-size: 13px; color: #555; margin-bottom: 6px; font-weight: bold; text-transform: uppercase; }
-    .card .val { font-size: 26px; font-weight: 800; color: #1b4d2e; }
+    .dashboard { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 15px; }
+    .card { background: white; padding: 15px; border-radius: 8px; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.04); }
+    .card h3 { font-size: 11px; color: #555; margin-bottom: 4px; font-weight: bold; text-transform: uppercase; }
+    .card .val { font-size: 22px; font-weight: 800; color: #1b4d2e; }
 
-    .main-container { display: grid; grid-template-columns: 290px 1fr; gap: 20px; }
-    .form-box { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); }
-    .form-box h2 { font-size: 18px; margin-bottom: 15px; color: #1b4d2e; font-weight: bold; }
-    .form-group { margin-bottom: 12px; }
-    .form-group label { display: block; font-size: 12px; margin-bottom: 4px; font-weight: 600; color: #444; }
-    .form-group input { width: 100%; padding: 8px 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; }
+    /* Layout principal adaptado para incluir Carrito */
+    .main-layout { display: grid; grid-template-columns: 260px 1fr 300px; gap: 15px; }
     
-    .btn { padding: 9px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; }
-    .btn-green-main { background-color: #1b4d2e; color: white; width: 100%; justify-content: center; margin-top: 10px; }
+    .form-box { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); height: fit-content; }
+    .form-box h2 { font-size: 16px; margin-bottom: 12px; color: #1b4d2e; font-weight: bold; }
+    .form-group { margin-bottom: 10px; }
+    .form-group label { display: block; font-size: 11px; margin-bottom: 3px; font-weight: 600; color: #444; }
+    .form-group input { width: 100%; padding: 7px 9px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; }
+    
+    .btn { padding: 8px 12px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 12px; display: inline-flex; align-items: center; gap: 5px; }
+    .btn-green-main { background-color: #1b4d2e; color: white; width: 100%; justify-content: center; margin-top: 8px; }
     .btn-cancel { background-color: #718096; color: white; width: 100%; justify-content: center; margin-top: 5px; display: none; }
     .btn-excel { background-color: #107c41; color: white; }
     .btn-reporte { background-color: #2b6cb0; color: white; }
 
-    .table-box { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); }
-    .top-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-    .top-actions input, .top-actions select { padding: 8px 12px; border: 1px solid #ccc; border-radius: 5px; font-size: 13px; }
+    .table-box { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); }
+    .top-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .top-actions input, .top-actions select { padding: 7px 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 12px; }
 
     table { width: 100%; border-collapse: collapse; }
-    th { background-color: #1b4d2e; color: white; padding: 10px 12px; text-align: left; font-size: 13px; font-weight: 600; }
-    td { padding: 10px 12px; border-bottom: 1px solid #eee; vertical-align: middle; font-size: 13px; }
+    th { background-color: #1b4d2e; color: white; padding: 8px 10px; text-align: left; font-size: 12px; font-weight: 600; }
+    td { padding: 8px 10px; border-bottom: 1px solid #eee; vertical-align: middle; font-size: 12px; }
     tr:nth-child(even) { background-color: #fafafa; }
     
-    .img-thumb { width: 45px; height: 45px; object-fit: cover; border-radius: 4px; border: 1px solid #ddd; background: #f0f0f0; }
-    .action-btn { border: none; padding: 6px 10px; border-radius: 4px; font-size: 12px; font-weight: 600; cursor: pointer; margin-right: 3px; }
-    .btn-venta { background-color: #e2e8f0; color: #2d3748; }
+    .img-thumb { width: 40px; height: 40px; object-fit: cover; border-radius: 4px; border: 1px solid #ddd; background: #f0f0f0; }
+    .action-btn { border: none; padding: 5px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; cursor: pointer; margin-right: 2px; }
+    .btn-add-cart { background-color: #276749; color: white; }
     .btn-edit { background-color: #edf2f7; color: #4a5568; }
     .btn-delete { background-color: #fed7d7; color: #9b2c2c; }
-    .badge-bajo { background-color: #feebc8; color: #c05621; font-size: 11px; padding: 2px 6px; border-radius: 10px; font-weight: bold; margin-left: 4px; }
+    .badge-bajo { background-color: #feebc8; color: #c05621; font-size: 10px; padding: 2px 5px; border-radius: 10px; font-weight: bold; margin-left: 3px; }
+
+    /* Estilos de la caja del Carrito / POS */
+    .cart-box { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); height: fit-content; border: 2px solid #1b4d2e; }
+    .cart-box h2 { font-size: 16px; color: #1b4d2e; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; }
+    .cart-items { max-height: 280px; overflow-y: auto; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+    .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px dashed #eee; font-size: 12px; }
+    .cart-item-controls { display: flex; align-items: center; gap: 5px; }
+    .cart-item-controls button { width: 22px; height: 22px; border: 1px solid #ccc; background: #edf2f7; border-radius: 3px; font-weight: bold; cursor: pointer; }
+    .cart-total-box { background: #f7fafc; padding: 10px; border-radius: 6px; text-align: right; margin-bottom: 10px; }
+    .cart-total-box span { font-size: 11px; color: #666; font-weight: bold; text-transform: uppercase; }
+    .cart-total-box div { font-size: 22px; font-weight: 800; color: #1b4d2e; }
+
+    /* Estilos para impresión del Ticket */
+    @media print {
+      body * { visibility: hidden; }
+      #ticket-impresion, #ticket-impresion * { visibility: visible; }
+      #ticket-impresion { position: absolute; left: 0; top: 0; width: 100%; font-family: monospace; font-size: 12px; }
+    }
   </style>
 </head>
 <body>
@@ -120,7 +111,7 @@
     <header>
       <div class="header-brand">
         <img src="/logo/logo.jpeg" alt="Logo" class="header-logo" onerror="this.src='/logo.png'"> 
-        <h1>🌿 Agro Servicio Sol y Sombra — Inventario & Ventas Pro</h1>
+        <h1>🌿 Agro Servicio Sol y Sombra — POS & Inventario</h1>
       </div>
       <div class="top-buttons">
         <button class="btn btn-excel" onclick="exportarExcel()">📊 Exportar Excel</button>
@@ -129,7 +120,7 @@
     </header>
 
     <div class="nav-tabs">
-      <button class="tab-btn active" id="btn-tab-inventario" onclick="cambiarPestana('inventario')">📦 Inventario de Plantas</button>
+      <button class="tab-btn active" id="btn-tab-inventario" onclick="cambiarPestana('inventario')">📦 Inventario & Punto de Venta</button>
       <button class="tab-btn" id="btn-tab-ventas" onclick="cambiarPestana('ventas')">📋 Registro de Ventas Realizadas</button>
     </div>
 
@@ -149,7 +140,8 @@
         </div>
       </div>
 
-      <div class="main-container">
+      <div class="main-layout">
+        <!-- FORMULARIO REGISTRO/EDICION -->
         <div class="form-box">
           <h2 id="form-titulo">Registrar Planta</h2>
           <form id="form-planta" enctype="multipart/form-data">
@@ -187,28 +179,45 @@
           </form>
         </div>
 
+        <!-- TABLA INVENTARIO -->
         <div class="table-box">
           <div class="top-actions">
-            <input type="text" id="buscar" style="width: 320px;" placeholder="🔍 Buscar por nombre o ubicación..." onkeyup="filtrarTabla()">
+            <input type="text" id="buscar" style="width: 100%;" placeholder="🔍 Buscar por nombre o ubicación..." onkeyup="filtrarTabla()">
           </div>
           <table>
             <thead>
               <tr>
                 <th>Foto</th>
-                <th>ID</th>
                 <th>Nombre</th>
-                <th>Ubicación</th>
                 <th>Precio</th>
                 <th>Stock</th>
-                <th>Acciones</th>
+                <th>Acción</th>
               </tr>
             </thead>
             <tbody id="tabla-plantas"></tbody>
           </table>
         </div>
+
+        <!-- CARRITO DE VENTAS -->
+        <div class="cart-box">
+          <h2>🛒 Ticket Cliente <button style="font-size: 11px; padding: 2px 6px; cursor: pointer;" onclick="vaciarCarrito()">Limpiar</button></h2>
+          
+          <div class="cart-items" id="cart-items-list">
+            <p style="text-align: center; color: #888; font-size: 12px; margin-top: 20px;">No has agregado plantas al ticket.</p>
+          </div>
+
+          <div class="cart-total-box">
+            <span>Total a Pagar</span>
+            <div id="cart-total">$0</div>
+          </div>
+
+          <button class="btn btn-green-main" style="margin-bottom: 6px;" onclick="imprimirTicketCliente()">🖨️ Imprimir Ticket de Caja</button>
+          <button class="btn btn-reporte" style="width: 100%; justify-content: center;" onclick="procesarVentaCarrito()">✅ Confirmar & Descontar Venta</button>
+        </div>
       </div>
     </div>
 
+    <!-- PESTAÑA HISTORIAL DE VENTAS -->
     <div id="seccion-ventas" style="display: none;">
       <div class="dashboard" style="grid-template-columns: repeat(2, 1fr);">
         <div class="card">
@@ -225,7 +234,7 @@
         <div class="top-actions">
           <h2>Historial de Transacciones</h2>
           <div>
-            <label style="font-weight: bold; font-size: 13px; margin-right: 5px;">Filtrar por:</label>
+            <label style="font-weight: bold; font-size: 12px; margin-right: 5px;">Filtrar por:</label>
             <select id="filtro-ventas" onchange="filtrarVentas()">
               <option value="hoy">📅 Ventas de Hoy</option>
               <option value="mes">📆 Este Mes</option>
@@ -249,11 +258,14 @@
     </div>
   </div>
 
+  <!-- AREA OCULTA DE IMPRESION DE TICKET -->
+  <div id="ticket-impresion" style="display: none;"></div>
+
   <script>
     let plantasData = [];
     let ventasData = [];
+    let carrito = [];
 
-    // Validar contraseña inicial
     async function ingresarApp() {
       const pin = document.getElementById('login-pin').value;
       try {
@@ -268,7 +280,7 @@
           document.getElementById('app-content').style.display = 'block';
           cargarInventario();
         } else {
-          alert("🔒 Clave incorrecta. Inténtalo de nuevo.");
+          alert("🔒 Clave incorrecta.");
           document.getElementById('login-pin').value = '';
         }
       } catch (err) {
@@ -315,6 +327,173 @@
       }
     }
 
+    function renderTabla(lista) {
+      const tbody = document.getElementById('tabla-plantas');
+      tbody.innerHTML = '';
+      let totalStock = 0, totalValor = 0;
+
+      lista.forEach(p => {
+        const stockNum = Number(p.stock || 0);
+        const precioNum = Number(p.precio || 0);
+        totalStock += stockNum;
+        totalValor += precioNum * stockNum;
+
+        const imgTag = p.foto ? `<img src="${p.foto}" class="img-thumb">` : `<div class="img-thumb" style="display:flex;align-items:center;justify-content:center;">🌱</div>`;
+        const badgeBajo = stockNum <= 3 ? `<span class="badge-bajo">¡Bajo!</span>` : '';
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${imgTag}</td>
+          <td>
+            <strong style="color:#1b4d2e;">${p.nombre}</strong><br>
+            <span style="color:#777; font-size:11px;">📍 ${p.ubicacion || 'N/A'}</span>
+          </td>
+          <td style="font-weight:bold;">$${precioNum.toLocaleString('es-CL')}</td>
+          <td><strong>${stockNum}</strong> ${badgeBajo}</td>
+          <td>
+            <button class="action-btn btn-add-cart" onclick="agregarAlCarrito(${p.id})">➕ Carrito</button>
+            <button class="action-btn btn-edit" onclick="prepararEdicion(${p.id})">✏️</button>
+            <button class="action-btn btn-delete" onclick="ejecutareliminarPlanta(${p.id})">🗑️</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      document.getElementById('total-especies').innerText = lista.length;
+      document.getElementById('total-stock').innerText = totalStock;
+      document.getElementById('total-valor').innerText = '$' + totalValor.toLocaleString('es-CL');
+    }
+
+    /* --- LÓGICA DEL CARRITO --- */
+    function agregarAlCarrito(id) {
+      const planta = plantasData.find(p => p.id === id);
+      if (!planta || planta.stock <= 0) {
+        alert("Sin stock disponible.");
+        return;
+      }
+
+      const itemEnCarrito = carrito.find(item => item.id === id);
+      if (itemEnCarrito) {
+        if (itemEnCarrito.cantidad < planta.stock) {
+          itemEnCarrito.cantidad++;
+        } else {
+          alert("Alcanzaste el límite de stock disponible.");
+        }
+      } else {
+        carrito.push({ id: planta.id, nombre: planta.nombre, precio: Number(planta.precio), cantidad: 1, stockMax: planta.stock });
+      }
+
+      renderCarrito();
+    }
+
+    function cambiarCantidadCarrito(id, delta) {
+      const item = carrito.find(i => i.id === id);
+      if (!item) return;
+
+      item.cantidad += delta;
+      if (item.cantidad <= 0) {
+        carrito = carrito.filter(i => i.id !== id);
+      } else if (item.cantidad > item.stockMax) {
+        item.cantidad = item.stockMax;
+        alert("Límite de stock alcanzado.");
+      }
+      renderCarrito();
+    }
+
+    function vaciarCarrito() {
+      carrito = [];
+      renderCarrito();
+    }
+
+    function renderCarrito() {
+      const container = document.getElementById('cart-items-list');
+      container.innerHTML = '';
+      let total = 0;
+
+      if (carrito.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: #888; font-size: 12px; margin-top: 20px;">No has agregado plantas al ticket.</p>';
+      } else {
+        carrito.forEach(item => {
+          const subtotal = item.precio * item.cantidad;
+          total += subtotal;
+
+          const div = document.createElement('div');
+          div.className = 'cart-item';
+          div.innerHTML = `
+            <div>
+              <strong>${item.nombre}</strong><br>
+              <span style="color:#666;">$${item.precio.toLocaleString('es-CL')} c/u</span>
+            </div>
+            <div class="cart-item-controls">
+              <button onclick="cambiarCantidadCarrito(${item.id}, -1)">-</button>
+              <span>${item.cantidad}</span>
+              <button onclick="cambiarCantidadCarrito(${item.id}, 1)">+</button>
+            </div>
+          `;
+          container.appendChild(div);
+        });
+      }
+
+      document.getElementById('cart-total').innerText = '$' + total.toLocaleString('es-CL');
+    }
+
+    async function procesarVentaCarrito() {
+      if (carrito.length === 0) {
+        alert("El ticket está vacío.");
+        return;
+      }
+
+      if (!confirm("¿Deseas confirmar la venta y descontar las plantas del inventario?")) return;
+
+      for (let item of carrito) {
+        for (let i = 0; i < item.cantidad; i++) {
+          await fetch(`/api/plantas/${item.id}/venta`, { method: 'POST' });
+        }
+      }
+
+      alert("¡Venta procesada con éxito!");
+      vaciarCarrito();
+      cargarInventario();
+    }
+
+    function imprimirTicketCliente() {
+      if (carrito.length === 0) {
+        alert("El ticket está vacío.");
+        return;
+      }
+
+      const ticketDiv = document.getElementById('ticket-impresion');
+      let total = 0;
+      let html = `
+        <div style="text-align:center; margin-bottom:10px;">
+          <h3>AGRO SERVICIO SOL Y SOMBRA</h3>
+          <p>Comprobante de Atención en Vivero</p>
+          <p>--------------------------------</p>
+        </div>
+      `;
+
+      carrito.forEach(item => {
+        const subtotal = item.precio * item.cantidad;
+        total += subtotal;
+        html += `<p>${item.cantidad}x ${item.nombre} - $${subtotal.toLocaleString('es-CL')}</p>`;
+      });
+
+      html += `
+        <p>--------------------------------</p>
+        <h4 style="text-align:right;">TOTAL A PAGAR: $${total.toLocaleString('es-CL')}</h4>
+        <div style="text-align:center; margin-top:15px;">
+          <p>¡Gracias por su compra!</p>
+          <p>Favor presentar en Caja</p>
+        </div>
+      `;
+
+      ticketDiv.innerHTML = html;
+      ticketDiv.style.display = 'block';
+      window.print();
+      ticketDiv.style.display = 'none';
+    }
+
+    /* --- HISTORIAL DE VENTAS --- */
     function filtrarVentas() {
       const opcion = document.getElementById('filtro-ventas').value;
       const hoy = new Date();
@@ -336,45 +515,6 @@
       }
 
       renderTablaVentas(ventasFiltradas);
-    }
-
-    function renderTabla(lista) {
-      const tbody = document.getElementById('tabla-plantas');
-      tbody.innerHTML = '';
-      let totalStock = 0, totalValor = 0;
-
-      lista.forEach(p => {
-        const stockNum = Number(p.stock || 0);
-        const precioNum = Number(p.precio || 0);
-        totalStock += stockNum;
-        totalValor += precioNum * stockNum;
-
-        const imgTag = p.foto ? `<img src="${p.foto}" class="img-thumb">` : `<div class="img-thumb" style="display:flex;align-items:center;justify-content:center;">🌱</div>`;
-        const badgeBajo = stockNum <= 3 ? `<span class="badge-bajo">¡Bajo!</span>` : '';
-
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${imgTag}</td>
-          <td style="font-weight:bold; color:#555;">#${p.id}</td>
-          <td>
-            <strong style="font-size:14px; color:#1b4d2e;">${p.nombre}</strong><br>
-            <span style="color:#777; font-size:12px;">${p.nombre_cientifico || ''} ${p.categoria ? '| ' + p.categoria : ''}</span>
-          </td>
-          <td>📍 ${p.ubicacion || 'Sin definir'}</td>
-          <td style="font-weight:bold;">$${precioNum.toLocaleString('es-CL')}</td>
-          <td><strong>${stockNum}</strong> ${badgeBajo}</td>
-          <td>
-            <button class="action-btn btn-venta" onclick="ejecutardescontarVenta(${p.id})">🏷️ -1 Venta</button>
-            <button class="action-btn btn-edit" onclick="prepararEdicion(${p.id})">✏️</button>
-            <button class="action-btn btn-delete" onclick="ejecutareliminarPlanta(${p.id})">🗑️</button>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
-
-      document.getElementById('total-especies').innerText = lista.length;
-      document.getElementById('total-stock').innerText = totalStock;
-      document.getElementById('total-valor').innerText = '$' + totalValor.toLocaleString('es-CL');
     }
 
     function renderTablaVentas(ventas) {
@@ -400,17 +540,6 @@
 
       document.getElementById('cant-ventas-total').innerText = ventas.length;
       document.getElementById('monto-ventas-total').innerText = '$' + totalMonto.toLocaleString('es-CL');
-    }
-
-    async function ejecutardescontarVenta(id) {
-      try {
-        const res = await fetch(`/api/plantas/${id}/venta`, { method: 'POST' });
-        if (res.ok) {
-          await cargarInventario();
-        }
-      } catch (e) {
-        console.error("Error al registrar venta:", e);
-      }
     }
 
     async function ejecutareliminarPlanta(id) {
