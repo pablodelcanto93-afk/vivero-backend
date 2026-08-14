@@ -9,6 +9,53 @@
     * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; }
     body { background-color: #eef2f0; color: #333; padding: 20px; }
     
+    /* Pantalla de Bloqueo / Login Inicial */
+    #lock-screen {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: #1b4d2e;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+    .login-box {
+      background: white;
+      padding: 30px 25px;
+      border-radius: 12px;
+      width: 320px;
+      text-align: center;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    }
+    .login-box img {
+      width: 70px; height: 70px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-bottom: 12px;
+      border: 2px solid #d4af37;
+    }
+    .login-box h2 {
+      font-size: 18px;
+      color: #1b4d2e;
+      margin-bottom: 5px;
+    }
+    .login-box p {
+      font-size: 13px;
+      color: #666;
+      margin-bottom: 15px;
+    }
+    .login-box input {
+      width: 100%;
+      padding: 10px;
+      font-size: 20px;
+      text-align: center;
+      letter-spacing: 5px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      margin-bottom: 15px;
+    }
+
+    /* Estilos del Sistema */
     header { display: flex; justify-content: space-between; align-items: center; background-color: #1b4d2e; color: white; padding: 15px 25px; border-radius: 8px; margin-bottom: 15px; }
     .header-brand { display: flex; align-items: center; gap: 15px; }
     .header-logo { width: 55px; height: 55px; border-radius: 50%; object-fit: cover; background: white; border: 2px solid #d4af37; }
@@ -53,153 +100,151 @@
     .btn-edit { background-color: #edf2f7; color: #4a5568; }
     .btn-delete { background-color: #fed7d7; color: #9b2c2c; }
     .badge-bajo { background-color: #feebc8; color: #c05621; font-size: 11px; padding: 2px 6px; border-radius: 10px; font-weight: bold; margin-left: 4px; }
-
-    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; }
-    .modal-content { background: white; padding: 25px; border-radius: 8px; width: 300px; text-align: center; }
-    .modal-content input { width: 100%; padding: 8px; margin: 15px 0; text-align: center; font-size: 18px; letter-spacing: 3px; }
   </style>
 </head>
 <body>
 
-  <header>
-    <div class="header-brand">
-      <img src="/logo/logo.jpeg" alt="Logo" class="header-logo" onerror="this.src='/logo.png'"> 
-      <h1>🌿 Agro Servicio Sol y Sombra — Inventario & Ventas Pro</h1>
+  <!-- PANTALLA DE ACCESO INICIAL -->
+  <div id="lock-screen">
+    <div class="login-box">
+      <img src="/logo/logo.jpeg" alt="Logo" onerror="this.src='/logo.png'">
+      <h2>Sol y Sombra</h2>
+      <p>Ingresa la clave para acceder</p>
+      <input type="password" id="login-pin" placeholder="****" maxlength="8" onkeyup="if(event.key==='Enter') ingresarApp()">
+      <button class="btn btn-green-main" onclick="ingresarApp()">🔑 Entrar al Sistema</button>
     </div>
-    <div class="top-buttons">
-      <button class="btn btn-excel" onclick="exportarExcel()">📊 Exportar Excel</button>
-      <button class="btn btn-reporte" onclick="imprimirReporte()">📄 Reporte PDF</button>
-    </div>
-  </header>
-
-  <div class="nav-tabs">
-    <button class="tab-btn active" id="btn-tab-inventario" onclick="cambiarPestana('inventario')">📦 Inventario de Plantas</button>
-    <button class="tab-btn" id="btn-tab-ventas" onclick="cambiarPestana('ventas')">📋 Registro de Ventas Realizadas</button>
   </div>
 
-  <div id="seccion-inventario">
-    <div class="dashboard">
-      <div class="card">
-        <h3>Especies Distintas</h3>
-        <div class="val" id="total-especies">0</div>
+  <!-- CONTENIDO DE LA APP -->
+  <div id="app-content" style="display: none;">
+    <header>
+      <div class="header-brand">
+        <img src="/logo/logo.jpeg" alt="Logo" class="header-logo" onerror="this.src='/logo.png'"> 
+        <h1>🌿 Agro Servicio Sol y Sombra — Inventario & Ventas Pro</h1>
       </div>
-      <div class="card">
-        <h3>Total Plantas en Stock</h3>
-        <div class="val" id="total-stock">0</div>
+      <div class="top-buttons">
+        <button class="btn btn-excel" onclick="exportarExcel()">📊 Exportar Excel</button>
+        <button class="btn btn-reporte" onclick="imprimirReporte()">📄 Reporte PDF</button>
       </div>
-      <div class="card">
-        <h3>Valor Total Inventario</h3>
-        <div class="val" id="total-valor">$0</div>
+    </header>
+
+    <div class="nav-tabs">
+      <button class="tab-btn active" id="btn-tab-inventario" onclick="cambiarPestana('inventario')">📦 Inventario de Plantas</button>
+      <button class="tab-btn" id="btn-tab-ventas" onclick="cambiarPestana('ventas')">📋 Registro de Ventas Realizadas</button>
+    </div>
+
+    <div id="seccion-inventario">
+      <div class="dashboard">
+        <div class="card">
+          <h3>Especies Distintas</h3>
+          <div class="val" id="total-especies">0</div>
+        </div>
+        <div class="card">
+          <h3>Total Plantas en Stock</h3>
+          <div class="val" id="total-stock">0</div>
+        </div>
+        <div class="card">
+          <h3>Valor Total Inventario</h3>
+          <div class="val" id="total-valor">$0</div>
+        </div>
+      </div>
+
+      <div class="main-container">
+        <div class="form-box">
+          <h2 id="form-titulo">Registrar Planta</h2>
+          <form id="form-planta" enctype="multipart/form-data">
+            <input type="hidden" id="edit-id" name="edit-id">
+            <div class="form-group">
+              <label>Nombre común *</label>
+              <input type="text" id="nombre" name="nombre" required placeholder="Ej: Níspero">
+            </div>
+            <div class="form-group">
+              <label>Nombre científico</label>
+              <input type="text" id="nombre_cientifico" name="nombre_cientifico" placeholder="Ej: Eriobotrya japonica">
+            </div>
+            <div class="form-group">
+              <label>Categoría</label>
+              <input type="text" id="categoria" name="categoria" placeholder="Ej: Frutal, Interior">
+            </div>
+            <div class="form-group">
+              <label>Ubicación física</label>
+              <input type="text" id="ubicacion" name="ubicacion" placeholder="Ej: Nave sombra">
+            </div>
+            <div class="form-group">
+              <label>Precio ($) *</label>
+              <input type="number" id="precio" name="precio" required placeholder="5000">
+            </div>
+            <div class="form-group">
+              <label>Stock inicial *</label>
+              <input type="number" id="stock" name="stock" required placeholder="10">
+            </div>
+            <div class="form-group">
+              <label>📷 Foto:</label>
+              <input type="file" id="foto" name="foto" accept="image/*" capture="environment">
+            </div>
+            <button type="submit" id="btn-submit" class="btn btn-green-main">Agregar Planta</button>
+            <button type="button" id="btn-cancelar" class="btn btn-cancel" onclick="cancelarEdicion()">Cancelar Edición</button>
+          </form>
+        </div>
+
+        <div class="table-box">
+          <div class="top-actions">
+            <input type="text" id="buscar" style="width: 320px;" placeholder="🔍 Buscar por nombre o ubicación..." onkeyup="filtrarTabla()">
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Foto</th>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Ubicación</th>
+                <th>Precio</th>
+                <th>Stock</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-plantas"></tbody>
+          </table>
+        </div>
       </div>
     </div>
 
-    <div class="main-container">
-      <div class="form-box">
-        <h2 id="form-titulo">Registrar Planta</h2>
-        <form id="form-planta" enctype="multipart/form-data">
-          <input type="hidden" id="edit-id" name="edit-id">
-          <div class="form-group">
-            <label>Nombre común *</label>
-            <input type="text" id="nombre" name="nombre" required placeholder="Ej: Níspero">
-          </div>
-          <div class="form-group">
-            <label>Nombre científico</label>
-            <input type="text" id="nombre_cientifico" name="nombre_cientifico" placeholder="Ej: Eriobotrya japonica">
-          </div>
-          <div class="form-group">
-            <label>Categoría</label>
-            <input type="text" id="categoria" name="categoria" placeholder="Ej: Frutal, Interior">
-          </div>
-          <div class="form-group">
-            <label>Ubicación física</label>
-            <input type="text" id="ubicacion" name="ubicacion" placeholder="Ej: Nave sombra">
-          </div>
-          <div class="form-group">
-            <label>Precio ($) *</label>
-            <input type="number" id="precio" name="precio" required placeholder="5000">
-          </div>
-          <div class="form-group">
-            <label>Stock inicial *</label>
-            <input type="number" id="stock" name="stock" required placeholder="10">
-          </div>
-          <div class="form-group">
-            <label>📷 Foto:</label>
-            <input type="file" id="foto" name="foto" accept="image/*" capture="environment">
-          </div>
-          <button type="submit" id="btn-submit" class="btn btn-green-main">Agregar Planta</button>
-          <button type="button" id="btn-cancelar" class="btn btn-cancel" onclick="cancelarEdicion()">Cancelar Edición</button>
-        </form>
+    <div id="seccion-ventas" style="display: none;">
+      <div class="dashboard" style="grid-template-columns: repeat(2, 1fr);">
+        <div class="card">
+          <h3>Total Plantas Vendidas</h3>
+          <div class="val" id="cant-ventas-total">0</div>
+        </div>
+        <div class="card">
+          <h3>Recaudación Total</h3>
+          <div class="val" id="monto-ventas-total">$0</div>
+        </div>
       </div>
 
       <div class="table-box">
         <div class="top-actions">
-          <input type="text" id="buscar" style="width: 320px;" placeholder="🔍 Buscar por nombre o ubicación..." onkeyup="filtrarTabla()">
+          <h2>Historial de Transacciones</h2>
+          <div>
+            <label style="font-weight: bold; font-size: 13px; margin-right: 5px;">Filtrar por:</label>
+            <select id="filtro-ventas" onchange="filtrarVentas()">
+              <option value="hoy">📅 Ventas de Hoy</option>
+              <option value="mes">📆 Este Mes</option>
+              <option value="todas">📜 Histórico Completo</option>
+            </select>
+          </div>
         </div>
+        <br>
         <table>
           <thead>
             <tr>
-              <th>Foto</th>
-              <th>ID</th>
-              <th>Nombre</th>
-              <th>Ubicación</th>
-              <th>Precio</th>
-              <th>Stock</th>
-              <th>Acciones</th>
+              <th>Fecha y Hora</th>
+              <th>ID Planta</th>
+              <th>Planta Vendida</th>
+              <th>Monto Venta</th>
             </tr>
           </thead>
-          <tbody id="tabla-plantas"></tbody>
+          <tbody id="tabla-historial-ventas"></tbody>
         </table>
-      </div>
-    </div>
-  </div>
-
-  <div id="seccion-ventas" style="display: none;">
-    <div class="dashboard" style="grid-template-columns: repeat(2, 1fr);">
-      <div class="card">
-        <h3>Total Plantas Vendidas</h3>
-        <div class="val" id="cant-ventas-total">0</div>
-      </div>
-      <div class="card">
-        <h3>Recaudación Total</h3>
-        <div class="val" id="monto-ventas-total">$0</div>
-      </div>
-    </div>
-
-    <div class="table-box">
-      <div class="top-actions">
-        <h2>Historial de Transacciones</h2>
-        <div>
-          <label style="font-weight: bold; font-size: 13px; margin-right: 5px;">Filtrar por:</label>
-          <select id="filtro-ventas" onchange="filtrarVentas()">
-            <option value="hoy">📅 Ventas de Hoy</option>
-            <option value="mes">📆 Este Mes</option>
-            <option value="todas">📜 Histórico Completo</option>
-          </select>
-        </div>
-      </div>
-      <br>
-      <table>
-        <thead>
-          <tr>
-            <th>Fecha y Hora</th>
-            <th>ID Planta</th>
-            <th>Planta Vendida</th>
-            <th>Monto Venta</th>
-          </tr>
-        </thead>
-        <tbody id="tabla-historial-ventas"></tbody>
-      </table>
-    </div>
-  </div>
-
-  <div class="modal" id="modal-seguridad">
-    <div class="modal-content">
-      <h3>🔒 Clave de Seguridad</h3>
-      <p style="font-size:12px; color:#666; margin-top:5px;">Ingresa el PIN para autorizar esta acción:</p>
-      <input type="password" id="pin-input" placeholder="****" maxlength="8">
-      <div style="display:flex; gap:10px;">
-        <button class="btn btn-green-main" onclick="confirmarSeguridad()">Confirmar</button>
-        <button class="btn btn-cancel" style="display:inline-block;" onclick="cerrarModalSeguridad()">Cancelar</button>
       </div>
     </div>
   </div>
@@ -207,7 +252,29 @@
   <script>
     let plantasData = [];
     let ventasData = [];
-    let accionPendiente = null;
+
+    // Validar contraseña inicial
+    async function ingresarApp() {
+      const pin = document.getElementById('login-pin').value;
+      try {
+        const res = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ pin })
+        });
+
+        if (res.ok) {
+          document.getElementById('lock-screen').style.display = 'none';
+          document.getElementById('app-content').style.display = 'block';
+          cargarInventario();
+        } else {
+          alert("🔒 Clave incorrecta. Inténtalo de nuevo.");
+          document.getElementById('login-pin').value = '';
+        }
+      } catch (err) {
+        alert("Error de conexión con el servidor.");
+      }
+    }
 
     function cambiarPestana(pestana) {
       if (pestana === 'inventario') {
@@ -252,7 +319,6 @@
       const opcion = document.getElementById('filtro-ventas').value;
       const hoy = new Date();
       
-      // Formato DD-MM-YYYY de hoy
       const dia = String(hoy.getDate()).padStart(2, '0');
       const mes = String(hoy.getMonth() + 1).padStart(2, '0');
       const anio = hoy.getFullYear();
@@ -298,9 +364,9 @@
           <td style="font-weight:bold;">$${precioNum.toLocaleString('es-CL')}</td>
           <td><strong>${stockNum}</strong> ${badgeBajo}</td>
           <td>
-            <button class="action-btn btn-venta" onclick="solicitarSeguridad(() => ejecutardescontarVenta(${p.id}))">🏷️ -1 Venta</button>
+            <button class="action-btn btn-venta" onclick="ejecutardescontarVenta(${p.id})">🏷️ -1 Venta</button>
             <button class="action-btn btn-edit" onclick="prepararEdicion(${p.id})">✏️</button>
-            <button class="action-btn btn-delete" onclick="solicitarSeguridad(() => ejecutareliminarPlanta(${p.id}))">🗑️</button>
+            <button class="action-btn btn-delete" onclick="ejecutareliminarPlanta(${p.id})">🗑️</button>
           </td>
         `;
         tbody.appendChild(tr);
@@ -336,39 +402,6 @@
       document.getElementById('monto-ventas-total').innerText = '$' + totalMonto.toLocaleString('es-CL');
     }
 
-    function solicitarSeguridad(fn) {
-      accionPendiente = fn;
-      document.getElementById('modal-seguridad').style.display = 'flex';
-      document.getElementById('pin-input').value = '';
-      document.getElementById('pin-input').focus();
-    }
-
-    function cerrarModalSeguridad() {
-      document.getElementById('modal-seguridad').style.display = 'none';
-      accionPendiente = null;
-    }
-
-    async function confirmarSeguridad() {
-      const pin = document.getElementById('pin-input').value;
-      try {
-        const res = await fetch('/api/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ pin })
-        });
-
-        if (res.ok) {
-          const fn = accionPendiente;
-          cerrarModalSeguridad();
-          if (fn) await fn();
-        } else {
-          alert("🔒 Clave incorrecta. Inténtalo de nuevo.");
-        }
-      } catch (err) {
-        alert("Error de conexión con el servidor.");
-      }
-    }
-
     async function ejecutardescontarVenta(id) {
       try {
         const res = await fetch(`/api/plantas/${id}/venta`, { method: 'POST' });
@@ -381,6 +414,7 @@
     }
 
     async function ejecutareliminarPlanta(id) {
+      if (!confirm("¿Seguro que deseas eliminar esta planta del inventario?")) return;
       try {
         const res = await fetch(`/api/plantas/${id}`, { method: 'DELETE' });
         if (res.ok) {
@@ -453,8 +487,6 @@
     function imprimirReporte() {
       window.print();
     }
-
-    cargarInventario();
   </script>
 </body>
 </html>
