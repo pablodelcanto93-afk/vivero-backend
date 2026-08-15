@@ -8,7 +8,6 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background-color: #f4f7f6; display: flex; flex-direction: column; min-height: 100vh; color: #333; }
 
-        /* BARRA SUPERIOR PARA MÓVIL */
         .topbar-mobile {
             display: none;
             background: #1e293b;
@@ -31,14 +30,12 @@
             cursor: pointer;
         }
 
-        /* LAYOUT PRINCIPAL */
         .app-container {
             display: flex;
             flex-grow: 1;
             position: relative;
         }
 
-        /* BARRA LATERAL (SIDEBAR) */
         .sidebar {
             width: 260px;
             background: #1e293b;
@@ -108,7 +105,6 @@
             font-weight: bold;
         }
 
-        /* CONTENIDO PRINCIPAL */
         .main-content {
             flex-grow: 1;
             padding: 20px;
@@ -119,7 +115,6 @@
         .seccion { display: none; }
         .seccion.activa { display: block; }
 
-        /* TABLAS Y TARJETAS */
         .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 20px; }
         h2 { margin-bottom: 15px; color: #1e293b; font-size: 1.3em; }
         
@@ -143,13 +138,11 @@
         .total { font-size: 1.3em; font-weight: bold; margin-top: 15px; text-align: right; color: #15803d; }
         .btn-finalizar { width: 100%; background: #0284c7; color: white; padding: 12px; border: none; border-radius: 6px; font-weight: bold; margin-top: 10px; cursor: pointer; }
 
-        /* DASHBOARD TARJETAS */
         .dash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
         .dash-card { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 4px solid #15803d; }
         .dash-card h4 { font-size: 0.8em; color: #64748b; text-transform: uppercase; margin-bottom: 5px; }
         .dash-card p { font-size: 1.4em; font-weight: bold; color: #1e293b; }
 
-        /* AJUSTES ADAPTABLES PARA CELULAR */
         @media (max-width: 768px) {
             .topbar-mobile { display: flex; }
             .grid-pos { grid-template-columns: 1fr; }
@@ -181,7 +174,6 @@
 </head>
 <body>
 
-    <!-- BARRA SUPERIOR PARA MÓVIL -->
     <div class="topbar-mobile">
         <button class="btn-toggle-menu" onclick="toggleMenu()">☰ Menú</button>
         <b style="color: #22c55e;">Vivero Sol y Sombra</b>
@@ -190,7 +182,6 @@
     <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
 
     <div class="app-container">
-        <!-- MENÚ LATERAL -->
         <div class="sidebar" id="sidebar">
             <div>
                 <div class="brand">
@@ -222,10 +213,9 @@
             </div>
         </div>
 
-        <!-- CONTENIDO CENTRAL -->
         <div class="main-content">
 
-            <!-- SECCIÓN 1: PUNTO DE VENTA -->
+            <!-- PUNTO DE VENTA -->
             <div id="sec-pos" class="seccion activa">
                 <div class="grid-pos">
                     <div>
@@ -260,7 +250,7 @@
                 </div>
             </div>
 
-            <!-- SECCIÓN 2: INVENTARIO / REGISTRO PLANTAS -->
+            <!-- INVENTARIO -->
             <div id="sec-inventario" class="seccion">
                 <div class="card">
                     <h2 id="formTitulo">+ Agregar Nueva Planta</h2>
@@ -286,7 +276,7 @@
                 </div>
             </div>
 
-            <!-- SECCIÓN 3: CIERRE DE CAJA -->
+            <!-- CIERRE DE CAJA -->
             <div id="sec-caja" class="seccion">
                 <h2>💵 Dashboard de Caja & Métricas</h2>
                 <div class="dash-grid">
@@ -302,8 +292,36 @@
                 </div>
             </div>
 
+            <!-- REPARTOS SÁBADO -->
+            <div id="sec-despachos" class="seccion">
+                <div class="card">
+                    <h2>🚚 Agendar Nuevo Reparto para el Sábado</h2>
+                    <form id="despachoForm">
+                        <input type="text" id="despCliente" placeholder="Nombre del Cliente" required>
+                        <input type="text" id="despDireccion" placeholder="Dirección de Entrega (ej: Limache / Olmué)" required>
+                        <input type="tel" id="despTelefono" placeholder="Teléfono / WhatsApp (+569...)">
+                        <input type="number" id="despMonto" placeholder="Monto Total a Cobrar ($)" required>
+                        <textarea id="despDetalle" placeholder="Detalle del pedido (ej: 2 Limones Pica, 1 Palto Cruz)"></textarea>
+                        
+                        <div>
+                            <label style="font-size:0.85em; font-weight:bold;">Estado del Pago:</label>
+                            <select id="despEstadoPago" style="margin-top:5px;">
+                                <option value="Pendiente">⏳ Pago Pendiente (Cobrar en entrega)</option>
+                                <option value="Pagado">✅ Ya Pagado (Transferencia previo envio)</option>
+                            </select>
+                        </div>
+
+                        <button type="submit">Agendar Entrega Sábado</button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h2>📋 Hoja de Ruta - Próximo Sábado</h2>
+                    <div id="listaDespachos"></div>
+                </div>
+            </div>
+
             <!-- SECCIONES EN DESARROLLO -->
-            <div id="sec-despachos" class="seccion"><div class="card"><h2>🚚 Repartos del Sábado</h2><p>Módulo para organizar entregas a domicilio.</p></div></div>
             <div id="sec-gastos" class="seccion"><div class="card"><h2>📉 Registro de Gastos</h2><p>Módulo para compras de insumos.</p></div></div>
             <div id="sec-historial" class="seccion"><div class="card"><h2>📋 Historial de Ventas</h2><p>Detalle de todas las ventas realizadas.</p></div></div>
             <div id="sec-f29" class="seccion"><div class="card"><h2>📑 Control F29 / IVA</h2><p>Módulo para facturas y respaldos contables.</p></div></div>
@@ -325,6 +343,7 @@
 
         function seleccionarOpcion(sec) {
             mostrarSeccion(sec);
+            if (sec === 'despachos') cargarDespachos();
             if (window.innerWidth <= 768) {
                 toggleMenu();
             }
@@ -427,6 +446,89 @@
             document.getElementById('statValorInventario').innerText = '$' + Number(data.valorTotalInventario).toLocaleString('es-CL');
             document.getElementById('statTotalStock').innerText = data.totalPlantasUnidades + ' u.';
             document.getElementById('statTotalVentas').innerText = '$' + Number(data.totalRecaudadoVentas).toLocaleString('es-CL');
+        }
+
+        // REPARTOS SÁBADO
+        document.getElementById('despachoForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = {
+                cliente: document.getElementById('despCliente').value,
+                direccion: document.getElementById('despDireccion').value,
+                telefono: document.getElementById('despTelefono').value,
+                monto: document.getElementById('despMonto').value,
+                detalle: document.getElementById('despDetalle').value,
+                estadoPago: document.getElementById('despEstadoPago').value
+            };
+
+            const res = await fetch('/api/despachos', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            if (res.ok) {
+                alert("¡Reparto agendado con éxito!");
+                document.getElementById('despachoForm').reset();
+                cargarDespachos();
+            }
+        });
+
+        async function cargarDespachos() {
+            const res = await fetch('/api/despachos');
+            const despachos = await res.json();
+            const cont = document.getElementById('listaDespachos');
+            cont.innerHTML = '';
+
+            if (despachos.length === 0) {
+                cont.innerHTML = '<p style="color:#666;">No hay repartos agendados para este sábado.</p>';
+                return;
+            }
+
+            despachos.reverse().forEach(d => {
+                const esEntregado = d.estadoEntrega === 'Entregado';
+                const bg = esEntregado ? '#f0fdf4' : '#fff';
+                const border = esEntregado ? '#22c55e' : '#f59e0b';
+
+                cont.innerHTML += `
+                    <div style="background: ${bg}; border-left: 5px solid ${border}; padding: 15px; border-radius: 6px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                            <div>
+                                <b style="font-size:1.1em; color:#1e293b;">👤 ${d.cliente}</b>
+                                <p style="font-size:0.9em; color:#475569; margin:4px 0;">📍 <b>Dirección:</b> ${d.direccion}</p>
+                                ${d.telefono ? `<p style="font-size:0.9em; color:#0284c7;">📞 <a href="https://wa.me/${d.telefono.replace(/\+/g,'')}" target="_blank" style="color:#0284c7; text-decoration:none;">${d.telefono} (WhatsApp)</a></p>` : ''}
+                                <p style="font-size:0.9em; color:#334155; margin-top:6px;">📦 <b>Plantas:</b> ${d.detalle}</p>
+                            </div>
+                            <div style="text-align:right;">
+                                <span style="font-size:1.2em; font-weight:bold; color:#15803d;">$${Number(d.monto).toLocaleString('es-CL')}</span>
+                                <br>
+                                <span style="font-size:0.75em; padding:2px 6px; border-radius:4px; background:${d.estadoPago === 'Pagado' ? '#bbf7d0' : '#fef08a'}; color:${d.estadoPago === 'Pagado' ? '#15803d' : '#854d0e'}; font-weight:bold; display:inline-block; margin-top:4px;">
+                                    ${d.estadoPago}
+                                </span>
+                            </div>
+                        </div>
+                        <div style="margin-top:12px; display:flex; gap:8px; justify-content:flex-end;">
+                            ${!esEntregado ? `<button onclick="marcarEntregado('${d.id}')" style="background:#22c55e; color:white; border:none; padding:6px 12px; border-radius:4px; font-weight:bold; cursor:pointer;">✅ Marcar Entregado</button>` : '<b style="color:#22c55e;">✅ Entregado</b>'}
+                            <button onclick="eliminarDespacho('${d.id}')" style="background:#ef4444; color:white; border:none; padding:6px 10px; border-radius:4px; cursor:pointer;">🗑️</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        async function marcarEntregado(id) {
+            await fetch(`/api/despachos/${id}/estado`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ estadoEntrega: 'Entregado' })
+            });
+            cargarDespachos();
+        }
+
+        async function eliminarDespacho(id) {
+            if (confirm("¿Borrar este registro de entrega?")) {
+                await fetch(`/api/despachos/${id}`, { method: 'DELETE' });
+                cargarDespachos();
+            }
         }
 
         verificarSesion();

@@ -34,6 +34,7 @@ const upload = multer({ storage });
 
 const PLANTAS_FILE = path.join(__dirname, 'plantas.json');
 const VENTAS_FILE = path.join(__dirname, 'ventas.json');
+const DESPACHOS_FILE = path.join(__dirname, 'despachos.json');
 
 function leerJSON(file) {
     if (!fs.existsSync(file)) return [];
@@ -144,7 +145,7 @@ app.delete('/api/plantas/:id', requireAuth, (req, res) => {
     res.json({ success: true });
 });
 
-// REGISTRAR VENTA CON MEDIO DE PAGO
+// REGISTRAR VENTA
 app.post('/api/ventas', requireAuth, (req, res) => {
     const { items, medioPago } = req.body;
     if (!items || items.length === 0) return res.status(400).json({ error: 'Sin items' });
@@ -178,7 +179,7 @@ app.post('/api/ventas', requireAuth, (req, res) => {
     res.json({ success: true });
 });
 
-// DASHBOARD DE CAJA Y REPORTES (SOLO ADMIN / PDELCANTO)
+// DASHBOARD ADMIN
 app.get('/api/reporte-admin', requireAuth, (req, res) => {
     if (req.session.user.rol !== 'admin') {
         return res.status(403).json({ error: 'Acceso denegado.' });
@@ -191,7 +192,6 @@ app.get('/api/reporte-admin', requireAuth, (req, res) => {
     const totalPlantasUnidades = plantas.reduce((acc, p) => acc + p.stock, 0);
     const totalRecaudadoVentas = ventas.reduce((acc, v) => acc + v.total, 0);
 
-    // Cierre de caja por medio de pago
     let totalEfectivo = 0;
     let totalTransferencia = 0;
     let totalDebito = 0;
@@ -215,6 +215,54 @@ app.get('/api/reporte-admin', requireAuth, (req, res) => {
         },
         ventas
     });
+});
+
+// REPARTOS SÁBADO
+app.get('/api/despachos', requireAuth, (req, res) => {
+    const despachos = leerJSON(DESPACHOS_FILE);
+    res.json(despachos);
+});
+
+app.post('/api/despachos', requireAuth, (req, res) => {
+    const despachos = leerJSON(DESPACHOS_FILE);
+    const { cliente, direccion, telefono, detalle, monto, estadoPago } = req.body;
+
+    const nuevoDespacho = {
+        id: Date.now().toString(),
+        fechaCreado: new Date().toISOString(),
+        cliente,
+        direccion,
+        telefono: telefono || '',
+        detalle,
+        monto: Number(monto || 0),
+        estadoPago: estadoPago || 'Pendiente',
+        estadoEntrega: 'Pendiente'
+    };
+
+    despachos.push(nuevoDespacho);
+    guardarJSON(DESPACHOS_FILE, despachos);
+    res.json({ success: true });
+});
+
+app.put('/api/despachos/:id/estado', requireAuth, (req, res) => {
+    const despachos = leerJSON(DESPACHOS_FILE);
+    const { estadoEntrega } = req.body;
+
+    const idx = despachos.findIndex(d => String(d.id) === String(req.params.id));
+    if (idx !== -1) {
+        despachos[idx].estadoEntrega = estadoEntrega;
+        guardarJSON(DESPACHOS_FILE, despachos);
+        res.json({ success: true });
+    } else {
+        res.status(404).json({ error: 'Despacho no encontrado' });
+    }
+});
+
+app.delete('/api/despachos/:id', requireAuth, (req, res) => {
+    let despachos = leerJSON(DESPACHOS_FILE);
+    despachos = despachos.filter(d => String(d.id) !== String(req.params.id));
+    guardarJSON(DESPACHOS_FILE, despachos);
+    res.json({ success: true });
 });
 
 app.listen(PORT, () => {
