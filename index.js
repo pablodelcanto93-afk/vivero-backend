@@ -1,81 +1,76 @@
 const express = require('express');
-const session = require('express-session');
-const path = require('path');
 const fs = require('fs');
+const path = require('path');
 const multer = require('multer');
-const cors = require('cors');
+const session = require('express-session');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(express.static(path.join(__dirname, 'public')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.use(session({
-    secret: 'vivero-sol-y-sombra-clave-secreta-2026',
+    secret: 'vivero_sol_y_sombra_secret_key_2026',
     resave: false,
-    saveUninitialized: false,
-    cookie: { maxAge: 24 * 60 * 60 * 1000 }
+    saveUninitialized: false
 }));
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        const uploadDir = path.join(__dirname, 'public', 'uploads');
-        if (!fs.existsSync(uploadDir)) {
-            fs.mkdirSync(uploadDir, { recursive: true });
+        const uploadPath = path.join(__dirname, 'uploads');
+        if (!fs.existsSync(uploadPath)) {
+            fs.mkdirSync(uploadPath, { recursive: true });
         }
-        cb(null, uploadDir);
+        cb(null, uploadPath);
     },
     filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        const ext = path.extname(file.originalname);
-        cb(null, 'planta-' + uniqueSuffix + ext);
+        cb(null, Date.now() + path.extname(file.originalname));
     }
 });
+const upload = multer({ storage });
 
-const upload = multer({ storage: storage });
-const DATA_FILE = path.join(__dirname, 'plantas.json');
+const PLANTAS_FILE = path.join(__dirname, 'plantas.json');
+const VENTAS_FILE = path.join(__dirname, 'ventas.json');
 
-function obtenerPlantas() {
-    if (!fs.existsSync(DATA_FILE)) {
-        fs.writeFileSync(DATA_FILE, '[]', 'utf-8');
-        return [];
-    }
+function leerJSON(file) {
+    if (!fs.existsSync(file)) return [];
     try {
-        const contenido = fs.readFileSync(DATA_FILE, 'utf-8');
-        return JSON.parse(contenido || '[]');
+        const data = fs.readFileSync(file, 'utf8');
+        return JSON.parse(data || '[]');
     } catch (e) {
         return [];
     }
 }
 
-function guardarPlantas(plantas) {
-    fs.writeFileSync(DATA_FILE, JSON.stringify(plantas, null, 2), 'utf-8');
+function guardarJSON(file, data) {
+    fs.writeFileSync(file, JSON.stringify(data, null, 2));
 }
 
-function requerirAutenticacion(req, res, next) {
-    if (req.session && req.session.autenticado) {
-        return next();
-    }
-    return res.status(401).json({ error: 'No autorizado', redirect: '/login.html' });
-}
-
-app.use(express.static(path.join(__dirname, 'public')));
-app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
-
-// --- RUTAS PÚBLICAS ---
-app.get('/api/plantas/publico', (req, res) => {
-    res.json(obtenerPlantas());
-});
-
+// LOGIN DE USUARIOS
 app.post('/api/login', (req, res) => {
     const { usuario, password } = req.body;
-    if (usuario === "admin" && password === "vivero2026") {
-        req.session.autenticado = true;
-        return res.json({ status: 'ok', redirect: '/' });
+    
+    // USUARIOS
+    if (usuario === 'pdelcanto' && password === '1234') {
+        req.session.user = { usuario: 'pdelcanto', rol: 'admin', nombre: 'Pablo Del Canto' };
+        return res.json({ success: true, rol: 'admin' });
+    } else if (usuario === 'vivero' && password === '1234') {
+        req.session.user = { usuario: 'vivero', rol: 'trabajador', nombre: 'Trabajador' };
+        return res.json({ success: true, rol: 'trabajador' });
     }
-    return res.status(401).json({ status: 'error', mensaje: 'Usuario o clave incorrectos' });
+    
+    res.status(401).json({ success: false, message: 'Usuario o contraseña incorrectos' });
+});
+
+app.get('/api/session', (req, res) => {
+    if (req.session.user) {
+        res.json({ loggedIn: true, user: req.session.user });
+    } else {
+        res.json({ loggedIn: false });
+    }
 });
 
 app.get('/api/logout', (req, res) => {
@@ -83,91 +78,127 @@ app.get('/api/logout', (req, res) => {
     res.redirect('/login.html');
 });
 
-// --- RUTAS PROTEGIDAS (ADMIN) ---
-app.get('/api/plantas', requerirAutenticacion, (req, res) => {
-    res.json(obtenerPlantas());
+function requireAuth(req, res, next) {
+    if (req.session.user) {
+        next();
+    } else {
+        res.status(401).json({ error: 'No autorizado' });
+    }
+}
+
+// OBTENER PLANTAS
+app.get('/api/plantas', (req, res) => {
+    const plantas = leerJSON(PLANTAS_FILE);
+    res.json(plantas);
 });
 
-// Agregar o Actualizar Planta
-app.post('/api/plantas', requerirAutenticacion, upload.single('foto'), (req, res) => {
-    try {
-        let plantas = obtenerPlantas();
-        const idExistente = req.body.id;
+// AGREGAR / EDITAR PLANTA
+app.post('/api/plantas', requireAuth, upload.single('foto'), (req, res) => {
+    const plantas = leerJSON(PLANTAS_FILE);
+    const { id, nombre, cientifico, categoria, ubicacion, precio, stock, riego, clima, cuidados } = req.body;
 
-        if (idExistente) {
-            // Edición
-            const index = plantas.findIndex(p => String(p.id) === String(idExistente));
-            if (index !== -1) {
-                plantas[index].nombre = req.body.nombre;
-                plantas[index].cientifico = req.body.cientifico || '';
-                plantas[index].categoria = req.body.categoria || '';
-                plantas[index].ubicacion = req.body.ubicacion || '';
-                plantas[index].precio = Number(req.body.precio) || 0;
-                plantas[index].stock = Number(req.body.stock) || 0;
-                plantas[index].riego = req.body.riego || '';
-                plantas[index].clima = req.body.clima || '';
-                plantas[index].cuidados = req.body.cuidados || '';
-                if (req.file) {
-                    plantas[index].foto = '/uploads/' + req.file.filename;
-                }
-            }
-        } else {
-            // Nueva Planta
-            let fotoRuta = '/logo.png';
-            if (req.file) fotoRuta = '/uploads/' + req.file.filename;
+    let fotoUrl = req.file ? `/uploads/${req.file.filename}` : null;
 
-            const nuevaPlanta = {
-                id: Date.now().toString(),
-                nombre: req.body.nombre,
-                cientifico: req.body.cientifico || '',
-                categoria: req.body.categoria || '',
-                ubicacion: req.body.ubicacion || '',
-                precio: Number(req.body.precio) || 0,
-                stock: Number(req.body.stock) || 0,
-                riego: req.body.riego || '',
-                clima: req.body.clima || '',
-                cuidados: req.body.cuidados || '',
-                foto: fotoRuta
+    if (id) {
+        const idx = plantas.findIndex(p => String(p.id) === String(id));
+        if (idx !== -1) {
+            plantas[idx] = {
+                ...plantas[idx],
+                nombre,
+                cientifico: cientifico || '',
+                categoria: categoria || '',
+                ubicacion: ubicacion || '',
+                precio: Number(precio),
+                stock: Number(stock),
+                riego: riego || '',
+                clima: clima || '',
+                cuidados: cuidados || '',
+                foto: fotoUrl || plantas[idx].foto
             };
-            plantas.push(nuevaPlanta);
         }
-
-        guardarPlantas(plantas);
-        res.status(200).json({ status: 'ok' });
-    } catch (err) {
-        res.status(500).json({ error: 'Error al procesar la planta' });
+    } else {
+        const nuevaPlanta = {
+            id: Date.now().toString(),
+            nombre,
+            cientifico: cientifico || '',
+            categoria: categoria || '',
+            ubicacion: ubicacion || '',
+            precio: Number(precio),
+            stock: Number(stock),
+            riego: riego || '',
+            clima: clima || '',
+            cuidados: cuidados || '',
+            foto: fotoUrl || '/logo.png'
+        };
+        plantas.push(nuevaPlanta);
     }
+
+    guardarJSON(PLANTAS_FILE, plantas);
+    res.json({ success: true });
 });
 
-app.post('/api/ventas', requerirAutenticacion, (req, res) => {
-    try {
-        const { items } = req.body;
-        let plantas = obtenerPlantas();
-
-        items.forEach(item => {
-            const p = plantas.find(x => String(x.id) === String(item.id));
-            if (p) {
-                p.stock = Math.max(0, Number(p.stock) - Number(item.cantidad));
-            }
-        });
-
-        guardarPlantas(plantas);
-        res.json({ status: 'ok' });
-    } catch (err) {
-        res.status(500).json({ error: 'Error al procesar la venta' });
-    }
+// ELIMINAR PLANTA
+app.delete('/api/plantas/:id', requireAuth, (req, res) => {
+    let plantas = leerJSON(PLANTAS_FILE);
+    plantas = plantas.filter(p => String(p.id) !== String(req.params.id));
+    guardarJSON(PLANTAS_FILE, plantas);
+    res.json({ success: true });
 });
 
-app.delete('/api/plantas/:id', requerirAutenticacion, (req, res) => {
-    try {
-        let plantas = obtenerPlantas();
-        const { id } = req.params;
-        plantas = plantas.filter(p => String(p.id) !== String(id));
-        guardarPlantas(plantas);
-        res.json({ status: 'ok' });
-    } catch (err) {
-        res.status(500).json({ error: 'Error al eliminar la planta' });
-    }
+// REGISTRAR VENTA
+app.post('/api/ventas', requireAuth, (req, res) => {
+    const { items } = req.body;
+    if (!items || items.length === 0) return res.status(400).json({ error: 'Sin items' });
+
+    const plantas = leerJSON(PLANTAS_FILE);
+    const ventas = leerJSON(VENTAS_FILE);
+
+    let totalVenta = 0;
+    items.forEach(item => {
+        const p = plantas.find(x => String(x.id) === String(item.id));
+        if (p) {
+            p.stock = Math.max(0, p.stock - item.cantidad);
+            totalVenta += p.precio * item.cantidad;
+        }
+    });
+
+    const nuevaVenta = {
+        id: Date.now().toString(),
+        fecha: new Date().toISOString(),
+        vendedor: req.session.user ? req.session.user.usuario : 'Desconocido',
+        items,
+        total: totalVenta
+    };
+
+    ventas.push(nuevaVenta);
+
+    guardarJSON(PLANTAS_FILE, plantas);
+    guardarJSON(VENTAS_FILE, ventas);
+
+    res.json({ success: true });
 });
 
-app.listen(PORT, () => console.log(`Servidor iniciado en puerto ${PORT}`));
+// OBTENER VENTAS Y RESUMEN FINANCIERO (SOLO ADMIN / PBDELCANTO)
+app.get('/api/reporte-admin', requireAuth, (req, res) => {
+    if (req.session.user.rol !== 'admin') {
+        return res.status(403).json({ error: 'Acceso denegado. Se requiere perfil Administrador.' });
+    }
+
+    const plantas = leerJSON(PLANTAS_FILE);
+    const ventas = leerJSON(VENTAS_FILE);
+
+    const valorTotalInventario = plantas.reduce((acc, p) => acc + (p.precio * p.stock), 0);
+    const totalPlantasUnidades = plantas.reduce((acc, p) => acc + p.stock, 0);
+    const totalRecaudadoVentas = ventas.reduce((acc, v) => acc + v.total, 0);
+
+    res.json({
+        valorTotalInventario,
+        totalPlantasUnidades,
+        totalRecaudadoVentas,
+        ventas
+    });
+});
+
+app.listen(PORT, () => {
+    console.log(`Servidor corriendo en puerto ${PORT}`);
+});
