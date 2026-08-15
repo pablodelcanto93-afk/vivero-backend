@@ -6,9 +6,39 @@
     <title>Vivero Sol y Sombra - Sistema de Gestión</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: #f4f7f6; display: flex; min-height: 100vh; color: #333; }
+        body { background-color: #f4f7f6; display: flex; flex-direction: column; min-height: 100vh; color: #333; }
 
-        /* BARRA LATERAL (SIDEBAR) ESTILO CIBARI */
+        /* BARRA SUPERIOR PARA MÓVIL */
+        .topbar-mobile {
+            display: none;
+            background: #1e293b;
+            color: white;
+            padding: 12px 15px;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .btn-toggle-menu {
+            background: #334155;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 1.2em;
+            cursor: pointer;
+        }
+
+        /* LAYOUT PRINCIPAL */
+        .app-container {
+            display: flex;
+            flex-grow: 1;
+            position: relative;
+        }
+
+        /* BARRA LATERAL (SIDEBAR) */
         .sidebar {
             width: 260px;
             background: #1e293b;
@@ -18,6 +48,8 @@
             justify-content: space-between;
             padding: 20px 15px;
             flex-shrink: 0;
+            transition: transform 0.3s ease;
+            z-index: 90;
         }
 
         .brand {
@@ -79,8 +111,9 @@
         /* CONTENIDO PRINCIPAL */
         .main-content {
             flex-grow: 1;
-            padding: 25px;
+            padding: 20px;
             overflow-y: auto;
+            width: 100%;
         }
 
         .seccion { display: none; }
@@ -93,19 +126,18 @@
         .grid-pos { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
         
         form { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        form input, form textarea, form button, select { padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; }
+        form input, form textarea, form button, select { padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; width: 100%; }
         form textarea { grid-column: span 2; min-height: 60px; }
         form button { grid-column: span 2; background: #15803d; color: white; border: none; font-weight: bold; cursor: pointer; }
         
+        .table-responsive { width: 100%; overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th, td { padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0; font-size: 0.9em; }
         th { background: #f8fafc; color: #475569; }
         .thumb { width: 40px; height: 40px; border-radius: 4px; object-fit: cover; }
 
-        .btn { padding: 5px 8px; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8em; }
+        .btn { padding: 6px 10px; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8em; }
         .btn-add { background: #22c55e; color: white; }
-        .btn-edit { background: #f59e0b; color: white; }
-        .btn-del { background: #ef4444; color: white; }
 
         .ticket-item { display: flex; justify-content: space-between; margin-bottom: 8px; border-bottom: 1px dashed #cbd5e1; padding-bottom: 5px; }
         .total { font-size: 1.3em; font-weight: bold; margin-top: 15px; text-align: right; color: #15803d; }
@@ -116,132 +148,187 @@
         .dash-card { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 4px solid #15803d; }
         .dash-card h4 { font-size: 0.8em; color: #64748b; text-transform: uppercase; margin-bottom: 5px; }
         .dash-card p { font-size: 1.4em; font-weight: bold; color: #1e293b; }
+
+        /* AJUSTES ADAPTABLES PARA CELULAR */
+        @media (max-width: 768px) {
+            .topbar-mobile { display: flex; }
+            .grid-pos { grid-template-columns: 1fr; }
+            form { grid-template-columns: 1fr; }
+            form textarea, form button { grid-column: span 1; }
+
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 100vh;
+                transform: translateX(-100%);
+            }
+
+            .sidebar.abierto {
+                transform: translateX(0);
+            }
+
+            .overlay {
+                display: none;
+                position: fixed;
+                top: 0; left: 0; right: 0; bottom: 0;
+                background: rgba(0,0,0,0.5);
+                z-index: 80;
+            }
+            .overlay.activo { display: block; }
+        }
     </style>
 </head>
 <body>
 
-    <!-- MENÚ LATERAL CIBARI STYLE -->
-    <div class="sidebar">
-        <div>
-            <div class="brand">
-                <img src="/logo.png" onerror="this.src='https://via.placeholder.com/40'">
-                <div>
-                    <h2>Sol y Sombra</h2>
-                    <small style="color: #64748b;">Panel de Control</small>
-                </div>
-            </div>
-
-            <div class="menu-cat">OPERACIONES</div>
-            <div class="menu-item active" onclick="mostrarSeccion('pos')">🛒 Punto de Venta</div>
-            <div class="menu-item" onclick="mostrarSeccion('inventario')">🪴 Inventario Plantas</div>
-            <div class="menu-item" onclick="mostrarSeccion('despachos')">🚚 Repartos Sábado</div>
-
-            <div class="menu-cat">NEGOCIO</div>
-            <div class="menu-item solo-admin" onclick="mostrarSeccion('caja')">💵 Cierre de Caja</div>
-            <div class="menu-item solo-admin" onclick="mostrarSeccion('gastos')">📉 Gastos Insumos</div>
-            <div class="menu-item solo-admin" onclick="mostrarSeccion('historial')">📋 Historial Ventas</div>
-
-            <div class="menu-cat solo-admin">ADMINISTRACIÓN</div>
-            <div class="menu-item solo-admin" onclick="mostrarSeccion('f29')">📑 Control F29 / IVA</div>
-            <a href="/catalogo.html" target="_blank" class="menu-item" style="text-decoration: none;">🌐 Catálogo Web</a>
-        </div>
-
-        <div class="user-info">
-            👤 Usuario: <b id="nomUsuario">Cargando...</b>
-            <a href="/api/logout" class="btn-logout">🚪 Cerrar Sesión</a>
-        </div>
+    <!-- BARRA SUPERIOR PARA MÓVIL -->
+    <div class="topbar-mobile">
+        <button class="btn-toggle-menu" onclick="toggleMenu()">☰ Menú</button>
+        <b style="color: #22c55e;">Vivero Sol y Sombra</b>
     </div>
 
-    <!-- CONTENIDO CENTRAL -->
-    <div class="main-content">
+    <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
 
-        <!-- SECCIÓN 1: PUNTO DE VENTA & INVENTARIO -->
-        <div id="sec-pos" class="seccion activa">
-            <div class="grid-pos">
-                <div>
-                    <div class="card">
-                        <h2>Inventario Disponible</h2>
-                        <table>
-                            <thead>
-                                <tr><th>Foto</th><th>Planta</th><th>Precio</th><th>Stock</th><th>Acción</th></tr>
-                            </thead>
-                            <tbody id="tablaPOS"></tbody>
-                        </table>
+    <div class="app-container">
+        <!-- MENÚ LATERAL -->
+        <div class="sidebar" id="sidebar">
+            <div>
+                <div class="brand">
+                    <img src="/logo.png" onerror="this.src='https://via.placeholder.com/40'">
+                    <div>
+                        <h2>Sol y Sombra</h2>
+                        <small style="color: #64748b;">Panel de Control</small>
                     </div>
                 </div>
-                <div>
-                    <div class="card">
-                        <h2>Nueva Venta</h2>
-                        <div id="listaTicket"></div>
+
+                <div class="menu-cat">OPERACIONES</div>
+                <div class="menu-item active" onclick="seleccionarOpcion('pos')">🛒 Punto de Venta</div>
+                <div class="menu-item" onclick="seleccionarOpcion('inventario')">🪴 Inventario Plantas</div>
+                <div class="menu-item" onclick="seleccionarOpcion('despachos')">🚚 Repartos Sábado</div>
+
+                <div class="menu-cat">NEGOCIO</div>
+                <div class="menu-item solo-admin" onclick="seleccionarOpcion('caja')">💵 Cierre de Caja</div>
+                <div class="menu-item solo-admin" onclick="seleccionarOpcion('gastos')">📉 Gastos Insumos</div>
+                <div class="menu-item solo-admin" onclick="seleccionarOpcion('historial')">📋 Historial Ventas</div>
+
+                <div class="menu-cat solo-admin">ADMINISTRACIÓN</div>
+                <div class="menu-item solo-admin" onclick="seleccionarOpcion('f29')">📑 Control F29 / IVA</div>
+                <a href="/catalogo.html" target="_blank" class="menu-item" style="text-decoration: none;">🌐 Catálogo Web</a>
+            </div>
+
+            <div class="user-info">
+                👤 Usuario: <b id="nomUsuario">Cargando...</b>
+                <a href="/api/logout" class="btn-logout">🚪 Cerrar Sesión</a>
+            </div>
+        </div>
+
+        <!-- CONTENIDO CENTRAL -->
+        <div class="main-content">
+
+            <!-- SECCIÓN 1: PUNTO DE VENTA -->
+            <div id="sec-pos" class="seccion activa">
+                <div class="grid-pos">
+                    <div>
+                        <div class="card">
+                            <h2>Inventario Disponible</h2>
+                            <div class="table-responsive">
+                                <table>
+                                    <thead>
+                                        <tr><th>Foto</th><th>Planta</th><th>Precio</th><th>Stock</th><th>Acción</th></tr>
+                                    </thead>
+                                    <tbody id="tablaPOS"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="card">
+                            <h2>Nueva Venta</h2>
+                            <div id="listaTicket"></div>
+                            
+                            <label style="display:block; margin-top:15px; font-size:0.85em; font-weight:bold;">Medio de Pago:</label>
+                            <select id="medioPago" style="margin-top:5px;">
+                                <option value="Efectivo">💵 Efectivo</option>
+                                <option value="Transferencia">📲 Transferencia</option>
+                                <option value="Débito">💳 Débito / Tarjeta</option>
+                            </select>
+
+                            <div class="total">Total: $<span id="totalVenta">0</span></div>
+                            <button class="btn-finalizar" onclick="finalizarVenta()">Cobrar y Descontar Stock</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECCIÓN 2: INVENTARIO / REGISTRO PLANTAS -->
+            <div id="sec-inventario" class="seccion">
+                <div class="card">
+                    <h2 id="formTitulo">+ Agregar Nueva Planta</h2>
+                    <form id="plantaForm">
+                        <input type="hidden" id="plantaId">
+                        <input type="text" id="nombre" placeholder="Nombre (ej: Babaco)" required>
+                        <input type="text" id="cientifico" placeholder="Nombre Científico">
+                        <input type="text" id="categoria" placeholder="Categoría (ej: Frutales)">
+                        <input type="text" id="ubicacion" placeholder="Ubicación en Vivero">
+                        <input type="number" id="precio" placeholder="Precio ($)" required>
+                        <input type="number" id="stock" placeholder="Stock Inicial" required>
+                        <input type="text" id="riego" placeholder="💧 Riego">
+                        <input type="text" id="clima" placeholder="☀️ Clima">
+                        <textarea id="cuidados" placeholder="📝 Ficha técnica / Consejos..."></textarea>
                         
-                        <label style="display:block; margin-top:15px; font-size:0.85em; font-weight:bold;">Medio de Pago:</label>
-                        <select id="medioPago" style="width:100%; margin-top:5px;">
-                            <option value="Efectivo">💵 Efectivo</option>
-                            <option value="Transferencia">📲 Transferencia</option>
-                            <option value="Débito">💳 Débito / Tarjeta</option>
-                        </select>
+                        <div>
+                            <label style="font-size:0.85em; font-weight:bold;">📷 Foto Planta:</label>
+                            <input type="file" id="fotoInput" accept="image/*" capture="environment">
+                        </div>
 
-                        <div class="total">Total: $<span id="totalVenta">0</span></div>
-                        <button class="btn-finalizar" onclick="finalizarVenta()">Cobrar y Descontar Stock</button>
-                    </div>
+                        <button type="submit" id="btnGuardar">Guardar Planta</button>
+                    </form>
                 </div>
             </div>
-        </div>
 
-        <!-- SECCIÓN 2: INVENTARIO / REGISTRO PLANTAS -->
-        <div id="sec-inventario" class="seccion">
-            <div class="card">
-                <h2 id="formTitulo">+ Agregar Nueva Planta</h2>
-                <form id="plantaForm">
-                    <input type="hidden" id="plantaId">
-                    <input type="text" id="nombre" placeholder="Nombre (ej: Babaco)" required>
-                    <input type="text" id="cientifico" placeholder="Nombre Científico">
-                    <input type="text" id="categoria" placeholder="Categoría (ej: Frutales)">
-                    <input type="text" id="ubicacion" placeholder="Ubicación en Vivero">
-                    <input type="number" id="precio" placeholder="Precio ($)" required>
-                    <input type="number" id="stock" placeholder="Stock Inicial" required>
-                    <input type="text" id="riego" placeholder="💧 Riego">
-                    <input type="text" id="clima" placeholder="☀️ Clima">
-                    <textarea id="cuidados" placeholder="📝 Ficha técnica / Consejos..."></textarea>
-                    
-                    <div style="grid-column: span 2;">
-                        <label style="font-size:0.85em; font-weight:bold;">📷 Foto Planta:</label>
-                        <input type="file" id="fotoInput" accept="image/*" capture="environment">
-                    </div>
+            <!-- SECCIÓN 3: CIERRE DE CAJA -->
+            <div id="sec-caja" class="seccion">
+                <h2>💵 Dashboard de Caja & Métricas</h2>
+                <div class="dash-grid">
+                    <div class="dash-card"><h4>💵 Total Efectivo</h4><p id="statEfectivo">$0</p></div>
+                    <div class="dash-card"><h4>📲 Total Transferencia</h4><p id="statTransferencia">$0</p></div>
+                    <div class="dash-card"><h4>💳 Total Débito</h4><p id="statDebito">$0</p></div>
+                </div>
 
-                    <button type="submit" id="btnGuardar">Guardar Planta</button>
-                </form>
-            </div>
-        </div>
-
-        <!-- SECCIÓN 3: CIERRE DE CAJA (SOLO ADMIN) -->
-        <div id="sec-caja" class="seccion">
-            <h2>💵 Dashboard de Caja & Métricas</h2>
-            <div class="dash-grid">
-                <div class="dash-card"><h4>💵 Total Efectivo</h4><p id="statEfectivo">$0</p></div>
-                <div class="dash-card"><h4>📲 Total Transferencia</h4><p id="statTransferencia">$0</p></div>
-                <div class="dash-card"><h4>💳 Total Débito</h4><p id="statDebito">$0</p></div>
+                <div class="dash-grid">
+                    <div class="dash-card"><h4>💰 Valor Inventario</h4><p id="statValorInventario">$0</p></div>
+                    <div class="dash-card"><h4>🪴 Total Stock</h4><p id="statTotalStock">0 u.</p></div>
+                    <div class="dash-card"><h4>📈 Total Ventas</h4><p id="statTotalVentas">$0</p></div>
+                </div>
             </div>
 
-            <div class="dash-grid">
-                <div class="dash-card"><h4>💰 Valor Inventario</h4><p id="statValorInventario">$0</p></div>
-                <div class="dash-card"><h4>🪴 Total Stock</h4><p id="statTotalStock">0 u.</p></div>
-                <div class="dash-card"><h4>📈 Total Ventas</h4><p id="statTotalVentas">$0</p></div>
-            </div>
+            <!-- SECCIONES EN DESARROLLO -->
+            <div id="sec-despachos" class="seccion"><div class="card"><h2>🚚 Repartos del Sábado</h2><p>Módulo para organizar entregas a domicilio.</p></div></div>
+            <div id="sec-gastos" class="seccion"><div class="card"><h2>📉 Registro de Gastos</h2><p>Módulo para compras de insumos.</p></div></div>
+            <div id="sec-historial" class="seccion"><div class="card"><h2>📋 Historial de Ventas</h2><p>Detalle de todas las ventas realizadas.</p></div></div>
+            <div id="sec-f29" class="seccion"><div class="card"><h2>📑 Control F29 / IVA</h2><p>Módulo para facturas y respaldos contables.</p></div></div>
+
         </div>
-
-        <!-- SECCIÓN 4: MODULOS EN DESARROLLO PASO A PASO -->
-        <div id="sec-despachos" class="seccion"><div class="card"><h2>🚚 Repartos del Sábado</h2><p>Módulo para organizar entregas a domicilio (Próximo paso).</p></div></div>
-        <div id="sec-gastos" class="seccion"><div class="card"><h2>📉 Registro de Gastos</h2><p>Módulo para compras de bolsas, sustratos y fletes (Próximo paso).</p></div></div>
-        <div id="sec-historial" class="seccion"><div class="card"><h2>📋 Historial de Ventas</h2><p>Detalle de todas las ventas realizadas.</p></div></div>
-        <div id="sec-f29" class="seccion"><div class="card"><h2>📑 Control F29 / IVA</h2><p>Módulo para facturas y respaldos contables (Próximo paso).</p></div></div>
-
     </div>
 
     <script>
         let inventario = [];
         let ticket = [];
         let usuarioActual = null;
+
+        function toggleMenu() {
+            const sb = document.getElementById('sidebar');
+            const ov = document.getElementById('overlay');
+            sb.classList.toggle('abierto');
+            ov.classList.toggle('activo');
+        }
+
+        function seleccionarOpcion(sec) {
+            mostrarSeccion(sec);
+            if (window.innerWidth <= 768) {
+                toggleMenu();
+            }
+        }
 
         async function verificarSesion() {
             const res = await fetch('/api/session');
@@ -253,7 +340,6 @@
             usuarioActual = data.user;
             document.getElementById('nomUsuario').innerText = usuarioActual.nombre;
 
-            // Ocultar opciones privadas si es trabajador
             if (usuarioActual.rol !== 'admin') {
                 document.querySelectorAll('.solo-admin').forEach(el => el.style.display = 'none');
             }
