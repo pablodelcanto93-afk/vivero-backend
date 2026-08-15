@@ -26,10 +26,11 @@
         .btn-add { background: #4caf50; color: white; }
         .btn-edit { background: #ff9800; color: white; }
         .btn-del { background: #f44336; color: white; }
-        .ticket-item { display: flex; justify-content: space-between; margin-bottom: 10px; padding-bottom: 5px; border-bottom: 1px dashed #ccc; }
+        .ticket-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding-bottom: 5px; border-bottom: 1px dashed #ccc; }
         .total { font-size: 1.2em; font-weight: bold; margin-top: 15px; text-align: right; }
-        .btn-finalizar { width: 100%; background: #008cba; color: white; padding: 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 1em; margin-top: 10px; }
+        .btn-finalizar { width: 100%; background: #008cba; color: white; padding: 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 1em; margin-top: 10px; font-weight: bold; }
         .thumb { width: 45px; height: 45px; object-fit: cover; border-radius: 4px; }
+        .btn-quitar { background: #ff5252; color: white; border: none; padding: 2px 6px; border-radius: 3px; cursor: pointer; font-size: 0.8em; margin-left: 5px; }
     </style>
 </head>
 <body>
@@ -47,7 +48,7 @@
 
 <div class="container">
     <div>
-        <!-- FORMULARIO -->
+        <!-- FORMULARIO CON CAMARA DIRECTA -->
         <div class="card">
             <h2 id="formTitulo">+ Agregar Planta</h2>
             <form id="plantaForm">
@@ -61,7 +62,13 @@
                 <input type="text" id="riego" placeholder="💧 Riego (ej: Moderado / 2 veces por semana)">
                 <input type="text" id="clima" placeholder="☀️ Clima / Sol (ej: Sol / Semisombra / Sensible a heladas)">
                 <textarea id="cuidados" placeholder="📝 Ficha técnica / Consejos de cultivo y adaptación..."></textarea>
-                <input type="file" id="fotoInput" accept="image/*" style="grid-column: span 2;">
+                
+                <!-- CAPTURA DE FOTO DIRECTA EN MÓVIL -->
+                <div style="grid-column: span 2;">
+                    <label style="font-size: 0.85em; font-weight: bold; color: #2e7d32;">📷 Tomar foto o elegir imagen:</label>
+                    <input type="file" id="fotoInput" accept="image/*" capture="environment" style="width: 100%; margin-top: 4px;">
+                </div>
+
                 <button type="submit" id="btnGuardar">Guardar Planta</button>
                 <button type="button" class="btn-cancelar" id="btnCancelar" onclick="limpiarFormulario()">Cancelar Edición</button>
             </form>
@@ -76,7 +83,7 @@
                         <th>Imagen</th>
                         <th>Nombre</th>
                         <th>Precio</th>
-                        <th>Stock</th>
+                        <th>Stock Disp.</th>
                         <th>Acción</th>
                     </tr>
                 </thead>
@@ -91,7 +98,7 @@
             <h2>Nueva Venta</h2>
             <div id="listaTicket"></div>
             <div class="total">Total: $<span id="totalVenta">0</span></div>
-            <button class="btn-finalizar" onclick="finalizarVenta()">Cobrar Venta</button>
+            <button class="btn-finalizar" onclick="finalizarVenta()">Cobrar Venta y Descontar Stock</button>
         </div>
     </div>
 </div>
@@ -118,13 +125,17 @@
         const tbody = document.getElementById('tablaInventario');
         tbody.innerHTML = '';
         inventario.forEach(p => {
+            const enTicket = ticket.find(x => String(x.id) === String(p.id));
+            const cantEnTicket = enTicket ? enTicket.cantidad : 0;
+            const stockDisponible = Math.max(0, p.stock - cantEnTicket);
+
             const textoCientifico = p.cientifico ? `<br><small>${p.cientifico}</small>` : '';
             tbody.innerHTML += `
                 <tr>
                     <td><img src="${p.foto || '/logo.png'}" class="thumb" onerror="this.src='/logo.png'"></td>
                     <td><b>${p.nombre}</b>${textoCientifico}</td>
                     <td>$${Number(p.precio).toLocaleString('es-CL')}</td>
-                    <td>${p.stock}</td>
+                    <td><b style="color: ${stockDisponible === 0 ? 'red' : '#2e7d32'};">${stockDisponible}</b></td>
                     <td>
                         <button class="btn btn-add" onclick="agregarAlTicket('${p.id}')">+ Añadir</button>
                         <button class="btn btn-edit" onclick="editarPlanta('${p.id}')">✏️</button>
@@ -193,19 +204,36 @@
 
     function agregarAlTicket(id) {
         const p = inventario.find(x => String(x.id) === String(id));
-        if (!p || p.stock <= 0) return alert("Sin stock disponible");
+        if (!p) return;
 
         const enTicket = ticket.find(x => String(x.id) === String(id));
+        const cantActual = enTicket ? enTicket.cantidad : 0;
+
+        if (cantActual >= p.stock) {
+            return alert("Alcanzaste el límite de stock disponible");
+        }
+
         if (enTicket) {
-            if (enTicket.cantidad < p.stock) {
-                enTicket.cantidad++;
-            } else {
-                alert("Alcanzaste el límite de stock");
-            }
+            enTicket.cantidad++;
         } else {
             ticket.push({ id: String(p.id), nombre: p.nombre, precio: p.precio, cantidad: 1 });
         }
+
         renderTicket();
+        renderInventario(); // Actualiza el stock visual inmediato
+    }
+
+    function quitarDelTicket(id) {
+        const index = ticket.findIndex(x => String(x.id) === String(id));
+        if (index !== -1) {
+            if (ticket[index].cantidad > 1) {
+                ticket[index].cantidad--;
+            } else {
+                ticket.splice(index, 1);
+            }
+        }
+        renderTicket();
+        renderInventario();
     }
 
     function renderTicket() {
@@ -217,8 +245,13 @@
             total += subtotal;
             contenedor.innerHTML += `
                 <div class="ticket-item">
-                    <div><b>${item.nombre}</b><br>x${item.cantidad} ($${Number(item.precio).toLocaleString('es-CL')})</div>
-                    <div>$${Number(subtotal).toLocaleString('es-CL')}</div>
+                    <div>
+                        <b>${item.nombre}</b><br>x${item.cantidad} ($${Number(item.precio).toLocaleString('es-CL')})
+                    </div>
+                    <div>
+                        $${Number(subtotal).toLocaleString('es-CL')}
+                        <button class="btn-quitar" onclick="quitarDelTicket('${item.id}')">✕</button>
+                    </div>
                 </div>
             `;
         });
@@ -233,7 +266,7 @@
             body: JSON.stringify({ items: ticket })
         });
         if (res.ok) {
-            alert("¡Venta registrada con éxito!");
+            alert("¡Venta registrada con éxito y stock descontado!");
             ticket = [];
             renderTicket();
             cargarInventario();
