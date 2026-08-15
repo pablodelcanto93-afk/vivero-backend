@@ -179,7 +179,7 @@ app.post('/api/ventas', requireAuth, (req, res) => {
     res.json({ success: true });
 });
 
-// DASHBOARD ADMIN
+// DASHBOARD & CIERRE DE CAJA
 app.get('/api/reporte-admin', requireAuth, (req, res) => {
     if (req.session.user.rol !== 'admin') {
         return res.status(403).json({ error: 'Acceso denegado.' });
@@ -187,16 +187,23 @@ app.get('/api/reporte-admin', requireAuth, (req, res) => {
 
     const plantas = leerJSON(PLANTAS_FILE);
     const ventas = leerJSON(VENTAS_FILE);
+    const fechaFiltro = req.query.fecha; // YYYY-MM-DD
 
     const valorTotalInventario = plantas.reduce((acc, p) => acc + (p.precio * p.stock), 0);
     const totalPlantasUnidades = plantas.reduce((acc, p) => acc + p.stock, 0);
-    const totalRecaudadoVentas = ventas.reduce((acc, v) => acc + v.total, 0);
+
+    let ventasFiltradas = ventas;
+    if (fechaFiltro) {
+        ventasFiltradas = ventas.filter(v => v.fecha.startsWith(fechaFiltro));
+    }
 
     let totalEfectivo = 0;
     let totalTransferencia = 0;
     let totalDebito = 0;
+    let totalRecaudadoVentas = 0;
 
-    ventas.forEach(v => {
+    ventasFiltradas.forEach(v => {
+        totalRecaudadoVentas += v.total;
         const medio = v.medioPago ? v.medioPago.toLowerCase() : 'efectivo';
         if (medio.includes('efectivo')) totalEfectivo += v.total;
         else if (medio.includes('transferencia')) totalTransferencia += v.total;
@@ -213,7 +220,7 @@ app.get('/api/reporte-admin', requireAuth, (req, res) => {
             transferencia: totalTransferencia,
             debito: totalDebito
         },
-        ventas
+        cantidadVentas: ventasFiltradas.length
     });
 });
 

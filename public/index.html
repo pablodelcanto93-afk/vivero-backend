@@ -278,7 +278,14 @@
 
             <!-- CIERRE DE CAJA -->
             <div id="sec-caja" class="seccion">
-                <h2>💵 Dashboard de Caja & Métricas</h2>
+                <div class="card" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                    <h2>💵 Cierre de Caja y Balance Diario</h2>
+                    <div>
+                        <label style="font-size:0.85em; font-weight:bold;">Seleccionar Fecha:</label>
+                        <input type="date" id="fechaCaja" onchange="cargarReporteAdmin()" style="padding:6px; border:1px solid #cbd5e1; border-radius:6px;">
+                    </div>
+                </div>
+
                 <div class="dash-grid">
                     <div class="dash-card"><h4>💵 Total Efectivo</h4><p id="statEfectivo">$0</p></div>
                     <div class="dash-card"><h4>📲 Total Transferencia</h4><p id="statTransferencia">$0</p></div>
@@ -286,9 +293,23 @@
                 </div>
 
                 <div class="dash-grid">
-                    <div class="dash-card"><h4>💰 Valor Inventario</h4><p id="statValorInventario">$0</p></div>
-                    <div class="dash-card"><h4>🪴 Total Stock</h4><p id="statTotalStock">0 u.</p></div>
-                    <div class="dash-card"><h4>📈 Total Ventas</h4><p id="statTotalVentas">$0</p></div>
+                    <div class="dash-card" style="border-left-color: #0284c7;"><h4>📈 Total Recaudado</h4><p id="statTotalVentas">$0</p></div>
+                    <div class="dash-card" style="border-left-color: #0284c7;"><h4>🛍️ Ventas Realizadas</h4><p id="statCantVentas">0</p></div>
+                    <div class="dash-card" style="border-left-color: #f59e0b;"><h4>🪴 Valor Total Inventario</h4><p id="statValorInventario">$0</p></div>
+                </div>
+
+                <!-- SECCIÓN DE ARQUEO EN EFECTIVO -->
+                <div class="card">
+                    <h2>🔍 Arqueo de Efectivo (Cuadre de Cajón)</h2>
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; align-items:center;">
+                        <div>
+                            <label style="font-size:0.85em; font-weight:bold;">Efectivo contado en cajón ($):</label>
+                            <input type="number" id="efectivoReal" placeholder="Ej: 45000" oninput="calcularDiferenciaCaja()" style="margin-top:5px;">
+                        </div>
+                        <div id="resultadoArqueo" style="padding:15px; border-radius:6px; background:#f8fafc; border:1px solid #cbd5e1;">
+                            <span style="font-size:0.9em; color:#64748b;">Ingrese el dinero contado para verificar si cuadra con el sistema.</span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -333,6 +354,7 @@
         let inventario = [];
         let ticket = [];
         let usuarioActual = null;
+        let efectivoEsperadoSistema = 0;
 
         function toggleMenu() {
             const sb = document.getElementById('sidebar');
@@ -362,6 +384,9 @@
             if (usuarioActual.rol !== 'admin') {
                 document.querySelectorAll('.solo-admin').forEach(el => el.style.display = 'none');
             }
+
+            // Fecha actual por defecto en el filtro de caja
+            document.getElementById('fechaCaja').value = new Date().toISOString().split('T')[0];
             cargarInventario();
         }
 
@@ -437,15 +462,42 @@
         }
 
         async function cargarReporteAdmin() {
-            const res = await fetch('/api/reporte-admin');
+            const fecha = document.getElementById('fechaCaja').value;
+            const res = await fetch(`/api/reporte-admin?fecha=${fecha}`);
             if (!res.ok) return;
             const data = await res.json();
+            
+            efectivoEsperadoSistema = data.caja.efectivo;
+
             document.getElementById('statEfectivo').innerText = '$' + Number(data.caja.efectivo).toLocaleString('es-CL');
             document.getElementById('statTransferencia').innerText = '$' + Number(data.caja.transferencia).toLocaleString('es-CL');
             document.getElementById('statDebito').innerText = '$' + Number(data.caja.debito).toLocaleString('es-CL');
-            document.getElementById('statValorInventario').innerText = '$' + Number(data.valorTotalInventario).toLocaleString('es-CL');
-            document.getElementById('statTotalStock').innerText = data.totalPlantasUnidades + ' u.';
             document.getElementById('statTotalVentas').innerText = '$' + Number(data.totalRecaudadoVentas).toLocaleString('es-CL');
+            document.getElementById('statCantVentas').innerText = data.cantidadVentas + ' ventas';
+            document.getElementById('statValorInventario').innerText = '$' + Number(data.valorTotalInventario).toLocaleString('es-CL');
+
+            calcularDiferenciaCaja();
+        }
+
+        function calcularDiferenciaCaja() {
+            const inputVal = document.getElementById('efectivoReal').value;
+            const resDiv = document.getElementById('resultadoArqueo');
+            
+            if (inputVal === '') {
+                resDiv.innerHTML = '<span style="font-size:0.9em; color:#64748b;">Ingrese el dinero contado para verificar si cuadra con el sistema.</span>';
+                return;
+            }
+
+            const contado = Number(inputVal);
+            const dif = contado - efectivoEsperadoSistema;
+
+            if (dif === 0) {
+                resDiv.innerHTML = '<b style="color:#22c55e; font-size:1.1em;">✅ Caja Perfecta: El efectivo coincide de forma exacta.</b>';
+            } else if (dif > 0) {
+                resDiv.innerHTML = `<b style="color:#0284c7; font-size:1.1em;">🔵 Sobrante en Caja:</b> Hay $${dif.toLocaleString('es-CL')} más de lo registrado.`;
+            } else {
+                resDiv.innerHTML = `<b style="color:#ef4444; font-size:1.1em;">⚠️ Faltante en Caja:</b> Faltan $${Math.abs(dif).toLocaleString('es-CL')} en el cajón.`;
+            }
         }
 
         // REPARTOS SÁBADO
