@@ -14,7 +14,8 @@
         .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
         h2 { margin-bottom: 15px; color: #2e7d32; }
         form { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        form input, form button { padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
+        form input, form textarea, form button { padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
+        form textarea { grid-column: span 2; resize: vertical; min-height: 60px; }
         form button { grid-column: span 2; background: #2e7d32; color: white; border: none; cursor: pointer; font-weight: bold; }
         form button:hover { background: #1b5e20; }
         .btn-cancelar { grid-column: span 2; background: #757575; color: white; border: none; padding: 8px; border-radius: 4px; cursor: pointer; display: none; }
@@ -51,12 +52,15 @@
             <h2 id="formTitulo">+ Agregar Planta</h2>
             <form id="plantaForm">
                 <input type="hidden" id="plantaId">
-                <input type="text" id="nombre" placeholder="Nombre (ej: Limón Pica)" required>
+                <input type="text" id="nombre" placeholder="Nombre (ej: Babaco / Limón Pica)" required>
                 <input type="text" id="cientifico" placeholder="Nombre Científico">
-                <input type="text" id="categoria" placeholder="Categoría (ej: Cítricos)">
+                <input type="text" id="categoria" placeholder="Categoría (ej: Frutales / Cítricos)">
                 <input type="text" id="ubicacion" placeholder="Ubicación en Vivero">
                 <input type="number" id="precio" placeholder="Precio ($)" required>
                 <input type="number" id="stock" placeholder="Stock Inicial" required>
+                <input type="text" id="riego" placeholder="💧 Riego (ej: Moderado / 2 veces por semana)">
+                <input type="text" id="clima" placeholder="☀️ Clima / Sol (ej: Sol / Semisombra / Sensible a heladas)">
+                <textarea id="cuidados" placeholder="📝 Ficha técnica / Consejos de cultivo y adaptación..."></textarea>
                 <input type="file" id="fotoInput" accept="image/*" style="grid-column: span 2;">
                 <button type="submit" id="btnGuardar">Guardar Planta</button>
                 <button type="button" class="btn-cancelar" id="btnCancelar" onclick="limpiarFormulario()">Cancelar Edición</button>
@@ -143,6 +147,9 @@
         formData.append('ubicacion', document.getElementById('ubicacion').value);
         formData.append('precio', document.getElementById('precio').value);
         formData.append('stock', document.getElementById('stock').value);
+        formData.append('riego', document.getElementById('riego').value);
+        formData.append('clima', document.getElementById('clima').value);
+        formData.append('cuidados', document.getElementById('cuidados').value);
 
         const foto = document.getElementById('fotoInput').files[0];
         if (foto) formData.append('foto', foto);
@@ -167,6 +174,9 @@
         document.getElementById('ubicacion').value = p.ubicacion || '';
         document.getElementById('precio').value = p.precio;
         document.getElementById('stock').value = p.stock;
+        document.getElementById('riego').value = p.riego || '';
+        document.getElementById('clima').value = p.clima || '';
+        document.getElementById('cuidados').value = p.cuidados || '';
 
         document.getElementById('formTitulo').innerText = "✏️ Editar Planta";
         document.getElementById('btnGuardar').innerText = "Actualizar Planta";

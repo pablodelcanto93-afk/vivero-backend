@@ -104,6 +104,9 @@ app.post('/api/plantas', requerirAutenticacion, upload.single('foto'), (req, res
                 plantas[index].ubicacion = req.body.ubicacion || '';
                 plantas[index].precio = Number(req.body.precio) || 0;
                 plantas[index].stock = Number(req.body.stock) || 0;
+                plantas[index].riego = req.body.riego || '';
+                plantas[index].clima = req.body.clima || '';
+                plantas[index].cuidados = req.body.cuidados || '';
                 if (req.file) {
                     plantas[index].foto = '/uploads/' + req.file.filename;
                 }
@@ -121,6 +124,9 @@ app.post('/api/plantas', requerirAutenticacion, upload.single('foto'), (req, res
                 ubicacion: req.body.ubicacion || '',
                 precio: Number(req.body.precio) || 0,
                 stock: Number(req.body.stock) || 0,
+                riego: req.body.riego || '',
+                clima: req.body.clima || '',
+                cuidados: req.body.cuidados || '',
                 foto: fotoRuta
             };
             plantas.push(nuevaPlanta);

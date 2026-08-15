@@ -19,15 +19,20 @@
         .search-container { max-width: 1100px; margin: 20px auto 10px; padding: 0 20px; }
         .search-input { width: 100%; padding: 12px; border: 2px solid #2e7d32; border-radius: 6px; font-size: 1em; }
 
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; max-width: 1100px; margin: 20px auto; padding: 0 20px; }
-        .card { background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 3px 8px rgba(0,0,0,0.1); display: flex; flex-direction: column; justify-content: space-between; text-align: center; }
-        .card img { width: 100%; height: 190px; object-fit: cover; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; max-width: 1100px; margin: 20px auto; padding: 0 20px; }
+        .card { background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 3px 8px rgba(0,0,0,0.1); display: flex; flex-direction: column; justify-content: space-between; text-align: left; }
+        .card img { width: 100%; height: 200px; object-fit: cover; }
         .card-body { padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; }
-        .card h3 { color: #1b5e20; font-size: 1.15em; margin-bottom: 4px; }
-        .card p.cientifico { color: #777; font-style: italic; font-size: 0.85em; margin-bottom: 8px; }
-        .price { font-size: 1.3em; color: #2e7d32; font-weight: bold; margin: 8px 0; }
+        .card h3 { color: #1b5e20; font-size: 1.2em; margin-bottom: 2px; }
+        .card p.cientifico { color: #777; font-style: italic; font-size: 0.85em; margin-bottom: 10px; }
         
-        .btn-wsp { background: #25d366; color: white; text-decoration: none; padding: 10px; border-radius: 6px; font-weight: bold; display: inline-flex; align-items: center; justify-content: center; gap: 6px; margin-top: 10px; }
+        .ficha-tecnica { background: #f9fbf9; border-left: 3px solid #2e7d32; padding: 8px 10px; border-radius: 4px; font-size: 0.85em; margin: 8px 0; color: #444; line-height: 1.4; }
+        .ficha-item { margin-bottom: 4px; }
+        .ficha-item b { color: #1b5e20; }
+
+        .price { font-size: 1.3em; color: #2e7d32; font-weight: bold; margin: 8px 0; text-align: center; }
+        
+        .btn-wsp { background: #25d366; color: white; text-decoration: none; padding: 10px; border-radius: 6px; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 10px; text-align: center; }
         .btn-wsp:hover { background: #1ebd56; }
     </style>
 </head>
@@ -41,7 +46,7 @@
         </div>
         <div class="info-box">
             📍 <b>Ubicación:</b> Limache, Chile — 
-            <a href="https://www.google.com/maps/place/AgroServicio+Sol+y+Sombra/@-32.9262776,-71.4210017,16z" target="_blank" id="mapLink">Ver en Google Maps 🗺️</a>
+            <a href="https://www.google.com/maps/place/AgroServicio+Sol+y+Sombra/@-32.9262776,-71.4210017,16z" target="_blank" id="mapLink">Ver ubicación en Google Maps 🗺️</a><br>
             🕒 <b>Atención presencial:</b> Previo aviso.<br>
             🚚 <b>Reparto a domicilio:</b> Todos los sábados.<br>
             📲 <b>Contacto / Pedidos:</b> <a href="https://wa.me/56953450809" target="_blank">+56 9 5345 0809</a>
@@ -81,6 +86,15 @@
             const mensajeWsp = encodeURIComponent(`Hola, me interesa consultar por la planta "${p.nombre}" vista en el catálogo.`);
             const urlWsp = `https://wa.me/56953450809?text=${mensajeWsp}`;
 
+            let fichaHTML = '';
+            if (p.riego || p.clima || p.cuidados) {
+                fichaHTML = '<div class="ficha-tecnica">';
+                if (p.riego) fichaHTML += `<div class="ficha-item">💧 <b>Riego:</b> ${p.riego}</div>`;
+                if (p.clima) fichaHTML += `<div class="ficha-item">☀️ <b>Clima/Sol:</b> ${p.clima}</div>`;
+                if (p.cuidados) fichaHTML += `<div class="ficha-item">📝 <b>Cuidados:</b> ${p.cuidados}</div>`;
+                fichaHTML += '</div>';
+            }
+
             grid.innerHTML += `
                 <div class="card">
                     <img src="${p.foto || '/logo.png'}" onerror="this.src='/logo.png'">
@@ -88,6 +102,7 @@
                         <div>
                             <h3>${p.nombre}</h3>
                             <p class="cientifico">${p.cientifico ? p.cientifico : ''}</p>
+                            ${fichaHTML}
                         </div>
                         <div>
                             <div class="price">$${Number(p.precio).toLocaleString('es-CL')}</div>
@@ -103,7 +118,8 @@
         const texto = document.getElementById('buscador').value.toLowerCase();
         const filtradas = todasLasPlantas.filter(p => 
             p.nombre.toLowerCase().includes(texto) || 
-            (p.cientifico && p.cientifico.toLowerCase().includes(texto))
+            (p.cientifico && p.cientifico.toLowerCase().includes(texto)) ||
+            (p.cuidados && p.cuidados.toLowerCase().includes(texto))
         );
         renderPlantas(filtradas);
     }
