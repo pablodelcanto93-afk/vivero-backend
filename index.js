@@ -1,10 +1,22 @@
 const express = require('express');
+const session = require('express-session');
 const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Configuración de Sesiones
+app.use(session({
+    secret: 'vivero-sol-y-sombra-clave-secreta-2026',
+    resave: false,
+    saveUninitialized: false,
+    cookie: { maxAge: 24 * 60 * 60 * 1000 } // La sesión dura 24 horas
+}));
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Configurar multer para subida de fotos
 const storage = multer.diskStorage({
@@ -24,13 +36,8 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, 'public')));
-
 const DATA_FILE = path.join(__dirname, 'plantas.json');
 
-// Función auxiliar para leer las plantas desde plantas.json
 function obtenerPlantas() {
     if (!fs.existsSync(DATA_FILE)) {
         fs.writeFileSync(DATA_FILE, '[]', 'utf-8');
@@ -45,19 +52,74 @@ function obtenerPlantas() {
     }
 }
 
-// Función auxiliar para guardar plantas
 function guardarPlantas(plantas) {
     fs.writeFileSync(DATA_FILE, JSON.stringify(plantas, null, 2), 'utf-8');
 }
 
-// RUTA GET: Obtener todas las plantas (esto es lo que alimenta la tabla)
-app.get('/api/plantas', (req, res) => {
+// Middleware para verificar si el usuario está autenticado
+function requerirAutenticacion(req, res, next) {
+    if (req.session && req.session.autenticado) {
+        return next();
+    }
+    return res.redirect('/login.html');
+}
+
+// --- RUTAS PÚBLICAS ---
+
+// El catálogo web sigue siendo accesible para todo el mundo
+app.use('/catalogo.html', express.static(path.join(__dirname, 'public', 'catalogo.html')));
+app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
+app.use('/logo.png', express.static(path.join(__dirname, 'public', 'logo.png')));
+
+// Ruta pública de la API para que el catálogo web pueda leer las plantas
+app.get('/api/plantas/publico', (req, res) => {
     const plantas = obtenerPlantas();
     res.json(plantas);
 });
 
-// RUTA POST: Agregar nueva planta (con foto)
-app.post('/api/plantas', upload.single('foto'), (req, res) => {
+// Procesar Inicio de Sesión (Usuario y Contraseña)
+app.post('/api/login', (req, res) => {
+    const { usuario, password } = req.body;
+    
+    // DEFINIR USUARIO Y CONTRASEÑA DE ACCESO
+    const USUARIO_VALIDO = "admin";
+    const PASSWORD_VALIDO = "vivero2026"; // Puedes cambiar esta clave si prefieres
+
+    if (usuario === USUARIO_VALIDO && password === PASSWORD_VALIDO) {
+        req.session.autenticado = true;
+        return res.json({ status: 'ok', redirect: '/' });
+    } else {
+        return res.status(401).json({ status: 'error', mensaje: 'Usuario o contraseña incorrectos' });
+    }
+});
+
+// Cerrar sesión
+app.get('/api/logout', (req, res) => {
+    req.session.destroy();
+    res.redirect('/login.html');
+});
+
+// --- RUTAS PROTEGIDAS (Solo accesibles tras iniciar sesión) ---
+
+// Proteger la página principal (index.html / inventario)
+app.get('/', requerirAutenticacion, (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+app.get('/index.html', requerirAutenticacion, (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Archivos estáticos protegidos
+app.use(express.static(path.join(__dirname, 'public')));
+
+// API protegida para modificar/ver inventario administrativo
+app.get('/api/plantas', requerirAutenticacion, (req, res) => {
+    const plantas = obtenerPlantas();
+    res.json(plantas);
+});
+
+app.post('/api/plantas', requerirAutenticacion, upload.single('foto'), (req, res) => {
     try {
         const plantas = obtenerPlantas();
         let fotoRuta = '/logo.png';
@@ -89,8 +151,7 @@ app.post('/api/plantas', upload.single('foto'), (req, res) => {
     }
 });
 
-// RUTA DELETE: Eliminar planta
-app.delete('/api/plantas/:id', (req, res) => {
+app.delete('/api/plantas/:id', requerirAutenticacion, (req, res) => {
     try {
         let plantas = obtenerPlantas();
         const { id } = req.params;
