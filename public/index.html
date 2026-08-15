@@ -9,122 +9,46 @@
         body { background-color: #f4f7f6; display: flex; flex-direction: column; min-height: 100vh; color: #333; }
 
         .topbar-mobile {
-            display: none;
-            background: #1e293b;
-            color: white;
-            padding: 12px 15px;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 100;
+            display: none; background: #1e293b; color: white; padding: 12px 15px;
+            justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100;
         }
 
-        .btn-toggle-menu {
-            background: #334155;
-            color: white;
-            border: none;
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-size: 1.2em;
-            cursor: pointer;
-        }
-
-        .app-container {
-            display: flex;
-            flex-grow: 1;
-            position: relative;
-        }
+        .btn-toggle-menu { background: #334155; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 1.2em; cursor: pointer; }
+        .app-container { display: flex; flex-grow: 1; position: relative; }
 
         .sidebar {
-            width: 260px;
-            background: #1e293b;
-            color: #94a3b8;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            padding: 20px 15px;
-            flex-shrink: 0;
-            transition: transform 0.3s ease;
-            z-index: 90;
+            width: 260px; background: #1e293b; color: #94a3b8; display: flex; flex-direction: column;
+            justify-content: space-between; padding: 20px 15px; flex-shrink: 0; transition: transform 0.3s ease; z-index: 90;
         }
 
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            color: white;
-            padding-bottom: 20px;
-            border-bottom: 1px solid #334155;
-            margin-bottom: 20px;
-        }
-
+        .brand { display: flex; align-items: center; gap: 12px; color: white; padding-bottom: 20px; border-bottom: 1px solid #334155; margin-bottom: 20px; }
         .brand img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
         .brand h2 { font-size: 1.1em; color: #22c55e; }
 
-        .menu-cat {
-            font-size: 0.75em;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #64748b;
-            margin: 15px 0 8px 10px;
-            font-weight: bold;
-        }
+        .menu-cat { font-size: 0.75em; text-transform: uppercase; letter-spacing: 1px; color: #64748b; margin: 15px 0 8px 10px; font-weight: bold; }
 
         .menu-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px 12px;
-            color: #cbd5e1;
-            text-decoration: none;
-            border-radius: 6px;
-            font-size: 0.9em;
-            cursor: pointer;
-            margin-bottom: 4px;
-            transition: all 0.2s;
+            display: flex; align-items: center; gap: 10px; padding: 10px 12px; color: #cbd5e1;
+            text-decoration: none; border-radius: 6px; font-size: 0.9em; cursor: pointer; margin-bottom: 4px; transition: all 0.2s;
         }
+        .menu-item:hover, .menu-item.active { background: #334155; color: #22c55e; font-weight: bold; }
 
-        .menu-item:hover, .menu-item.active {
-            background: #334155;
-            color: #22c55e;
-            font-weight: bold;
-        }
+        .user-info { border-top: 1px solid #334155; padding-top: 15px; font-size: 0.85em; }
+        .btn-logout { display: block; margin-top: 10px; color: #ef4444; text-decoration: none; font-weight: bold; }
 
-        .user-info {
-            border-top: 1px solid #334155;
-            padding-top: 15px;
-            font-size: 0.85em;
-        }
-
-        .btn-logout {
-            display: block;
-            margin-top: 10px;
-            color: #ef4444;
-            text-decoration: none;
-            font-weight: bold;
-        }
-
-        .main-content {
-            flex-grow: 1;
-            padding: 20px;
-            overflow-y: auto;
-            width: 100%;
-        }
-
+        .main-content { flex-grow: 1; padding: 20px; overflow-y: auto; width: 100%; }
         .seccion { display: none; }
         .seccion.activa { display: block; }
 
         .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 20px; }
         h2 { margin-bottom: 15px; color: #1e293b; font-size: 1.3em; }
-        
+
         .grid-pos { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
-        
         form { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         form input, form textarea, form button, select { padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; width: 100%; }
         form textarea { grid-column: span 2; min-height: 60px; }
         form button { grid-column: span 2; background: #15803d; color: white; border: none; font-weight: bold; cursor: pointer; }
-        
+
         .table-responsive { width: 100%; overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th, td { padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0; font-size: 0.9em; }
@@ -148,26 +72,9 @@
             .grid-pos { grid-template-columns: 1fr; }
             form { grid-template-columns: 1fr; }
             form textarea, form button { grid-column: span 1; }
-
-            .sidebar {
-                position: fixed;
-                top: 0;
-                left: 0;
-                height: 100vh;
-                transform: translateX(-100%);
-            }
-
-            .sidebar.abierto {
-                transform: translateX(0);
-            }
-
-            .overlay {
-                display: none;
-                position: fixed;
-                top: 0; left: 0; right: 0; bottom: 0;
-                background: rgba(0,0,0,0.5);
-                z-index: 80;
-            }
+            .sidebar { position: fixed; top: 0; left: 0; height: 100vh; transform: translateX(-100%); }
+            .sidebar.abierto { transform: translateX(0); }
+            .overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 80; }
             .overlay.activo { display: block; }
         }
     </style>
@@ -265,12 +172,10 @@
                         <input type="text" id="riego" placeholder="💧 Riego">
                         <input type="text" id="clima" placeholder="☀️ Clima">
                         <textarea id="cuidados" placeholder="📝 Ficha técnica / Consejos..."></textarea>
-                        
                         <div>
                             <label style="font-size:0.85em; font-weight:bold;">📷 Foto Planta:</label>
                             <input type="file" id="fotoInput" accept="image/*" capture="environment">
                         </div>
-
                         <button type="submit" id="btnGuardar">Guardar Planta</button>
                     </form>
                 </div>
@@ -298,7 +203,6 @@
                     <div class="dash-card" style="border-left-color: #f59e0b;"><h4>🪴 Valor Total Inventario</h4><p id="statValorInventario">$0</p></div>
                 </div>
 
-                <!-- SECCIÓN DE ARQUEO EN EFECTIVO -->
                 <div class="card">
                     <h2>🔍 Arqueo de Efectivo (Cuadre de Cajón)</h2>
                     <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; align-items:center;">
@@ -309,6 +213,87 @@
                         <div id="resultadoArqueo" style="padding:15px; border-radius:6px; background:#f8fafc; border:1px solid #cbd5e1;">
                             <span style="font-size:0.9em; color:#64748b;">Ingrese el dinero contado para verificar si cuadra con el sistema.</span>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- GASTOS DE INSUMOS -->
+            <div id="sec-gastos" class="seccion">
+                <div class="card">
+                    <h2>📉 Registrar Nuevo Gasto de Insumos</h2>
+                    <form id="gastoForm">
+                        <input type="text" id="gastoDesc" placeholder="Descripción (ej: Sustrato, Bolsas, Malla)" required>
+                        <select id="gastoCat">
+                            <option value="Sustratos y Tierra">🪴 Sustratos y Tierra</option>
+                            <option value="Maceteros y Bolsas">📦 Maceteros y Bolsas</option>
+                            <option value="Fertilizantes y Pesti.">🧪 Fertilizantes / Plaguicidas</option>
+                            <option value="Herramientas y Riego">🛠️ Herramientas y Riego</option>
+                            <option value="Otros Gastos">📌 Otros Gastos</option>
+                        </select>
+                        <input type="number" id="gastoMonto" placeholder="Monto Total ($)" required>
+                        <select id="gastoMedio">
+                            <option value="Efectivo">💵 Efectivo</option>
+                            <option value="Transferencia">📲 Transferencia</option>
+                            <option value="Débito">💳 Débito / Tarjeta</option>
+                        </select>
+                        <button type="submit">Guardar Gasto</button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h2>📋 Registro General de Gastos</h2>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr><th>Fecha</th><th>Descripción</th><th>Categoría</th><th>Medio</th><th>Monto</th><th>Acción</th></tr>
+                            </thead>
+                            <tbody id="tablaGastos"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- HISTORIAL DE VENTAS -->
+            <div id="sec-historial" class="seccion">
+                <div class="card">
+                    <h2>📋 Historial Completo de Ventas</h2>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr><th>Fecha / Hora</th><th>Vendedor</th><th>Detalle</th><th>Medio</th><th>Total</th></tr>
+                            </thead>
+                            <tbody id="tablaHistorial"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CONTROL F29 / IVA -->
+            <div id="sec-f29" class="seccion">
+                <div class="card">
+                    <h2>📑 Registrar Factura de Compra (Crédito Fiscal IVA)</h2>
+                    <form id="facturaForm">
+                        <input type="text" id="factProveedor" placeholder="Proveedor (ej: Distribuidora Sol)" required>
+                        <input type="text" id="factNum" placeholder="N° Factura" required>
+                        <input type="date" id="factFecha" required>
+                        <input type="number" id="factNeto" placeholder="Monto NETO ($)" required>
+                        <div>
+                            <label style="font-size:0.85em; font-weight:bold;">PDF / Foto Factura:</label>
+                            <input type="file" id="factFile" accept="image/*,application/pdf">
+                        </div>
+                        <button type="submit">Guardar Factura para F29</button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h2>📊 Respaldo de Compras con IVA Recuperable</h2>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr><th>Fecha</th><th>Proveedor</th><th>N° Factura</th><th>Neto</th><th>IVA (19%)</th><th>Total</th><th>Archivo</th><th>Acción</th></tr>
+                            </thead>
+                            <tbody id="tablaFacturas"></tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -342,11 +327,6 @@
                 </div>
             </div>
 
-            <!-- SECCIONES EN DESARROLLO -->
-            <div id="sec-gastos" class="seccion"><div class="card"><h2>📉 Registro de Gastos</h2><p>Módulo para compras de insumos.</p></div></div>
-            <div id="sec-historial" class="seccion"><div class="card"><h2>📋 Historial de Ventas</h2><p>Detalle de todas las ventas realizadas.</p></div></div>
-            <div id="sec-f29" class="seccion"><div class="card"><h2>📑 Control F29 / IVA</h2><p>Módulo para facturas y respaldos contables.</p></div></div>
-
         </div>
     </div>
 
@@ -357,27 +337,24 @@
         let efectivoEsperadoSistema = 0;
 
         function toggleMenu() {
-            const sb = document.getElementById('sidebar');
-            const ov = document.getElementById('overlay');
-            sb.classList.toggle('abierto');
-            ov.classList.toggle('activo');
+            document.getElementById('sidebar').classList.toggle('abierto');
+            document.getElementById('overlay').classList.toggle('activo');
         }
 
         function seleccionarOpcion(sec) {
             mostrarSeccion(sec);
             if (sec === 'despachos') cargarDespachos();
-            if (window.innerWidth <= 768) {
-                toggleMenu();
-            }
+            if (sec === 'gastos') cargarGastos();
+            if (sec === 'historial') cargarHistorialVentas();
+            if (sec === 'f29') cargarFacturas();
+            if (window.innerWidth <= 768) toggleMenu();
         }
 
         async function verificarSesion() {
             const res = await fetch('/api/session');
             const data = await res.json();
-            if (!data.loggedIn) {
-                window.location.href = '/login.html';
-                return;
-            }
+            if (!data.loggedIn) return window.location.href = '/login.html';
+
             usuarioActual = data.user;
             document.getElementById('nomUsuario').innerText = usuarioActual.nombre;
 
@@ -385,15 +362,14 @@
                 document.querySelectorAll('.solo-admin').forEach(el => el.style.display = 'none');
             }
 
-            // Fecha actual por defecto en el filtro de caja
             document.getElementById('fechaCaja').value = new Date().toISOString().split('T')[0];
+            document.getElementById('factFecha').value = new Date().toISOString().split('T')[0];
             cargarInventario();
         }
 
         function mostrarSeccion(sec) {
             document.querySelectorAll('.seccion').forEach(s => s.classList.remove('activa'));
             document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
-            
             document.getElementById(`sec-${sec}`).classList.add('activa');
             if (sec === 'caja') cargarReporteAdmin();
         }
@@ -468,39 +444,148 @@
             const data = await res.json();
             
             efectivoEsperadoSistema = data.caja.efectivo;
-
             document.getElementById('statEfectivo').innerText = '$' + Number(data.caja.efectivo).toLocaleString('es-CL');
             document.getElementById('statTransferencia').innerText = '$' + Number(data.caja.transferencia).toLocaleString('es-CL');
             document.getElementById('statDebito').innerText = '$' + Number(data.caja.debito).toLocaleString('es-CL');
             document.getElementById('statTotalVentas').innerText = '$' + Number(data.totalRecaudadoVentas).toLocaleString('es-CL');
             document.getElementById('statCantVentas').innerText = data.cantidadVentas + ' ventas';
             document.getElementById('statValorInventario').innerText = '$' + Number(data.valorTotalInventario).toLocaleString('es-CL');
-
             calcularDiferenciaCaja();
         }
 
         function calcularDiferenciaCaja() {
             const inputVal = document.getElementById('efectivoReal').value;
             const resDiv = document.getElementById('resultadoArqueo');
-            
             if (inputVal === '') {
                 resDiv.innerHTML = '<span style="font-size:0.9em; color:#64748b;">Ingrese el dinero contado para verificar si cuadra con el sistema.</span>';
                 return;
             }
-
             const contado = Number(inputVal);
             const dif = contado - efectivoEsperadoSistema;
+            if (dif === 0) resDiv.innerHTML = '<b style="color:#22c55e; font-size:1.1em;">✅ Caja Perfecta: El efectivo coincide de forma exacta.</b>';
+            else if (dif > 0) resDiv.innerHTML = `<b style="color:#0284c7; font-size:1.1em;">🔵 Sobrante en Caja:</b> Hay $${dif.toLocaleString('es-CL')} más de lo registrado.`;
+            else resDiv.innerHTML = `<b style="color:#ef4444; font-size:1.1em;">⚠️ Faltante en Caja:</b> Faltan $${Math.abs(dif).toLocaleString('es-CL')} en el cajón.`;
+        }
 
-            if (dif === 0) {
-                resDiv.innerHTML = '<b style="color:#22c55e; font-size:1.1em;">✅ Caja Perfecta: El efectivo coincide de forma exacta.</b>';
-            } else if (dif > 0) {
-                resDiv.innerHTML = `<b style="color:#0284c7; font-size:1.1em;">🔵 Sobrante en Caja:</b> Hay $${dif.toLocaleString('es-CL')} más de lo registrado.`;
-            } else {
-                resDiv.innerHTML = `<b style="color:#ef4444; font-size:1.1em;">⚠️ Faltante en Caja:</b> Faltan $${Math.abs(dif).toLocaleString('es-CL')} en el cajón.`;
+        // GASTOS
+        document.getElementById('gastoForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = {
+                descripcion: document.getElementById('gastoDesc').value,
+                categoria: document.getElementById('gastoCat').value,
+                monto: document.getElementById('gastoMonto').value,
+                medioPago: document.getElementById('gastoMedio').value
+            };
+            const res = await fetch('/api/gastos', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            if (res.ok) {
+                alert("¡Gasto guardado!");
+                document.getElementById('gastoForm').reset();
+                cargarGastos();
+            }
+        });
+
+        async function cargarGastos() {
+            const res = await fetch('/api/gastos');
+            const gastos = await res.json();
+            const tbody = document.getElementById('tablaGastos');
+            tbody.innerHTML = '';
+            gastos.reverse().forEach(g => {
+                const f = new Date(g.fecha).toLocaleDateString('es-CL');
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${f}</td>
+                        <td><b>${g.descripcion}</b></td>
+                        <td>${g.categoria}</td>
+                        <td>${g.medioPago}</td>
+                        <td><b>$${Number(g.monto).toLocaleString('es-CL')}</b></td>
+                        <td><button onclick="eliminarGasto('${g.id}')" style="background:#ef4444; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">🗑️</button></td>
+                    </tr>
+                `;
+            });
+        }
+
+        async function eliminarGasto(id) {
+            if (confirm("¿Borrar gasto?")) {
+                await fetch(`/api/gastos/${id}`, { method: 'DELETE' });
+                cargarGastos();
             }
         }
 
-        // REPARTOS SÁBADO
+        // HISTORIAL VENTAS
+        async function cargarHistorialVentas() {
+            const res = await fetch('/api/ventas');
+            const ventas = await res.json();
+            const tbody = document.getElementById('tablaHistorial');
+            tbody.innerHTML = '';
+            ventas.reverse().forEach(v => {
+                const f = new Date(v.fecha).toLocaleString('es-CL');
+                const detalle = v.items.map(i => `${i.nombre} (x${i.cantidad})`).join(', ');
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${f}</td>
+                        <td><b>${v.vendedor}</b></td>
+                        <td>${detalle}</td>
+                        <td>${v.medioPago}</td>
+                        <td><b style="color:#15803d;">$${Number(v.total).toLocaleString('es-CL')}</b></td>
+                    </tr>
+                `;
+            });
+        }
+
+        // F29 / FACTURAS
+        document.getElementById('facturaForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData();
+            formData.append('proveedor', document.getElementById('factProveedor').value);
+            formData.append('numFactura', document.getElementById('factNum').value);
+            formData.append('fecha', document.getElementById('factFecha').value);
+            formData.append('montoNeto', document.getElementById('factNeto').value);
+
+            const fileInput = document.getElementById('factFile');
+            if (fileInput.files[0]) formData.append('archivo', fileInput.files[0]);
+
+            const res = await fetch('/api/facturas', { method: 'POST', body: formData });
+            if (res.ok) {
+                alert("¡Factura guardada para respaldos del F29!");
+                document.getElementById('facturaForm').reset();
+                document.getElementById('factFecha').value = new Date().toISOString().split('T')[0];
+                cargarFacturas();
+            }
+        });
+
+        async function cargarFacturas() {
+            const res = await fetch('/api/facturas');
+            const facturas = await res.json();
+            const tbody = document.getElementById('tablaFacturas');
+            tbody.innerHTML = '';
+            facturas.reverse().forEach(f => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${f.fecha}</td>
+                        <td><b>${f.proveedor}</b></td>
+                        <td>#${f.numFactura}</td>
+                        <td>$${Number(f.montoNeto).toLocaleString('es-CL')}</td>
+                        <td><b style="color:#0284c7;">$${Number(f.ivaRecuperable).toLocaleString('es-CL')}</b></td>
+                        <td><b>$${Number(f.total).toLocaleString('es-CL')}</b></td>
+                        <td>${f.adjunto ? `<a href="${f.adjunto}" target="_blank">📄 Ver Documento</a>` : 'Sin adjunto'}</td>
+                        <td><button onclick="eliminarFactura('${f.id}')" style="background:#ef4444; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">🗑️</button></td>
+                    </tr>
+                `;
+            });
+        }
+
+        async function eliminarFactura(id) {
+            if (confirm("¿Borrar factura?")) {
+                await fetch(`/api/facturas/${id}`, { method: 'DELETE' });
+                cargarFacturas();
+            }
+        }
+
+        // DESPACHOS
         document.getElementById('despachoForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const data = {
@@ -511,15 +596,13 @@
                 detalle: document.getElementById('despDetalle').value,
                 estadoPago: document.getElementById('despEstadoPago').value
             };
-
             const res = await fetch('/api/despachos', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             });
-
             if (res.ok) {
-                alert("¡Reparto agendado con éxito!");
+                alert("¡Reparto agendado!");
                 document.getElementById('despachoForm').reset();
                 cargarDespachos();
             }
@@ -538,11 +621,8 @@
 
             despachos.reverse().forEach(d => {
                 const esEntregado = d.estadoEntrega === 'Entregado';
-                const bg = esEntregado ? '#f0fdf4' : '#fff';
-                const border = esEntregado ? '#22c55e' : '#f59e0b';
-
                 cont.innerHTML += `
-                    <div style="background: ${bg}; border-left: 5px solid ${border}; padding: 15px; border-radius: 6px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
+                    <div style="background: ${esEntregado ? '#f0fdf4' : '#fff'}; border-left: 5px solid ${esEntregado ? '#22c55e' : '#f59e0b'}; padding: 15px; border-radius: 6px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
                         <div style="display:flex; justify-content:space-between; align-items:flex-start;">
                             <div>
                                 <b style="font-size:1.1em; color:#1e293b;">👤 ${d.cliente}</b>
@@ -553,9 +633,7 @@
                             <div style="text-align:right;">
                                 <span style="font-size:1.2em; font-weight:bold; color:#15803d;">$${Number(d.monto).toLocaleString('es-CL')}</span>
                                 <br>
-                                <span style="font-size:0.75em; padding:2px 6px; border-radius:4px; background:${d.estadoPago === 'Pagado' ? '#bbf7d0' : '#fef08a'}; color:${d.estadoPago === 'Pagado' ? '#15803d' : '#854d0e'}; font-weight:bold; display:inline-block; margin-top:4px;">
-                                    ${d.estadoPago}
-                                </span>
+                                <span style="font-size:0.75em; padding:2px 6px; border-radius:4px; background:${d.estadoPago === 'Pagado' ? '#bbf7d0' : '#fef08a'}; color:${d.estadoPago === 'Pagado' ? '#15803d' : '#854d0e'}; font-weight:bold; display:inline-block; margin-top:4px;">${d.estadoPago}</span>
                             </div>
                         </div>
                         <div style="margin-top:12px; display:flex; gap:8px; justify-content:flex-end;">
@@ -577,7 +655,7 @@
         }
 
         async function eliminarDespacho(id) {
-            if (confirm("¿Borrar este registro de entrega?")) {
+            if (confirm("¿Borrar entrega?")) {
                 await fetch(`/api/despachos/${id}`, { method: 'DELETE' });
                 cargarDespachos();
             }

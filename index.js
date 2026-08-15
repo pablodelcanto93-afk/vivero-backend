@@ -35,6 +35,8 @@ const upload = multer({ storage });
 const PLANTAS_FILE = path.join(__dirname, 'plantas.json');
 const VENTAS_FILE = path.join(__dirname, 'ventas.json');
 const DESPACHOS_FILE = path.join(__dirname, 'despachos.json');
+const GASTOS_FILE = path.join(__dirname, 'gastos.json');
+const FACTURAS_FILE = path.join(__dirname, 'facturas.json');
 
 function leerJSON(file) {
     if (!fs.existsSync(file)) return [];
@@ -50,10 +52,9 @@ function guardarJSON(file, data) {
     fs.writeFileSync(file, JSON.stringify(data, null, 2));
 }
 
-// LOGIN DE USUARIOS
+// LOGIN
 app.post('/api/login', (req, res) => {
     const { usuario, password } = req.body;
-    
     if (usuario === 'pdelcanto' && password === '1234') {
         req.session.user = { usuario: 'pdelcanto', rol: 'admin', nombre: 'Pablo Del Canto' };
         return res.json({ success: true, rol: 'admin' });
@@ -61,7 +62,6 @@ app.post('/api/login', (req, res) => {
         req.session.user = { usuario: 'vivero', rol: 'trabajador', nombre: 'Trabajador' };
         return res.json({ success: true, rol: 'trabajador' });
     }
-    
     res.status(401).json({ success: false, message: 'Usuario o contraseña incorrectos' });
 });
 
@@ -79,24 +79,23 @@ app.get('/api/logout', (req, res) => {
 });
 
 function requireAuth(req, res, next) {
-    if (req.session.user) {
-        next();
-    } else {
-        res.status(401).json({ error: 'No autorizado' });
-    }
+    if (req.session.user) next();
+    else res.status(401).json({ error: 'No autorizado' });
 }
 
-// OBTENER PLANTAS
+function requireAdmin(req, res, next) {
+    if (req.session.user && req.session.user.rol === 'admin') next();
+    else res.status(403).json({ error: 'Acceso denegado' });
+}
+
+// PLANTAS
 app.get('/api/plantas', (req, res) => {
-    const plantas = leerJSON(PLANTAS_FILE);
-    res.json(plantas);
+    res.json(leerJSON(PLANTAS_FILE));
 });
 
-// AGREGAR / EDITAR PLANTA
 app.post('/api/plantas', requireAuth, upload.single('foto'), (req, res) => {
     const plantas = leerJSON(PLANTAS_FILE);
     const { id, nombre, cientifico, categoria, ubicacion, precio, stock, riego, clima, cuidados } = req.body;
-
     let fotoUrl = req.file ? `/uploads/${req.file.filename}` : null;
 
     if (id) {
@@ -117,7 +116,7 @@ app.post('/api/plantas', requireAuth, upload.single('foto'), (req, res) => {
             };
         }
     } else {
-        const nuevaPlanta = {
+        plantas.push({
             id: Date.now().toString(),
             nombre,
             cientifico: cientifico || '',
@@ -129,15 +128,13 @@ app.post('/api/plantas', requireAuth, upload.single('foto'), (req, res) => {
             clima: clima || '',
             cuidados: cuidados || '',
             foto: fotoUrl || '/logo.png'
-        };
-        plantas.push(nuevaPlanta);
+        });
     }
 
     guardarJSON(PLANTAS_FILE, plantas);
     res.json({ success: true });
 });
 
-// ELIMINAR PLANTA
 app.delete('/api/plantas/:id', requireAuth, (req, res) => {
     let plantas = leerJSON(PLANTAS_FILE);
     plantas = plantas.filter(p => String(p.id) !== String(req.params.id));
@@ -145,7 +142,11 @@ app.delete('/api/plantas/:id', requireAuth, (req, res) => {
     res.json({ success: true });
 });
 
-// REGISTRAR VENTA
+// VENTAS E HISTORIAL
+app.get('/api/ventas', requireAdmin, (req, res) => {
+    res.json(leerJSON(VENTAS_FILE));
+});
+
 app.post('/api/ventas', requireAuth, (req, res) => {
     const { items, medioPago } = req.body;
     if (!items || items.length === 0) return res.status(400).json({ error: 'Sin items' });
@@ -162,32 +163,25 @@ app.post('/api/ventas', requireAuth, (req, res) => {
         }
     });
 
-    const nuevaVenta = {
+    ventas.push({
         id: Date.now().toString(),
         fecha: new Date().toISOString(),
         vendedor: req.session.user ? req.session.user.usuario : 'Desconocido',
         medioPago: medioPago || 'Efectivo',
         items,
         total: totalVenta
-    };
-
-    ventas.push(nuevaVenta);
+    });
 
     guardarJSON(PLANTAS_FILE, plantas);
     guardarJSON(VENTAS_FILE, ventas);
-
     res.json({ success: true });
 });
 
-// DASHBOARD & CIERRE DE CAJA
-app.get('/api/reporte-admin', requireAuth, (req, res) => {
-    if (req.session.user.rol !== 'admin') {
-        return res.status(403).json({ error: 'Acceso denegado.' });
-    }
-
+// REPORTES & CAJA
+app.get('/api/reporte-admin', requireAdmin, (req, res) => {
     const plantas = leerJSON(PLANTAS_FILE);
     const ventas = leerJSON(VENTAS_FILE);
-    const fechaFiltro = req.query.fecha; // YYYY-MM-DD
+    const fechaFiltro = req.query.fecha;
 
     const valorTotalInventario = plantas.reduce((acc, p) => acc + (p.precio * p.stock), 0);
     const totalPlantasUnidades = plantas.reduce((acc, p) => acc + p.stock, 0);
@@ -197,44 +191,97 @@ app.get('/api/reporte-admin', requireAuth, (req, res) => {
         ventasFiltradas = ventas.filter(v => v.fecha.startsWith(fechaFiltro));
     }
 
-    let totalEfectivo = 0;
-    let totalTransferencia = 0;
-    let totalDebito = 0;
-    let totalRecaudadoVentas = 0;
+    let totalEfectivo = 0, totalTransferencia = 0, totalDebito = 0, totalRecaudadoVentas = 0;
 
     ventasFiltradas.forEach(v => {
         totalRecaudadoVentas += v.total;
         const medio = v.medioPago ? v.medioPago.toLowerCase() : 'efectivo';
         if (medio.includes('efectivo')) totalEfectivo += v.total;
         else if (medio.includes('transferencia')) totalTransferencia += v.total;
-        else if (medio.includes('débito') || medio.includes('debito') || medio.includes('tarjeta')) totalDebito += v.total;
-        else totalEfectivo += v.total;
+        else totalDebito += v.total;
     });
 
     res.json({
         valorTotalInventario,
         totalPlantasUnidades,
         totalRecaudadoVentas,
-        caja: {
-            efectivo: totalEfectivo,
-            transferencia: totalTransferencia,
-            debito: totalDebito
-        },
+        caja: { efectivo: totalEfectivo, transferencia: totalTransferencia, debito: totalDebito },
         cantidadVentas: ventasFiltradas.length
     });
 });
 
-// REPARTOS SÁBADO
-app.get('/api/despachos', requireAuth, (req, res) => {
-    const despachos = leerJSON(DESPACHOS_FILE);
-    res.json(despachos);
+// GASTOS DE INSUMOS
+app.get('/api/gastos', requireAdmin, (req, res) => {
+    res.json(leerJSON(GASTOS_FILE));
 });
+
+app.post('/api/gastos', requireAdmin, (req, res) => {
+    const gastos = leerJSON(GASTOS_FILE);
+    const { descripcion, categoria, monto, medioPago } = req.body;
+
+    gastos.push({
+        id: Date.now().toString(),
+        fecha: new Date().toISOString(),
+        descripcion,
+        categoria: categoria || 'Insumos',
+        monto: Number(monto),
+        medioPago: medioPago || 'Efectivo'
+    });
+
+    guardarJSON(GASTOS_FILE, gastos);
+    res.json({ success: true });
+});
+
+app.delete('/api/gastos/:id', requireAdmin, (req, res) => {
+    let gastos = leerJSON(GASTOS_FILE);
+    gastos = gastos.filter(g => String(g.id) !== String(req.params.id));
+    guardarJSON(GASTOS_FILE, gastos);
+    res.json({ success: true });
+});
+
+// F29 Y FACTURAS DE COMPRA
+app.get('/api/facturas', requireAdmin, (req, res) => {
+    res.json(leerJSON(FACTURAS_FILE));
+});
+
+app.post('/api/facturas', requireAdmin, upload.single('archivo'), (req, res) => {
+    const facturas = leerJSON(FACTURAS_FILE);
+    const { proveedor, numFactura, montoNeto, fecha } = req.body;
+
+    const neto = Number(montoNeto);
+    const iva = Math.round(neto * 0.19);
+    const total = neto + iva;
+
+    facturas.push({
+        id: Date.now().toString(),
+        fecha: fecha || new Date().toISOString().split('T')[0],
+        proveedor,
+        numFactura,
+        montoNeto: neto,
+        ivaRecuperable: iva,
+        total,
+        adjunto: req.file ? `/uploads/${req.file.filename}` : null
+    });
+
+    guardarJSON(FACTURAS_FILE, facturas);
+    res.json({ success: true });
+});
+
+app.delete('/api/facturas/:id', requireAdmin, (req, res) => {
+    let facturas = leerJSON(FACTURAS_FILE);
+    facturas = facturas.filter(f => String(f.id) !== String(req.params.id));
+    guardarJSON(FACTURAS_FILE, facturas);
+    res.json({ success: true });
+});
+
+// REPARTOS SÁBADO
+app.get('/api/despachos', requireAuth, (req, res) => res.json(leerJSON(DESPACHOS_FILE)));
 
 app.post('/api/despachos', requireAuth, (req, res) => {
     const despachos = leerJSON(DESPACHOS_FILE);
     const { cliente, direccion, telefono, detalle, monto, estadoPago } = req.body;
 
-    const nuevoDespacho = {
+    despachos.push({
         id: Date.now().toString(),
         fechaCreado: new Date().toISOString(),
         cliente,
@@ -244,25 +291,20 @@ app.post('/api/despachos', requireAuth, (req, res) => {
         monto: Number(monto || 0),
         estadoPago: estadoPago || 'Pendiente',
         estadoEntrega: 'Pendiente'
-    };
+    });
 
-    despachos.push(nuevoDespacho);
     guardarJSON(DESPACHOS_FILE, despachos);
     res.json({ success: true });
 });
 
 app.put('/api/despachos/:id/estado', requireAuth, (req, res) => {
     const despachos = leerJSON(DESPACHOS_FILE);
-    const { estadoEntrega } = req.body;
-
     const idx = despachos.findIndex(d => String(d.id) === String(req.params.id));
     if (idx !== -1) {
-        despachos[idx].estadoEntrega = estadoEntrega;
+        despachos[idx].estadoEntrega = req.body.estadoEntrega;
         guardarJSON(DESPACHOS_FILE, despachos);
         res.json({ success: true });
-    } else {
-        res.status(404).json({ error: 'Despacho no encontrado' });
-    }
+    } else res.status(404).json({ error: 'No encontrado' });
 });
 
 app.delete('/api/despachos/:id', requireAuth, (req, res) => {
@@ -272,6 +314,4 @@ app.delete('/api/despachos/:id', requireAuth, (req, res) => {
     res.json({ success: true });
 });
 
-app.listen(PORT, () => {
-    console.log(`Servidor corriendo en puerto ${PORT}`);
-});
+app.listen(PORT, () => console.log(`Servidor activo en puerto ${PORT}`));
