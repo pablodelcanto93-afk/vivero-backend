@@ -43,7 +43,6 @@
     .card h3 { font-size: 11px; color: #555; margin-bottom: 4px; font-weight: bold; text-transform: uppercase; }
     .card .val { font-size: 22px; font-weight: 800; color: #1b4d2e; }
 
-    /* Layout principal adaptado para incluir Carrito */
     .main-layout { display: grid; grid-template-columns: 260px 1fr 300px; gap: 15px; }
     
     .form-box { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); height: fit-content; }
@@ -74,7 +73,6 @@
     .btn-delete { background-color: #fed7d7; color: #9b2c2c; }
     .badge-bajo { background-color: #feebc8; color: #c05621; font-size: 10px; padding: 2px 5px; border-radius: 10px; font-weight: bold; margin-left: 3px; }
 
-    /* Estilos de la caja del Carrito / POS */
     .cart-box { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); height: fit-content; border: 2px solid #1b4d2e; }
     .cart-box h2 { font-size: 16px; color: #1b4d2e; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; }
     .cart-items { max-height: 280px; overflow-y: auto; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
@@ -85,7 +83,6 @@
     .cart-total-box span { font-size: 11px; color: #666; font-weight: bold; text-transform: uppercase; }
     .cart-total-box div { font-size: 22px; font-weight: 800; color: #1b4d2e; }
 
-    /* Estilos para impresión del Ticket */
     @media print {
       body * { visibility: hidden; }
       #ticket-impresion, #ticket-impresion * { visibility: visible; }
@@ -98,7 +95,7 @@
   <!-- PANTALLA DE ACCESO INICIAL -->
   <div id="lock-screen">
     <div class="login-box">
-      <img src="/logo/logo.jpeg" alt="Logo" onerror="this.src='/logo.png'">
+      <img src="/logo.png" alt="Logo" onerror="this.src='/logo.png'">
       <h2>Sol y Sombra</h2>
       <p>Ingresa la clave para acceder</p>
       <input type="password" id="login-pin" placeholder="****" maxlength="8" onkeyup="if(event.key==='Enter') ingresarApp()">
@@ -110,7 +107,7 @@
   <div id="app-content" style="display: none;">
     <header>
       <div class="header-brand">
-        <img src="/logo/logo.jpeg" alt="Logo" class="header-logo" onerror="this.src='/logo.png'"> 
+        <img src="/logo.png" alt="Logo" class="header-logo" onerror="this.src='/logo.png'"> 
         <h1>🌿 Agro Servicio Sol y Sombra — POS & Inventario</h1>
       </div>
       <div class="top-buttons">
@@ -144,7 +141,7 @@
         <!-- FORMULARIO REGISTRO/EDICION -->
         <div class="form-box">
           <h2 id="form-titulo">Registrar Planta</h2>
-          <form id="form-planta" enctype="multipart/form-data">
+          <form id="form-planta">
             <input type="hidden" id="edit-id" name="edit-id">
             <div class="form-group">
               <label>Nombre común *</label>
@@ -171,8 +168,8 @@
               <input type="number" id="stock" name="stock" required placeholder="10">
             </div>
             <div class="form-group">
-              <label>📷 Foto:</label>
-              <input type="file" id="foto" name="foto" accept="image/*" capture="environment">
+              <label>📷 URL de la foto (Opcional):</label>
+              <input type="text" id="foto" name="foto" placeholder="https://ejemplo.com/foto.jpg">
             </div>
             <button type="submit" id="btn-submit" class="btn btn-green-main">Agregar Planta</button>
             <button type="button" id="btn-cancelar" class="btn btn-cancel" onclick="cancelarEdicion()">Cancelar Edición</button>
@@ -364,7 +361,6 @@
       document.getElementById('total-valor').innerText = '$' + totalValor.toLocaleString('es-CL');
     }
 
-    /* --- LÓGICA DEL CARRITO --- */
     function agregarAlCarrito(id) {
       const planta = plantasData.find(p => p.id === id);
       if (!planta || planta.stock <= 0) {
@@ -493,7 +489,6 @@
       ticketDiv.style.display = 'none';
     }
 
-    /* --- HISTORIAL DE VENTAS --- */
     function filtrarVentas() {
       const opcion = document.getElementById('filtro-ventas').value;
       const hoy = new Date();
@@ -573,6 +568,7 @@
       document.getElementById('ubicacion').value = planta.ubicacion || '';
       document.getElementById('precio').value = planta.precio || '';
       document.getElementById('stock').value = planta.stock || '';
+      document.getElementById('foto').value = planta.foto || '';
       document.getElementById('form-titulo').innerText = `Editar Planta #${planta.id}`;
       document.getElementById('btn-submit').innerText = 'Guardar Cambios';
       document.getElementById('btn-cancelar').style.display = 'block';
@@ -588,13 +584,29 @@
 
     document.getElementById('form-planta').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const formData = new FormData(e.target);
       const editId = document.getElementById('edit-id').value;
+      const payload = {
+        nombre: document.getElementById('nombre').value,
+        nombre_cientifico: document.getElementById('nombre_cientifico').value,
+        categoria: document.getElementById('categoria').value,
+        ubicacion: document.getElementById('ubicacion').value,
+        precio: document.getElementById('precio').value,
+        stock: document.getElementById('stock').value,
+        foto: document.getElementById('foto').value
+      };
 
       if (editId) {
-        await fetch(`/api/plantas/${editId}`, { method: 'PUT', body: formData });
+        await fetch(`/api/plantas/${editId}`, { 
+          method: 'PUT', 
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
       } else {
-        await fetch('/api/plantas', { method: 'POST', body: formData });
+        await fetch('/api/plantas', { 
+          method: 'POST', 
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
       }
 
       cancelarEdicion();

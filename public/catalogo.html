@@ -68,7 +68,8 @@
 
         async function cargarCatalogo() {
             try {
-                const response = await fetch('/api/plantas'); 
+                // RUTA PÚBLICA CORREGIDA AQUI:
+                const response = await fetch('/api/catalogo-publico'); 
                 plantas = await response.json();
                 renderizarCatalogo(plantas);
             } catch (error) {
