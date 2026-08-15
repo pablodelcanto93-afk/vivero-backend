@@ -3,46 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vivero Sol y Sombra - Sistema de Gestión</title>
+    <title>Vivero Sol y Sombra - Panel Admin</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
         body { background-color: #f4f7f6; padding: 20px; color: #333; }
         header { display: flex; justify-content: space-between; align-items: center; background: #2e7d32; color: white; padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; }
+        .header-left { display: flex; align-items: center; gap: 12px; }
+        .logo-admin { width: 45px; height: 45px; border-radius: 50%; background: white; object-fit: cover; }
         .container { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
         .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
         h2 { margin-bottom: 15px; color: #2e7d32; }
         form { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        form input, form select, form button { padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
+        form input, form button { padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
         form button { grid-column: span 2; background: #2e7d32; color: white; border: none; cursor: pointer; font-weight: bold; }
         form button:hover { background: #1b5e20; }
+        .btn-cancelar { grid-column: span 2; background: #757575; color: white; border: none; padding: 8px; border-radius: 4px; cursor: pointer; display: none; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
         th { background: #e8f5e9; }
-        .btn { padding: 5px 10px; border: none; border-radius: 4px; cursor: pointer; }
+        .btn { padding: 6px 10px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; margin-right: 2px; }
         .btn-add { background: #4caf50; color: white; }
+        .btn-edit { background: #ff9800; color: white; }
         .btn-del { background: #f44336; color: white; }
         .ticket-item { display: flex; justify-content: space-between; margin-bottom: 10px; padding-bottom: 5px; border-bottom: 1px dashed #ccc; }
         .total { font-size: 1.2em; font-weight: bold; margin-top: 15px; text-align: right; }
         .btn-finalizar { width: 100%; background: #008cba; color: white; padding: 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 1em; margin-top: 10px; }
-        .thumb { width: 40px; height: 40px; object-fit: cover; border-radius: 4px; }
+        .thumb { width: 45px; height: 45px; object-fit: cover; border-radius: 4px; }
     </style>
 </head>
 <body>
 
 <header>
-    <h1>Vivero Sol y Sombra</h1>
+    <div class="header-left">
+        <img src="/logo.png" class="logo-admin" onerror="this.style.display='none'">
+        <h1>Vivero Sol y Sombra</h1>
+    </div>
     <div>
-        <a href="/catalogo.html" target="_blank" style="color: white; margin-right: 15px; text-decoration: none;">Ver Catálogo</a>
-        <a href="/api/logout" style="color: white; text-decoration: none;">Cerrar Sesión</a>
+        <a href="/catalogo.html" target="_blank" style="color: white; margin-right: 15px; text-decoration: none;">Ver Catálogo 🌐</a>
+        <a href="/api/logout" style="color: white; text-decoration: none;">Cerrar Sesión 🚪</a>
     </div>
 </header>
 
 <div class="container">
     <div>
-        <!-- FORMULARIO DE AGREGAR PLANTA -->
+        <!-- FORMULARIO -->
         <div class="card">
-            <h2>+ Agregar Planta</h2>
+            <h2 id="formTitulo">+ Agregar Planta</h2>
             <form id="plantaForm">
+                <input type="hidden" id="plantaId">
                 <input type="text" id="nombre" placeholder="Nombre (ej: Limón Pica)" required>
                 <input type="text" id="cientifico" placeholder="Nombre Científico">
                 <input type="text" id="categoria" placeholder="Categoría (ej: Cítricos)">
@@ -50,11 +58,12 @@
                 <input type="number" id="precio" placeholder="Precio ($)" required>
                 <input type="number" id="stock" placeholder="Stock Inicial" required>
                 <input type="file" id="fotoInput" accept="image/*" style="grid-column: span 2;">
-                <button type="submit">Guardar Planta</button>
+                <button type="submit" id="btnGuardar">Guardar Planta</button>
+                <button type="button" class="btn-cancelar" id="btnCancelar" onclick="limpiarFormulario()">Cancelar Edición</button>
             </form>
         </div>
 
-        <!-- TABLA DE INVENTARIO -->
+        <!-- TABLA INVENTARIO -->
         <div class="card">
             <h2>Inventario de Plantas</h2>
             <table>
@@ -105,14 +114,16 @@
         const tbody = document.getElementById('tablaInventario');
         tbody.innerHTML = '';
         inventario.forEach(p => {
+            const textoCientifico = p.cientifico ? `<br><small>${p.cientifico}</small>` : '';
             tbody.innerHTML += `
                 <tr>
-                    <td><img src="${p.foto || '/logo.png'}" class="thumb"></td>
-                    <td><b>${p.nombre}</b><br><small>${p.cientifico}</small></td>
-                    <td>$${p.precio}</td>
+                    <td><img src="${p.foto || '/logo.png'}" class="thumb" onerror="this.src='/logo.png'"></td>
+                    <td><b>${p.nombre}</b>${textoCientifico}</td>
+                    <td>$${Number(p.precio).toLocaleString('es-CL')}</td>
                     <td>${p.stock}</td>
                     <td>
                         <button class="btn btn-add" onclick="agregarAlTicket('${p.id}')">+ Añadir</button>
+                        <button class="btn btn-edit" onclick="editarPlanta('${p.id}')">✏️</button>
                         <button class="btn btn-del" onclick="eliminarPlanta('${p.id}')">X</button>
                     </td>
                 </tr>
@@ -123,6 +134,9 @@
     document.getElementById('plantaForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const formData = new FormData();
+        const id = document.getElementById('plantaId').value;
+        if (id) formData.append('id', id);
+
         formData.append('nombre', document.getElementById('nombre').value);
         formData.append('cientifico', document.getElementById('cientifico').value);
         formData.append('categoria', document.getElementById('categoria').value);
@@ -135,12 +149,37 @@
 
         const res = await fetch('/api/plantas', { method: 'POST', body: formData });
         if (res.ok) {
-            document.getElementById('plantaForm').reset();
+            limpiarFormulario();
             cargarInventario();
         } else {
-            alert("Error al guardar la planta");
+            alert("Error al procesar la planta");
         }
     });
+
+    function editarPlanta(id) {
+        const p = inventario.find(x => String(x.id) === String(id));
+        if (!p) return;
+
+        document.getElementById('plantaId').value = p.id;
+        document.getElementById('nombre').value = p.nombre;
+        document.getElementById('cientifico').value = p.cientifico || '';
+        document.getElementById('categoria').value = p.categoria || '';
+        document.getElementById('ubicacion').value = p.ubicacion || '';
+        document.getElementById('precio').value = p.precio;
+        document.getElementById('stock').value = p.stock;
+
+        document.getElementById('formTitulo').innerText = "✏️ Editar Planta";
+        document.getElementById('btnGuardar').innerText = "Actualizar Planta";
+        document.getElementById('btnCancelar').style.display = "block";
+    }
+
+    function limpiarFormulario() {
+        document.getElementById('plantaForm').reset();
+        document.getElementById('plantaId').value = '';
+        document.getElementById('formTitulo').innerText = "+ Agregar Planta";
+        document.getElementById('btnGuardar').innerText = "Guardar Planta";
+        document.getElementById('btnCancelar').style.display = "none";
+    }
 
     function agregarAlTicket(id) {
         const p = inventario.find(x => String(x.id) === String(id));
@@ -168,12 +207,12 @@
             total += subtotal;
             contenedor.innerHTML += `
                 <div class="ticket-item">
-                    <div><b>${item.nombre}</b><br>x${item.cantidad} ($${item.precio})</div>
-                    <div>$${subtotal}</div>
+                    <div><b>${item.nombre}</b><br>x${item.cantidad} ($${Number(item.precio).toLocaleString('es-CL')})</div>
+                    <div>$${Number(subtotal).toLocaleString('es-CL')}</div>
                 </div>
             `;
         });
-        document.getElementById('totalVenta').innerText = total;
+        document.getElementById('totalVenta').innerText = Number(total).toLocaleString('es-CL');
     }
 
     async function finalizarVenta() {

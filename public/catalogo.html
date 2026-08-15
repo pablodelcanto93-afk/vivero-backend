@@ -5,39 +5,109 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Catálogo - Vivero Sol y Sombra</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
-        body { background: #f9f9f9; padding: 20px; }
-        h1 { text-align: center; color: #2e7d32; margin-bottom: 20px; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; max-width: 1200px; margin: 0 auto; }
-        .card { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); text-align: center; padding-bottom: 15px; }
-        .card img { width: 100%; height: 180px; object-fit: cover; }
-        .card h3 { margin: 10px 0 5px; color: #333; }
-        .card p { color: #666; font-size: 0.9em; margin-bottom: 10px; }
-        .price { font-size: 1.2em; color: #2e7d32; font-weight: bold; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: #f4f7f6; color: #333; }
+        
+        header { background: #1b5e20; color: white; padding: 20px; text-align: center; }
+        .header-content { max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+        .header-title { display: flex; align-items: center; gap: 15px; }
+        .logo-img { width: 65px; height: 65px; border-radius: 50%; background: white; padding: 3px; object-fit: cover; }
+        
+        .info-box { background: #2e7d32; padding: 15px; border-radius: 8px; margin-top: 10px; font-size: 0.95em; width: 100%; max-width: 800px; line-height: 1.5; }
+        .info-box a { color: #ffe082; font-weight: bold; text-decoration: underline; }
+        
+        .search-container { max-width: 1100px; margin: 20px auto 10px; padding: 0 20px; }
+        .search-input { width: 100%; padding: 12px; border: 2px solid #2e7d32; border-radius: 6px; font-size: 1em; }
+
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; max-width: 1100px; margin: 20px auto; padding: 0 20px; }
+        .card { background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 3px 8px rgba(0,0,0,0.1); display: flex; flex-direction: column; justify-content: space-between; text-align: center; }
+        .card img { width: 100%; height: 190px; object-fit: cover; }
+        .card-body { padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; }
+        .card h3 { color: #1b5e20; font-size: 1.15em; margin-bottom: 4px; }
+        .card p.cientifico { color: #777; font-style: italic; font-size: 0.85em; margin-bottom: 8px; }
+        .price { font-size: 1.3em; color: #2e7d32; font-weight: bold; margin: 8px 0; }
+        
+        .btn-wsp { background: #25d366; color: white; text-decoration: none; padding: 10px; border-radius: 6px; font-weight: bold; display: inline-flex; align-items: center; justify-content: center; gap: 6px; margin-top: 10px; }
+        .btn-wsp:hover { background: #1ebd56; }
     </style>
 </head>
 <body>
 
-<h1>Nuestras Plantas - Vivero Sol y Sombra</h1>
+<header>
+    <div class="header-content">
+        <div class="header-title">
+            <img src="/logo.png" alt="Logo" class="logo-img" onerror="this.style.display='none'">
+            <h1>Vivero Sol y Sombra</h1>
+        </div>
+        <div class="info-box">
+            📍 <b>Ubicación:</b> Limache, Chile — 
+            <a href="https://www.google.com/maps/place/AgroServicio+Sol+y+Sombra/@-32.9262776,-71.4210017,16z" target="_blank" id="mapLink">Ver en Google Maps 🗺️</a>
+            🕒 <b>Atención presencial:</b> Previo aviso.<br>
+            🚚 <b>Reparto a domicilio:</b> Todos los sábados.<br>
+            📲 <b>Contacto / Pedidos:</b> <a href="https://wa.me/56953450809" target="_blank">+56 9 5345 0809</a>
+        </div>
+    </div>
+</header>
+
+<div class="search-container">
+    <input type="text" id="buscador" class="search-input" placeholder="🔍 Buscar planta por nombre..." oninput="filtrarPlantas()">
+</div>
+
 <div class="grid" id="catalogoGrid"></div>
 
 <script>
+    let todasLasPlantas = [];
+
     async function cargarCatalogo() {
-        const res = await fetch('/api/plantas/publico');
-        const plantas = await res.json();
+        try {
+            const res = await fetch('/api/plantas/publico');
+            todasLasPlantas = await res.json();
+            renderPlantas(todasLasPlantas);
+        } catch (err) {
+            console.error("Error al cargar catálogo", err);
+        }
+    }
+
+    function renderPlantas(plantas) {
         const grid = document.getElementById('catalogoGrid');
         grid.innerHTML = '';
+
+        if (plantas.length === 0) {
+            grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #666;">No se encontraron plantas en el catálogo.</p>';
+            return;
+        }
+
         plantas.forEach(p => {
+            const mensajeWsp = encodeURIComponent(`Hola, me interesa consultar por la planta "${p.nombre}" vista en el catálogo.`);
+            const urlWsp = `https://wa.me/56953450809?text=${mensajeWsp}`;
+
             grid.innerHTML += `
                 <div class="card">
-                    <img src="${p.foto || '/logo.png'}">
-                    <h3>${p.nombre}</h3>
-                    <p><i>${p.cientifico || ''}</i></p>
-                    <div class="price">$${p.precio}</div>
+                    <img src="${p.foto || '/logo.png'}" onerror="this.src='/logo.png'">
+                    <div class="card-body">
+                        <div>
+                            <h3>${p.nombre}</h3>
+                            <p class="cientifico">${p.cientifico ? p.cientifico : ''}</p>
+                        </div>
+                        <div>
+                            <div class="price">$${Number(p.precio).toLocaleString('es-CL')}</div>
+                            <a href="${urlWsp}" target="_blank" class="btn-wsp">💬 Consultar por WhatsApp</a>
+                        </div>
+                    </div>
                 </div>
             `;
         });
     }
+
+    function filtrarPlantas() {
+        const texto = document.getElementById('buscador').value.toLowerCase();
+        const filtradas = todasLasPlantas.filter(p => 
+            p.nombre.toLowerCase().includes(texto) || 
+            (p.cientifico && p.cientifico.toLowerCase().includes(texto))
+        );
+        renderPlantas(filtradas);
+    }
+
     cargarCatalogo();
 </script>
 </body>

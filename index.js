@@ -19,7 +19,6 @@ app.use(session({
     cookie: { maxAge: 24 * 60 * 60 * 1000 }
 }));
 
-// Configurar guardado de imágenes
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         const uploadDir = path.join(__dirname, 'public', 'uploads');
@@ -62,7 +61,6 @@ function requerirAutenticacion(req, res, next) {
     return res.status(401).json({ error: 'No autorizado', redirect: '/login.html' });
 }
 
-// Servir archivos estáticos de la carpeta /public
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
 
@@ -90,28 +88,48 @@ app.get('/api/plantas', requerirAutenticacion, (req, res) => {
     res.json(obtenerPlantas());
 });
 
+// Agregar o Actualizar Planta
 app.post('/api/plantas', requerirAutenticacion, upload.single('foto'), (req, res) => {
     try {
-        const plantas = obtenerPlantas();
-        let fotoRuta = '/logo.png';
-        if (req.file) fotoRuta = '/uploads/' + req.file.filename;
+        let plantas = obtenerPlantas();
+        const idExistente = req.body.id;
 
-        const nuevaPlanta = {
-            id: Date.now().toString(),
-            nombre: req.body.nombre,
-            cientifico: req.body.cientifico || '',
-            categoria: req.body.categoria || '',
-            ubicacion: req.body.ubicacion || '',
-            precio: Number(req.body.precio) || 0,
-            stock: Number(req.body.stock) || 0,
-            foto: fotoRuta
-        };
+        if (idExistente) {
+            // Edición
+            const index = plantas.findIndex(p => String(p.id) === String(idExistente));
+            if (index !== -1) {
+                plantas[index].nombre = req.body.nombre;
+                plantas[index].cientifico = req.body.cientifico || '';
+                plantas[index].categoria = req.body.categoria || '';
+                plantas[index].ubicacion = req.body.ubicacion || '';
+                plantas[index].precio = Number(req.body.precio) || 0;
+                plantas[index].stock = Number(req.body.stock) || 0;
+                if (req.file) {
+                    plantas[index].foto = '/uploads/' + req.file.filename;
+                }
+            }
+        } else {
+            // Nueva Planta
+            let fotoRuta = '/logo.png';
+            if (req.file) fotoRuta = '/uploads/' + req.file.filename;
 
-        plantas.push(nuevaPlanta);
+            const nuevaPlanta = {
+                id: Date.now().toString(),
+                nombre: req.body.nombre,
+                cientifico: req.body.cientifico || '',
+                categoria: req.body.categoria || '',
+                ubicacion: req.body.ubicacion || '',
+                precio: Number(req.body.precio) || 0,
+                stock: Number(req.body.stock) || 0,
+                foto: fotoRuta
+            };
+            plantas.push(nuevaPlanta);
+        }
+
         guardarPlantas(plantas);
-        res.status(201).json({ status: 'ok', planta: nuevaPlanta });
+        res.status(200).json({ status: 'ok' });
     } catch (err) {
-        res.status(500).json({ error: 'Error al guardar la planta' });
+        res.status(500).json({ error: 'Error al procesar la planta' });
     }
 });
 
