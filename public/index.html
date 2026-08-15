@@ -389,10 +389,26 @@
                         <td><b>${p.nombre}</b></td>
                         <td>$${Number(p.precio).toLocaleString('es-CL')}</td>
                         <td><b>${p.stock}</b></td>
-                        <td><button class="btn btn-add" onclick="agregarAlTicket('${p.id}')">+ Añadir</button></td>
+                        <td>
+                            <div style="display:flex; gap:5px; align-items:center;">
+                                <button class="btn btn-add" onclick="agregarAlTicket('${p.id}')">+ Añadir</button>
+                                <button class="btn" style="background:#ef4444; color:white;" onclick="eliminarPlanta('${p.id}')">🗑️</button>
+                            </div>
+                        </td>
                     </tr>
                 `;
             });
+        }
+
+        async function eliminarPlanta(id) {
+            if (confirm("¿Estás seguro de que deseas eliminar esta planta del inventario?")) {
+                const res = await fetch(`/api/plantas/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    await cargarInventario();
+                } else {
+                    alert("Error al eliminar la planta.");
+                }
+            }
         }
 
         // GUARDA PLANTA Y RECARGA INVENTARIO / CATÁLOGO
