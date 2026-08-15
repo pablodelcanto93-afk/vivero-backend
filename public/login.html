@@ -3,45 +3,131 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Acceso - Vivero Sol y Sombra</title>
+    <title>Acceso Sistema - Vivero Sol y Sombra</title>
     <style>
-        body { background: #2e7d32; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: Arial, sans-serif; margin: 0; }
-        .card { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.2); width: 300px; text-align: center; }
-        h2 { margin-bottom: 20px; color: #2e7d32; }
-        input { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-        button { width: 100%; padding: 10px; background: #2e7d32; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
+        body { background-color: #f4f7f6; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        
+        .login-card {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 380px;
+            text-align: center;
+        }
+
+        .logo-login {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 15px;
+            border: 2px solid #2e7d32;
+        }
+
+        h2 { color: #2e7d32; margin-bottom: 20px; font-size: 1.4em; }
+
+        .form-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+
+        label { display: block; font-size: 0.9em; font-weight: bold; color: #555; margin-bottom: 5px; }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 1em;
+            outline: none;
+        }
+
+        input:focus { border-color: #2e7d32; }
+
+        button {
+            width: 100%;
+            background: #2e7d32;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
         button:hover { background: #1b5e20; }
+
+        .error-msg {
+            color: #d32f2f;
+            background: #ffebee;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            margin-bottom: 15px;
+            display: none;
+        }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <h2>Ingreso Sistema</h2>
+<div class="login-card">
+    <img src="/logo.png" class="logo-login" onerror="this.style.display='none'">
+    <h2>Vivero Sol y Sombra</h2>
+
+    <div class="error-msg" id="errorMsg">Usuario o contraseña incorrectos</div>
+
     <form id="loginForm">
-        <input type="text" id="usuario" placeholder="Usuario" required>
-        <input type="password" id="password" placeholder="Contraseña" required>
-        <button type="submit">Entrar</button>
+        <div class="form-group">
+            <label>Usuario</label>
+            <input type="text" id="usuario" placeholder="Ej: pdelcanto o vivero" required autocomplete="username">
+        </div>
+
+        <div class="form-group">
+            <label>Contraseña</label>
+            <input type="password" id="password" placeholder="••••••••" required autocomplete="current-password">
+        </div>
+
+        <button type="submit">Ingresar al Sistema 🔑</button>
     </form>
 </div>
 
 <script>
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
         e.preventDefault();
-        const res = await fetch('/api/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                usuario: document.getElementById('usuario').value,
-                password: document.getElementById('password').value
-            })
-        });
+        const usuarioInput = document.getElementById('usuario').value.trim();
+        const passwordInput = document.getElementById('password').value.trim();
+        const errorMsg = document.getElementById('errorMsg');
 
-        if (res.ok) {
-            window.location.href = '/';
-        } else {
-            alert("Usuario o clave incorrectos");
+        errorMsg.style.display = 'none';
+
+        try {
+            const res = await fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ usuario: usuarioInput, password: passwordInput })
+            });
+
+            const data = await res.json();
+
+            if (res.ok && data.success) {
+                // Redirigir al panel principal
+                window.location.href = '/index.html';
+            } else {
+                errorMsg.innerText = data.message || "Credenciales incorrectas";
+                errorMsg.style.display = 'block';
+            }
+        } catch (err) {
+            console.error("Error al iniciar sesión", err);
+            errorMsg.innerText = "Error de conexión con el servidor";
+            errorMsg.style.display = 'block';
         }
     });
 </script>
+
 </body>
 </html>
