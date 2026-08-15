@@ -42,7 +42,6 @@
         <h3 class="text-2xl font-bold text-emerald-900 mb-6 border-b-2 border-emerald-200 pb-2">Nuestras Especies Disponibles</h3>
         
         <div id="catalogGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            <!-- Las tarjetas se cargan dinámicamente desde el inventario -->
             <div class="col-span-full text-center py-10 text-stone-500">Cargando catálogo...</div>
         </div>
     </main>
@@ -52,7 +51,7 @@
         <div class="max-w-6xl mx-auto px-4 grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
             <div>
                 <h4 class="text-white font-bold text-lg mb-2">Vivero Sol y Sombra</h4>
-                <p>📍 Sector Concón / Limache, Región de Valparaíso</p>
+                <p>📍 Camino Internacional, La Victoria, Limache</p>
                 <p>⏰ Horario de Atención: Lunes a Sábado de 09:00 a 18:00 hrs</p>
             </div>
             <div class="md:text-right">
@@ -64,7 +63,7 @@
         </div>
     </footer>
 
-    <!-- Lógica JavaScript conectada a tu Backend -->
+    <!-- Lógica JavaScript -->
     <script>
         let plantas = [];
         const NUMERO_WHATSAPP = "56953450809"; 
@@ -93,6 +92,7 @@
                 const tieneStock = planta.stock > 0;
                 const mensajeWS = encodeURIComponent(`Hola Vivero Sol y Sombra, vi en la web la planta "${planta.nombre}" y me gustaría consultar disponibilidad/detalles.`);
                 const linkWhatsApp = `https://wa.me/${NUMERO_WHATSAPP}?text=${mensajeWS}`;
+                const imagenRuta = planta.foto || planta.imagen || planta.imagenUrl || '/logo.png';
 
                 const card = document.createElement('div');
                 card.className = "bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition border border-stone-100 flex flex-col justify-between";
@@ -100,7 +100,7 @@
                 card.innerHTML = `
                     <div>
                         <div class="h-48 bg-stone-200 relative overflow-hidden">
-<img src="${planta.foto || planta.imagen || planta.imagenUrl || '/logo.png'}" alt="${planta.nombre}" class="w-full h-full object-cover" onerror="this.src='/logo.png'">
+                            <img src="${imagenRuta}" alt="${planta.nombre}" class="w-full h-full object-cover" onerror="this.src='/logo.png'">
                             <span class="absolute top-2 right-2 text-xs px-2 py-1 rounded-full font-semibold ${tieneStock ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'}">
                                 ${tieneStock ? 'Disponible' : 'Agotado'}
                             </span>
