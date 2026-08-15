@@ -3,120 +3,150 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vivero Sol y Sombra — Sistema POS e Inventario</title>
+    <title>Agro Servicio Sol y Sombra — POS e Inventario</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body class="bg-stone-100 text-stone-800 font-sans min-h-screen">
 
-    <!-- Header / Encabezado -->
+    <!-- Header -->
     <header class="bg-emerald-900 text-white shadow-lg">
-        <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
             <div class="flex items-center gap-3">
                 <img src="/logo.png" alt="Logo" class="h-10 w-10 rounded-full bg-white p-1 object-contain" onerror="this.style.display='none'">
                 <div>
-                    <h1 class="text-xl font-bold">Agro Servicio Sol y Sombra</h1>
-                    <p class="text-xs text-emerald-200">POS & Control de Inventario</p>
+                    <h1 class="text-lg md:text-xl font-bold">Agro Servicio Sol y Sombra</h1>
+                    <p class="text-xs text-emerald-200">Sistema POS & Control de Inventario</p>
                 </div>
             </div>
-            <a href="/catalogo.html" target="_blank" class="bg-emerald-700 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition flex items-center gap-2">
-                <i class="fas fa-store"></i> Ver Catálogo Web
-            </a>
+            <div class="flex items-center gap-2">
+                <a href="/catalogo.html" target="_blank" class="bg-emerald-700 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition flex items-center gap-1.5">
+                    <i class="fas fa-store"></i> <span class="hidden sm:inline">Ver Catálogo</span>
+                </a>
+                <a href="/api/logout" class="bg-rose-700 hover:bg-rose-800 text-white px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition flex items-center gap-1">
+                    <i class="fas fa-sign-out-alt"></i> Salir
+                </a>
+            </div>
         </div>
     </header>
 
     <main class="max-w-7xl mx-auto px-4 py-6">
-        <!-- Métricas Rápidas -->
+        <!-- Métricas -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <div class="bg-white p-4 rounded-xl shadow-sm border border-stone-200 text-center">
                 <p class="text-xs font-bold text-stone-500 uppercase tracking-wider">Especies Distintas</p>
-                <p id="totalEspecies" class="text-3xl font-extrabold text-emerald-900">0</p>
+                <p id="totalEspecies" class="text-2xl font-extrabold text-emerald-900">0</p>
             </div>
             <div class="bg-white p-4 rounded-xl shadow-sm border border-stone-200 text-center">
                 <p class="text-xs font-bold text-stone-500 uppercase tracking-wider">Total Plantas en Stock</p>
-                <p id="totalStock" class="text-3xl font-extrabold text-emerald-900">0</p>
+                <p id="totalStock" class="text-2xl font-extrabold text-emerald-900">0</p>
             </div>
             <div class="bg-white p-4 rounded-xl shadow-sm border border-stone-200 text-center">
                 <p class="text-xs font-bold text-stone-500 uppercase tracking-wider">Valor Total Inventario</p>
-                <p id="valorInventario" class="text-3xl font-extrabold text-emerald-900">$0</p>
+                <p id="valorInventario" class="text-2xl font-extrabold text-emerald-900">$0</p>
             </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            <!-- Formulario de Registro (Izquierda) -->
-            <div class="lg:col-span-4 bg-white p-5 rounded-xl shadow-sm border border-stone-200">
-                <h2 class="text-lg font-bold text-emerald-900 mb-4 border-b pb-2">Registrar Planta</h2>
-                <form id="plantaForm" onsubmit="guardarPlanta(event)" class="space-y-3">
+            <!-- Formulario de Registro (Izquierda - 3 cols) -->
+            <div class="lg:col-span-3 bg-white p-4 rounded-xl shadow-sm border border-stone-200 self-start">
+                <h2 class="text-md font-bold text-emerald-900 mb-3 border-b pb-2">Registrar Planta</h2>
+                <form id="plantaForm" onsubmit="guardarPlanta(event)" class="space-y-2.5">
                     <div>
-                        <label class="block text-xs font-semibold text-stone-700 mb-1">Nombre común *</label>
-                        <input type="text" id="nombre" required placeholder="Ej: Níspero" class="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+                        <label class="block text-xs font-semibold text-stone-700 mb-0.5">Nombre común *</label>
+                        <input type="text" id="nombre" required placeholder="Ej: Níspero" class="w-full border rounded-lg p-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-stone-700 mb-1">Nombre científico</label>
-                        <input type="text" id="cientifico" placeholder="Ej: Eriobotrya japonica" class="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+                        <label class="block text-xs font-semibold text-stone-700 mb-0.5">Nombre científico</label>
+                        <input type="text" id="cientifico" placeholder="Ej: Eriobotrya japonica" class="w-full border rounded-lg p-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none">
                     </div>
                     <div class="grid grid-cols-2 gap-2">
                         <div>
-                            <label class="block text-xs font-semibold text-stone-700 mb-1">Categoría</label>
-                            <input type="text" id="categoria" placeholder="Ej: Frutal" class="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+                            <label class="block text-xs font-semibold text-stone-700 mb-0.5">Categoría</label>
+                            <input type="text" id="categoria" placeholder="Frutal" class="w-full border rounded-lg p-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none">
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold text-stone-700 mb-1">Ubicación física</label>
-                            <input type="text" id="ubicacion" placeholder="Ej: Nave sombra" class="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+                            <label class="block text-xs font-semibold text-stone-700 mb-0.5">Ubicación</label>
+                            <input type="text" id="ubicacion" placeholder="Nave sombra" class="w-full border rounded-lg p-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none">
                         </div>
                     </div>
                     <div class="grid grid-cols-2 gap-2">
                         <div>
-                            <label class="block text-xs font-semibold text-stone-700 mb-1">Precio ($) *</label>
-                            <input type="number" id="precio" required min="0" placeholder="5000" class="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+                            <label class="block text-xs font-semibold text-stone-700 mb-0.5">Precio ($) *</label>
+                            <input type="number" id="precio" required min="0" placeholder="5000" class="w-full border rounded-lg p-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none">
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold text-stone-700 mb-1">Stock inicial *</label>
-                            <input type="number" id="stock" required min="0" placeholder="10" class="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+                            <label class="block text-xs font-semibold text-stone-700 mb-0.5">Stock inicial *</label>
+                            <input type="number" id="stock" required min="0" placeholder="10" class="w-full border rounded-lg p-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none">
                         </div>
                     </div>
-                    
-                    <!-- CAMPO DE FOTO CON CÁMARA PARA CELULAR -->
                     <div>
-                        <label class="block text-xs font-semibold text-stone-700 mb-1">Foto (Tomar con Cámara / Subir):</label>
-                        <input type="file" id="fotoInput" accept="image/*" capture="environment" class="w-full text-xs text-stone-500 file:mr-2 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-emerald-100 file:text-emerald-800 hover:file:bg-emerald-200">
+                        <label class="block text-xs font-semibold text-stone-700 mb-0.5">Foto (Cámara celular):</label>
+                        <input type="file" id="fotoInput" accept="image/*" capture="environment" class="w-full text-xs text-stone-500 file:mr-2 file:py-1.5 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-emerald-100 file:text-emerald-800">
                     </div>
 
-                    <button type="submit" class="w-full bg-emerald-800 hover:bg-emerald-900 text-white font-bold py-2.5 rounded-lg text-sm transition mt-4">
-                        Agregar Planta
+                    <button type="submit" class="w-full bg-emerald-800 hover:bg-emerald-900 text-white font-bold py-2 rounded-lg text-xs transition mt-2">
+                        + Agregar Planta
                     </button>
                 </form>
             </div>
 
-            <!-- Tabla de Inventario (Centro) -->
-            <div class="lg:col-span-8 bg-white p-5 rounded-xl shadow-sm border border-stone-200 overflow-x-auto">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-lg font-bold text-emerald-900">Inventario Disponible</h2>
-                    <input type="text" id="buscarInput" onkeyup="buscarPlanta()" placeholder="Buscar planta..." class="border rounded-lg px-3 py-1.5 text-sm w-48 sm:w-64 focus:ring-2 focus:ring-emerald-500 outline-none">
+            <!-- Tabla de Inventario (Centro - 6 cols) -->
+            <div class="lg:col-span-6 bg-white p-4 rounded-xl shadow-sm border border-stone-200 overflow-x-auto">
+                <div class="flex justify-between items-center mb-3">
+                    <h2 class="text-md font-bold text-emerald-900">Inventario</h2>
+                    <input type="text" id="buscarInput" onkeyup="buscarPlanta()" placeholder="Buscar..." class="border rounded-lg px-2.5 py-1 text-xs w-40 focus:ring-2 focus:ring-emerald-500 outline-none">
                 </div>
 
-                <table class="w-full text-left text-sm">
+                <table class="w-full text-left text-xs">
                     <thead>
-                        <tr class="bg-emerald-900 text-white text-xs uppercase">
-                            <th class="p-2.5 rounded-l-lg">Foto</th>
-                            <th class="p-2.5">Nombre</th>
-                            <th class="p-2.5">Precio</th>
-                            <th class="p-2.5">Stock</th>
-                            <th class="p-2.5 rounded-r-lg text-center">Acción</th>
+                        <tr class="bg-emerald-900 text-white uppercase">
+                            <th class="p-2 rounded-l-lg">Foto</th>
+                            <th class="p-2">Nombre</th>
+                            <th class="p-2">Precio</th>
+                            <th class="p-2">Stock</th>
+                            <th class="p-2 rounded-r-lg text-center">Acción</th>
                         </tr>
                     </thead>
                     <tbody id="inventarioTabla" class="divide-y divide-stone-100">
-                        <tr>
-                            <td colspan="5" class="text-center py-6 text-stone-400">Cargando datos...</td>
-                        </tr>
+                        <tr><td colspan="5" class="text-center py-6 text-stone-400">Cargando...</td></tr>
                     </tbody>
                 </table>
+            </div>
+
+            <!-- TICKET CLIENTE / CAJA (Derecha - 3 cols) -->
+            <div class="lg:col-span-3 bg-white p-4 rounded-xl shadow-sm border-2 border-emerald-600 flex flex-col justify-between self-start">
+                <div>
+                    <div class="flex justify-between items-center mb-3 border-b pb-2">
+                        <h2 class="text-md font-bold text-emerald-900 flex items-center gap-1.5">
+                            <i class="fas fa-receipt"></i> Ticket Cliente
+                        </h2>
+                        <button onclick="limpiarTicket()" class="text-xs text-stone-500 hover:text-rose-600 underline">Limpiar</button>
+                    </div>
+
+                    <!-- Lista de items agregados -->
+                    <div id="ticketItems" class="space-y-2 max-h-64 overflow-y-auto pr-1">
+                        <p class="text-xs text-stone-400 text-center py-6">Haz clic en <b>"+ Añadir"</b> en una planta para iniciar la venta.</p>
+                    </div>
+                </div>
+
+                <div class="border-t border-stone-200 pt-3 mt-4">
+                    <div class="flex justify-between items-center text-stone-700 font-bold text-md mb-3">
+                        <span>TOTAL A PAGAR:</span>
+                        <span id="ticketTotal" class="text-emerald-800 text-xl font-extrabold">$0</span>
+                    </div>
+                    
+                    <button onclick="confirmarVenta()" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-2.5 rounded-lg text-xs transition flex items-center justify-center gap-1.5 shadow">
+                        <i class="fas fa-check-circle"></i> Confirmar & Descontar Venta
+                    </button>
+                </div>
             </div>
         </div>
     </main>
 
     <script>
         let inventario = [];
+        let ticket = [];
 
         async function cargarInventario() {
             try {
@@ -134,25 +164,133 @@
             tbody.innerHTML = '';
 
             if (lista.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="text-center py-6 text-stone-400">No hay plantas en inventario</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center py-6 text-stone-400">Sin plantas registradas</td></tr>';
                 return;
             }
 
             lista.forEach(p => {
-                const fotoRuta = p.foto || p.imagen || p.imagenUrl || '/logo.png';
+                const fotoRuta = p.foto || p.imagen || '/logo.png';
+                const tieneStock = Number(p.stock) > 0;
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-stone-50 transition";
                 tr.innerHTML = `
-                    <td class="p-2"><img src="${fotoRuta}" class="w-10 h-10 object-cover rounded-lg" onerror="this.src='/logo.png'"></td>
-                    <td class="p-2 font-semibold text-stone-800">${p.nombre}</td>
-                    <td class="p-2 text-emerald-800 font-bold">$${Number(p.precio).toLocaleString('es-CL')}</td>
-                    <td class="p-2">${p.stock}</td>
-                    <td class="p-2 text-center">
-                        <button onclick="eliminarPlanta('${p._id || p.id}')" class="text-rose-600 hover:text-rose-800 p-1"><i class="fas fa-trash"></i></button>
+                    <td class="p-1.5"><img src="${fotoRuta}" class="w-8 h-8 object-cover rounded" onerror="this.src='/logo.png'"></td>
+                    <td class="p-1.5 font-medium text-stone-800">${p.nombre}</td>
+                    <td class="p-1.5 text-emerald-800 font-bold">$${Number(p.precio).toLocaleString('es-CL')}</td>
+                    <td class="p-1.5">${p.stock}</td>
+                    <td class="p-1.5 text-center flex items-center justify-center gap-1">
+                        <button onclick="agregarAlTicket('${p.id || p._id}')" ${!tieneStock ? 'disabled' : ''} class="bg-emerald-800 hover:bg-emerald-900 disabled:bg-stone-300 text-white text-[10px] px-2 py-1 rounded font-semibold transition">
+                            + Añadir
+                        </button>
+                        <button onclick="eliminarPlanta('${p.id || p._id}')" class="text-rose-500 hover:text-rose-700 px-1"><i class="fas fa-trash"></i></button>
                     </td>
                 `;
                 tbody.appendChild(tr);
             });
+        }
+
+        function agregarAlTicket(id) {
+            const planta = inventario.find(p => (p.id || p._id) === id);
+            if (!planta || planta.stock <= 0) return;
+
+            const itemExistente = ticket.find(i => i.id === id);
+            if (itemExistente) {
+                if (itemExistente.cantidad < planta.stock) {
+                    itemExistente.cantidad++;
+                } else {
+                    alert("No hay más stock disponible de esta planta");
+                }
+            } else {
+                ticket.push({
+                    id: planta.id || planta._id,
+                    nombre: planta.nombre,
+                    precio: Number(planta.precio),
+                    cantidad: 1,
+                    maxStock: Number(planta.stock)
+                });
+            }
+            renderTicket();
+        }
+
+        function cambiarCantidadTicket(id, delta) {
+            const item = ticket.find(i => i.id === id);
+            if (!item) return;
+
+            item.cantidad += delta;
+            if (item.cantidad <= 0) {
+                ticket = ticket.filter(i => i.id !== id);
+            } else if (item.cantidad > item.maxStock) {
+                item.cantidad = item.maxStock;
+                alert("Alcanzaste el límite de stock disponible");
+            }
+            renderTicket();
+        }
+
+        function renderTicket() {
+            const contenedor = document.getElementById('ticketItems');
+            contenedor.innerHTML = '';
+
+            if (ticket.length === 0) {
+                contenedor.innerHTML = '<p class="text-xs text-stone-400 text-center py-6">Haz clic en <b>"+ Añadir"</b> en una planta para iniciar la venta.</p>';
+                document.getElementById('ticketTotal').innerText = '$0';
+                return;
+            }
+
+            let total = 0;
+            ticket.forEach(item => {
+                const subtotal = item.precio * item.cantidad;
+                total += subtotal;
+
+                const div = document.createElement('div');
+                div.className = "flex justify-between items-center bg-stone-50 p-2 rounded border border-stone-200 text-xs";
+                div.innerHTML = `
+                    <div class="flex-1 pr-1">
+                        <p class="font-bold text-stone-800">${item.nombre}</p>
+                        <p class="text-stone-500 text-[11px]">$${item.precio.toLocaleString('es-CL')} c/u</p>
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <button onclick="cambiarCantidadTicket('${item.id}', -1)" class="bg-stone-200 hover:bg-stone-300 w-5 h-5 rounded font-bold">-</button>
+                        <span class="font-bold px-1">${item.cantidad}</span>
+                        <button onclick="cambiarCantidadTicket('${item.id}', 1)" class="bg-stone-200 hover:bg-stone-300 w-5 h-5 rounded font-bold">+</button>
+                    </div>
+                    <span class="font-bold text-emerald-800 ml-2">$${subtotal.toLocaleString('es-CL')}</span>
+                `;
+                contenedor.appendChild(div);
+            });
+
+            document.getElementById('ticketTotal').innerText = '$' + total.toLocaleString('es-CL');
+        }
+
+        function limpiarTicket() {
+            ticket = [];
+            renderTicket();
+        }
+
+        async function confirmarVenta() {
+            if (ticket.length === 0) {
+                alert("El ticket está vacío.");
+                return;
+            }
+
+            if (!confirm("¿Deseas confirmar la venta y descontar las cantidades del inventario?")) return;
+
+            try {
+                const res = await fetch('/api/ventas', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ items: ticket })
+                });
+
+                if (res.ok) {
+                    alert("¡Venta realizada y stock actualizado con éxito!");
+                    limpiarTicket();
+                    cargarInventario();
+                } else {
+                    alert("Ocurrió un problema al procesar la venta.");
+                }
+            } catch (err) {
+                alert("Error al conectar con el servidor.");
+            }
         }
 
         function actualizarMetricas() {
@@ -183,7 +321,17 @@
                 document.getElementById('plantaForm').reset();
                 cargarInventario();
             } catch (err) {
-                alert("Error al guardar la planta");
+                alert("Error al guardar planta");
+            }
+        }
+
+        async function eliminarPlanta(id) {
+            if (!confirm("¿Estás seguro de eliminar esta planta?")) return;
+            try {
+                await fetch(`/api/plantas/${id}`, { method: 'DELETE' });
+                cargarInventario();
+            } catch (err) {
+                alert("Error al eliminar");
             }
         }
 
