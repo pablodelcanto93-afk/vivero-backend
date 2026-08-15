@@ -158,8 +158,8 @@ app.post('/api/ventas', requireAuth, (req, res) => {
     items.forEach(item => {
         const p = plantas.find(x => String(x.id) === String(item.id));
         if (p) {
-            p.stock = Math.max(0, p.stock - item.cantidad);
-            totalVenta += p.precio * item.cantidad;
+            p.stock = Math.max(0, Number(p.stock) - Number(item.cantidad));
+            totalVenta += Number(p.precio) * Number(item.cantidad);
         }
     });
 

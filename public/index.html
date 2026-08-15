@@ -58,7 +58,6 @@
         .btn { padding: 6px 10px; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8em; }
         .btn-add { background: #22c55e; color: white; }
 
-        .ticket-item { display: flex; justify-content: space-between; margin-bottom: 8px; border-bottom: 1px dashed #cbd5e1; padding-bottom: 5px; }
         .total { font-size: 1.3em; font-weight: bold; margin-top: 15px; text-align: right; color: #15803d; }
         .btn-finalizar { width: 100%; background: #0284c7; color: white; padding: 12px; border: none; border-radius: 6px; font-weight: bold; margin-top: 10px; cursor: pointer; }
 
@@ -403,6 +402,7 @@
             const enTicket = ticket.find(x => String(x.id) === String(id));
             if (enTicket) {
                 if (enTicket.cantidad < p.stock) enTicket.cantidad++;
+                else alert("Llegaste al límite de stock disponible");
             } else {
                 ticket.push({ id: String(p.id), nombre: p.nombre, precio: p.precio, cantidad: 1 });
             }
@@ -413,27 +413,74 @@
             const cont = document.getElementById('listaTicket');
             cont.innerHTML = '';
             let total = 0;
+
+            if (ticket.length === 0) {
+                cont.innerHTML = '<p style="color:#64748b; font-size:0.85em; text-align:center; padding:10px;">El carrito está vacío</p>';
+                document.getElementById('totalVenta').innerText = '0';
+                return;
+            }
+
             ticket.forEach(item => {
                 const sub = item.precio * item.cantidad;
                 total += sub;
-                cont.innerHTML += `<div class="ticket-item"><div><b>${item.nombre}</b> x${item.cantidad}</div><div>$${sub.toLocaleString('es-CL')}</div></div>`;
+                cont.innerHTML += `
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; border-bottom:1px dashed #cbd5e1; padding-bottom:6px;">
+                        <div>
+                            <b>${item.nombre}</b><br>
+                            <small style="color:#64748b;">$${item.precio.toLocaleString('es-CL')} c/u</small>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:5px;">
+                            <button onclick="modificarCantidad('${item.id}', -1)" style="background:#e2e8f0; border:none; padding:2px 6px; border-radius:4px; font-weight:bold; cursor:pointer;">-</button>
+                            <span><b>${item.cantidad}</b></span>
+                            <button onclick="modificarCantidad('${item.id}', 1)" style="background:#e2e8f0; border:none; padding:2px 6px; border-radius:4px; font-weight:bold; cursor:pointer;">+</button>
+                            <b style="margin-left:5px;">$${sub.toLocaleString('es-CL')}</b>
+                            <button onclick="eliminarDelTicket('${item.id}')" style="background:#ef4444; color:white; border:none; padding:2px 6px; border-radius:4px; cursor:pointer; margin-left:5px;">🗑️</button>
+                        </div>
+                    </div>
+                `;
             });
             document.getElementById('totalVenta').innerText = total.toLocaleString('es-CL');
         }
 
+        function modificarCantidad(id, cambio) {
+            const item = ticket.find(x => String(x.id) === String(id));
+            const p = inventario.find(x => String(x.id) === String(id));
+
+            if (item && p) {
+                if (cambio > 0 && item.cantidad >= p.stock) {
+                    return alert("No hay más stock disponible de esta planta");
+                }
+                item.cantidad += cambio;
+                if (item.cantidad <= 0) {
+                    eliminarDelTicket(id);
+                } else {
+                    renderTicket();
+                }
+            }
+        }
+
+        function eliminarDelTicket(id) {
+            ticket = ticket.filter(x => String(x.id) !== String(id));
+            renderTicket();
+        }
+
         async function finalizarVenta() {
-            if (ticket.length === 0) return alert("Ticket vacío");
+            if (ticket.length === 0) return alert("El carrito está vacío");
             const medioPago = document.getElementById('medioPago').value;
+
             const res = await fetch('/api/ventas', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ items: ticket, medioPago })
             });
+
             if (res.ok) {
-                alert("¡Venta registrada con éxito!");
+                alert("¡Venta registrada y stock actualizado!");
                 ticket = [];
                 renderTicket();
-                cargarInventario();
+                await cargarInventario();
+            } else {
+                alert("Ocurrió un error al registrar la venta");
             }
         }
 
