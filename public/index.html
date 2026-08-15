@@ -395,6 +395,36 @@
             });
         }
 
+        // GUARDA PLANTA Y RECARGA INVENTARIO / CATÁLOGO
+        document.getElementById('plantaForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData();
+            formData.append('id', document.getElementById('plantaId').value);
+            formData.append('nombre', document.getElementById('nombre').value);
+            formData.append('cientifico', document.getElementById('cientifico').value);
+            formData.append('categoria', document.getElementById('categoria').value);
+            formData.append('ubicacion', document.getElementById('ubicacion').value);
+            formData.append('precio', document.getElementById('precio').value);
+            formData.append('stock', document.getElementById('stock').value);
+            formData.append('riego', document.getElementById('riego').value);
+            formData.append('clima', document.getElementById('clima').value);
+            formData.append('cuidados', document.getElementById('cuidados').value);
+
+            const fotoInput = document.getElementById('fotoInput');
+            if (fotoInput.files[0]) formData.append('foto', fotoInput.files[0]);
+
+            const res = await fetch('/api/plantas', { method: 'POST', body: formData });
+            if (res.ok) {
+                alert("¡Planta guardada correctamente!");
+                document.getElementById('plantaForm').reset();
+                document.getElementById('plantaId').value = '';
+                await cargarInventario();
+                seleccionarOpcion('pos');
+            } else {
+                alert("Error al guardar la planta.");
+            }
+        });
+
         function agregarAlTicket(id) {
             const p = inventario.find(x => String(x.id) === String(id));
             if (!p || p.stock <= 0) return alert("Sin stock disponible");
