@@ -3,345 +3,202 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agro Servicio Sol y Sombra — POS e Inventario</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>Vivero Sol y Sombra - Sistema de Gestión</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
+        body { background-color: #f4f7f6; padding: 20px; color: #333; }
+        header { display: flex; justify-content: space-between; align-items: center; background: #2e7d32; color: white; padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; }
+        .container { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        h2 { margin-bottom: 15px; color: #2e7d32; }
+        form { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        form input, form select, form button { padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
+        form button { grid-column: span 2; background: #2e7d32; color: white; border: none; cursor: pointer; font-weight: bold; }
+        form button:hover { background: #1b5e20; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #e8f5e9; }
+        .btn { padding: 5px 10px; border: none; border-radius: 4px; cursor: pointer; }
+        .btn-add { background: #4caf50; color: white; }
+        .btn-del { background: #f44336; color: white; }
+        .ticket-item { display: flex; justify-content: space-between; margin-bottom: 10px; padding-bottom: 5px; border-bottom: 1px dashed #ccc; }
+        .total { font-size: 1.2em; font-weight: bold; margin-top: 15px; text-align: right; }
+        .btn-finalizar { width: 100%; background: #008cba; color: white; padding: 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 1em; margin-top: 10px; }
+        .thumb { width: 40px; height: 40px; object-fit: cover; border-radius: 4px; }
+    </style>
 </head>
-<body class="bg-stone-100 text-stone-800 font-sans min-h-screen">
+<body>
 
-    <!-- Header -->
-    <header class="bg-emerald-900 text-white shadow-lg">
-        <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
-            <div class="flex items-center gap-3">
-                <img src="/logo.png" alt="Logo" class="h-10 w-10 rounded-full bg-white p-1 object-contain" onerror="this.style.display='none'">
-                <div>
-                    <h1 class="text-lg md:text-xl font-bold">Agro Servicio Sol y Sombra</h1>
-                    <p class="text-xs text-emerald-200">Sistema POS & Control de Inventario</p>
-                </div>
-            </div>
-            <div class="flex items-center gap-2">
-                <a href="/catalogo.html" target="_blank" class="bg-emerald-700 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition flex items-center gap-1.5">
-                    <i class="fas fa-store"></i> <span class="hidden sm:inline">Ver Catálogo</span>
-                </a>
-                <a href="/api/logout" class="bg-rose-700 hover:bg-rose-800 text-white px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition flex items-center gap-1">
-                    <i class="fas fa-sign-out-alt"></i> Salir
-                </a>
-            </div>
-        </div>
-    </header>
+<header>
+    <h1>Vivero Sol y Sombra</h1>
+    <div>
+        <a href="/catalogo.html" target="_blank" style="color: white; margin-right: 15px; text-decoration: none;">Ver Catálogo</a>
+        <a href="/api/logout" style="color: white; text-decoration: none;">Cerrar Sesión</a>
+    </div>
+</header>
 
-    <main class="max-w-7xl mx-auto px-4 py-6">
-        <!-- Métricas -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div class="bg-white p-4 rounded-xl shadow-sm border border-stone-200 text-center">
-                <p class="text-xs font-bold text-stone-500 uppercase tracking-wider">Especies Distintas</p>
-                <p id="totalEspecies" class="text-2xl font-extrabold text-emerald-900">0</p>
-            </div>
-            <div class="bg-white p-4 rounded-xl shadow-sm border border-stone-200 text-center">
-                <p class="text-xs font-bold text-stone-500 uppercase tracking-wider">Total Plantas en Stock</p>
-                <p id="totalStock" class="text-2xl font-extrabold text-emerald-900">0</p>
-            </div>
-            <div class="bg-white p-4 rounded-xl shadow-sm border border-stone-200 text-center">
-                <p class="text-xs font-bold text-stone-500 uppercase tracking-wider">Valor Total Inventario</p>
-                <p id="valorInventario" class="text-2xl font-extrabold text-emerald-900">$0</p>
-            </div>
+<div class="container">
+    <div>
+        <!-- FORMULARIO DE AGREGAR PLANTA -->
+        <div class="card">
+            <h2>+ Agregar Planta</h2>
+            <form id="plantaForm">
+                <input type="text" id="nombre" placeholder="Nombre (ej: Limón Pica)" required>
+                <input type="text" id="cientifico" placeholder="Nombre Científico">
+                <input type="text" id="categoria" placeholder="Categoría (ej: Cítricos)">
+                <input type="text" id="ubicacion" placeholder="Ubicación en Vivero">
+                <input type="number" id="precio" placeholder="Precio ($)" required>
+                <input type="number" id="stock" placeholder="Stock Inicial" required>
+                <input type="file" id="fotoInput" accept="image/*" style="grid-column: span 2;">
+                <button type="submit">Guardar Planta</button>
+            </form>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            <!-- Formulario de Registro (Izquierda - 3 cols) -->
-            <div class="lg:col-span-3 bg-white p-4 rounded-xl shadow-sm border border-stone-200 self-start">
-                <h2 class="text-md font-bold text-emerald-900 mb-3 border-b pb-2">Registrar Planta</h2>
-                <form id="plantaForm" onsubmit="guardarPlanta(event)" class="space-y-2.5">
-                    <div>
-                        <label class="block text-xs font-semibold text-stone-700 mb-0.5">Nombre común *</label>
-                        <input type="text" id="nombre" required placeholder="Ej: Níspero" class="w-full border rounded-lg p-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-stone-700 mb-0.5">Nombre científico</label>
-                        <input type="text" id="cientifico" placeholder="Ej: Eriobotrya japonica" class="w-full border rounded-lg p-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none">
-                    </div>
-                    <div class="grid grid-cols-2 gap-2">
-                        <div>
-                            <label class="block text-xs font-semibold text-stone-700 mb-0.5">Categoría</label>
-                            <input type="text" id="categoria" placeholder="Frutal" class="w-full border rounded-lg p-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-stone-700 mb-0.5">Ubicación</label>
-                            <input type="text" id="ubicacion" placeholder="Nave sombra" class="w-full border rounded-lg p-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none">
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-2 gap-2">
-                        <div>
-                            <label class="block text-xs font-semibold text-stone-700 mb-0.5">Precio ($) *</label>
-                            <input type="number" id="precio" required min="0" placeholder="5000" class="w-full border rounded-lg p-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-stone-700 mb-0.5">Stock inicial *</label>
-                            <input type="number" id="stock" required min="0" placeholder="10" class="w-full border rounded-lg p-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none">
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-stone-700 mb-0.5">Foto (Cámara celular):</label>
-                        <input type="file" id="fotoInput" accept="image/*" capture="environment" class="w-full text-xs text-stone-500 file:mr-2 file:py-1.5 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-emerald-100 file:text-emerald-800">
-                    </div>
-
-                    <button type="submit" class="w-full bg-emerald-800 hover:bg-emerald-900 text-white font-bold py-2 rounded-lg text-xs transition mt-2">
-                        + Agregar Planta
-                    </button>
-                </form>
-            </div>
-
-            <!-- Tabla de Inventario (Centro - 6 cols) -->
-            <div class="lg:col-span-6 bg-white p-4 rounded-xl shadow-sm border border-stone-200 overflow-x-auto">
-                <div class="flex justify-between items-center mb-3">
-                    <h2 class="text-md font-bold text-emerald-900">Inventario</h2>
-                    <input type="text" id="buscarInput" onkeyup="buscarPlanta()" placeholder="Buscar..." class="border rounded-lg px-2.5 py-1 text-xs w-40 focus:ring-2 focus:ring-emerald-500 outline-none">
-                </div>
-
-                <table class="w-full text-left text-xs">
-                    <thead>
-                        <tr class="bg-emerald-900 text-white uppercase">
-                            <th class="p-2 rounded-l-lg">Foto</th>
-                            <th class="p-2">Nombre</th>
-                            <th class="p-2">Precio</th>
-                            <th class="p-2">Stock</th>
-                            <th class="p-2 rounded-r-lg text-center">Acción</th>
-                        </tr>
-                    </thead>
-                    <tbody id="inventarioTabla" class="divide-y divide-stone-100">
-                        <tr><td colspan="5" class="text-center py-6 text-stone-400">Cargando...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- TICKET CLIENTE / CAJA (Derecha - 3 cols) -->
-            <div class="lg:col-span-3 bg-white p-4 rounded-xl shadow-sm border-2 border-emerald-600 flex flex-col justify-between self-start">
-                <div>
-                    <div class="flex justify-between items-center mb-3 border-b pb-2">
-                        <h2 class="text-md font-bold text-emerald-900 flex items-center gap-1.5">
-                            <i class="fas fa-receipt"></i> Ticket Cliente
-                        </h2>
-                        <button onclick="limpiarTicket()" class="text-xs text-stone-500 hover:text-rose-600 underline">Limpiar</button>
-                    </div>
-
-                    <!-- Lista de items agregados -->
-                    <div id="ticketItems" class="space-y-2 max-h-64 overflow-y-auto pr-1">
-                        <p class="text-xs text-stone-400 text-center py-6">Haz clic en <b>"+ Añadir"</b> en una planta para iniciar la venta.</p>
-                    </div>
-                </div>
-
-                <div class="border-t border-stone-200 pt-3 mt-4">
-                    <div class="flex justify-between items-center text-stone-700 font-bold text-md mb-3">
-                        <span>TOTAL A PAGAR:</span>
-                        <span id="ticketTotal" class="text-emerald-800 text-xl font-extrabold">$0</span>
-                    </div>
-                    
-                    <button onclick="confirmarVenta()" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-2.5 rounded-lg text-xs transition flex items-center justify-center gap-1.5 shadow">
-                        <i class="fas fa-check-circle"></i> Confirmar & Descontar Venta
-                    </button>
-                </div>
-            </div>
+        <!-- TABLA DE INVENTARIO -->
+        <div class="card">
+            <h2>Inventario de Plantas</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Imagen</th>
+                        <th>Nombre</th>
+                        <th>Precio</th>
+                        <th>Stock</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaInventario"></tbody>
+            </table>
         </div>
-    </main>
+    </div>
 
-    <script>
-        let inventario = [];
-        let ticket = [];
+    <!-- TICKET DE VENTA -->
+    <div>
+        <div class="card">
+            <h2>Nueva Venta</h2>
+            <div id="listaTicket"></div>
+            <div class="total">Total: $<span id="totalVenta">0</span></div>
+            <button class="btn-finalizar" onclick="finalizarVenta()">Cobrar Venta</button>
+        </div>
+    </div>
+</div>
 
-        async function cargarInventario() {
-            try {
-                const res = await fetch('/api/plantas');
-                inventario = await res.json();
-                renderTabla(inventario);
-                actualizarMetricas();
-            } catch (err) {
-                console.error("Error al cargar inventario:", err);
-            }
-        }
+<script>
+    let inventario = [];
+    let ticket = [];
 
-        function renderTabla(lista) {
-            const tbody = document.getElementById('inventarioTabla');
-            tbody.innerHTML = '';
-
-            if (lista.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="text-center py-6 text-stone-400">Sin plantas registradas</td></tr>';
+    async function cargarInventario() {
+        try {
+            const res = await fetch('/api/plantas');
+            if (res.status === 401) {
+                window.location.href = '/login.html';
                 return;
             }
+            inventario = await res.json();
+            renderInventario();
+        } catch (err) {
+            console.error("Error al cargar inventario", err);
+        }
+    }
 
-            lista.forEach(p => {
-                const fotoRuta = p.foto || p.imagen || '/logo.png';
-                const tieneStock = Number(p.stock) > 0;
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-stone-50 transition";
-                tr.innerHTML = `
-                    <td class="p-1.5"><img src="${fotoRuta}" class="w-8 h-8 object-cover rounded" onerror="this.src='/logo.png'"></td>
-                    <td class="p-1.5 font-medium text-stone-800">${p.nombre}</td>
-                    <td class="p-1.5 text-emerald-800 font-bold">$${Number(p.precio).toLocaleString('es-CL')}</td>
-                    <td class="p-1.5">${p.stock}</td>
-                    <td class="p-1.5 text-center flex items-center justify-center gap-1">
-                        <button onclick="agregarAlTicket('${p.id || p._id}')" ${!tieneStock ? 'disabled' : ''} class="bg-emerald-800 hover:bg-emerald-900 disabled:bg-stone-300 text-white text-[10px] px-2 py-1 rounded font-semibold transition">
-                            + Añadir
-                        </button>
-                        <button onclick="eliminarPlanta('${p.id || p._id}')" class="text-rose-500 hover:text-rose-700 px-1"><i class="fas fa-trash"></i></button>
+    function renderInventario() {
+        const tbody = document.getElementById('tablaInventario');
+        tbody.innerHTML = '';
+        inventario.forEach(p => {
+            tbody.innerHTML += `
+                <tr>
+                    <td><img src="${p.foto || '/logo.png'}" class="thumb"></td>
+                    <td><b>${p.nombre}</b><br><small>${p.cientifico}</small></td>
+                    <td>$${p.precio}</td>
+                    <td>${p.stock}</td>
+                    <td>
+                        <button class="btn btn-add" onclick="agregarAlTicket('${p.id}')">+ Añadir</button>
+                        <button class="btn btn-del" onclick="eliminarPlanta('${p.id}')">X</button>
                     </td>
-                `;
-                tbody.appendChild(tr);
-            });
+                </tr>
+            `;
+        });
+    }
+
+    document.getElementById('plantaForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData();
+        formData.append('nombre', document.getElementById('nombre').value);
+        formData.append('cientifico', document.getElementById('cientifico').value);
+        formData.append('categoria', document.getElementById('categoria').value);
+        formData.append('ubicacion', document.getElementById('ubicacion').value);
+        formData.append('precio', document.getElementById('precio').value);
+        formData.append('stock', document.getElementById('stock').value);
+
+        const foto = document.getElementById('fotoInput').files[0];
+        if (foto) formData.append('foto', foto);
+
+        const res = await fetch('/api/plantas', { method: 'POST', body: formData });
+        if (res.ok) {
+            document.getElementById('plantaForm').reset();
+            cargarInventario();
+        } else {
+            alert("Error al guardar la planta");
         }
+    });
 
-        function agregarAlTicket(id) {
-            const planta = inventario.find(p => (p.id || p._id) === id);
-            if (!planta || planta.stock <= 0) return;
+    function agregarAlTicket(id) {
+        const p = inventario.find(x => String(x.id) === String(id));
+        if (!p || p.stock <= 0) return alert("Sin stock disponible");
 
-            const itemExistente = ticket.find(i => i.id === id);
-            if (itemExistente) {
-                if (itemExistente.cantidad < planta.stock) {
-                    itemExistente.cantidad++;
-                } else {
-                    alert("No hay más stock disponible de esta planta");
-                }
+        const enTicket = ticket.find(x => String(x.id) === String(id));
+        if (enTicket) {
+            if (enTicket.cantidad < p.stock) {
+                enTicket.cantidad++;
             } else {
-                ticket.push({
-                    id: planta.id || planta._id,
-                    nombre: planta.nombre,
-                    precio: Number(planta.precio),
-                    cantidad: 1,
-                    maxStock: Number(planta.stock)
-                });
+                alert("Alcanzaste el límite de stock");
             }
-            renderTicket();
+        } else {
+            ticket.push({ id: String(p.id), nombre: p.nombre, precio: p.precio, cantidad: 1 });
         }
+        renderTicket();
+    }
 
-        function cambiarCantidadTicket(id, delta) {
-            const item = ticket.find(i => i.id === id);
-            if (!item) return;
+    function renderTicket() {
+        const contenedor = document.getElementById('listaTicket');
+        contenedor.innerHTML = '';
+        let total = 0;
+        ticket.forEach(item => {
+            const subtotal = item.precio * item.cantidad;
+            total += subtotal;
+            contenedor.innerHTML += `
+                <div class="ticket-item">
+                    <div><b>${item.nombre}</b><br>x${item.cantidad} ($${item.precio})</div>
+                    <div>$${subtotal}</div>
+                </div>
+            `;
+        });
+        document.getElementById('totalVenta').innerText = total;
+    }
 
-            item.cantidad += delta;
-            if (item.cantidad <= 0) {
-                ticket = ticket.filter(i => i.id !== id);
-            } else if (item.cantidad > item.maxStock) {
-                item.cantidad = item.maxStock;
-                alert("Alcanzaste el límite de stock disponible");
-            }
-            renderTicket();
-        }
-
-        function renderTicket() {
-            const contenedor = document.getElementById('ticketItems');
-            contenedor.innerHTML = '';
-
-            if (ticket.length === 0) {
-                contenedor.innerHTML = '<p class="text-xs text-stone-400 text-center py-6">Haz clic en <b>"+ Añadir"</b> en una planta para iniciar la venta.</p>';
-                document.getElementById('ticketTotal').innerText = '$0';
-                return;
-            }
-
-            let total = 0;
-            ticket.forEach(item => {
-                const subtotal = item.precio * item.cantidad;
-                total += subtotal;
-
-                const div = document.createElement('div');
-                div.className = "flex justify-between items-center bg-stone-50 p-2 rounded border border-stone-200 text-xs";
-                div.innerHTML = `
-                    <div class="flex-1 pr-1">
-                        <p class="font-bold text-stone-800">${item.nombre}</p>
-                        <p class="text-stone-500 text-[11px]">$${item.precio.toLocaleString('es-CL')} c/u</p>
-                    </div>
-                    <div class="flex items-center gap-1">
-                        <button onclick="cambiarCantidadTicket('${item.id}', -1)" class="bg-stone-200 hover:bg-stone-300 w-5 h-5 rounded font-bold">-</button>
-                        <span class="font-bold px-1">${item.cantidad}</span>
-                        <button onclick="cambiarCantidadTicket('${item.id}', 1)" class="bg-stone-200 hover:bg-stone-300 w-5 h-5 rounded font-bold">+</button>
-                    </div>
-                    <span class="font-bold text-emerald-800 ml-2">$${subtotal.toLocaleString('es-CL')}</span>
-                `;
-                contenedor.appendChild(div);
-            });
-
-            document.getElementById('ticketTotal').innerText = '$' + total.toLocaleString('es-CL');
-        }
-
-        function limpiarTicket() {
+    async function finalizarVenta() {
+        if (ticket.length === 0) return alert("El ticket está vacío");
+        const res = await fetch('/api/ventas', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ items: ticket })
+        });
+        if (res.ok) {
+            alert("¡Venta registrada con éxito!");
             ticket = [];
             renderTicket();
+            cargarInventario();
         }
+    }
 
-        async function confirmarVenta() {
-            if (ticket.length === 0) {
-                alert("El ticket está vacío.");
-                return;
-            }
-
-            if (!confirm("¿Deseas confirmar la venta y descontar las cantidades del inventario?")) return;
-
-            try {
-                const res = await fetch('/api/ventas', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ items: ticket })
-                });
-
-                if (res.ok) {
-                    alert("¡Venta realizada y stock actualizado con éxito!");
-                    limpiarTicket();
-                    cargarInventario();
-                } else {
-                    alert("Ocurrió un problema al procesar la venta.");
-                }
-            } catch (err) {
-                alert("Error al conectar con el servidor.");
-            }
+    async function eliminarPlanta(id) {
+        if (confirm("¿Seguro que deseas eliminar esta planta?")) {
+            await fetch(`/api/plantas/${id}`, { method: 'DELETE' });
+            cargarInventario();
         }
+    }
 
-        function actualizarMetricas() {
-            document.getElementById('totalEspecies').innerText = inventario.length;
-            const totalStock = inventario.reduce((acc, p) => acc + Number(p.stock || 0), 0);
-            const valorTotal = inventario.reduce((acc, p) => acc + (Number(p.precio || 0) * Number(p.stock || 0)), 0);
-            document.getElementById('totalStock').innerText = totalStock;
-            document.getElementById('valorInventario').innerText = '$' + valorTotal.toLocaleString('es-CL');
-        }
-
-        async function guardarPlanta(e) {
-            e.preventDefault();
-            const formData = new FormData();
-            formData.append('nombre', document.getElementById('nombre').value);
-            formData.append('cientifico', document.getElementById('cientifico').value);
-            formData.append('categoria', document.getElementById('categoria').value);
-            formData.append('ubicacion', document.getElementById('ubicacion').value);
-            formData.append('precio', document.getElementById('precio').value);
-            formData.append('stock', document.getElementById('stock').value);
-
-            const fotoInput = document.getElementById('fotoInput');
-            if (fotoInput.files[0]) {
-                formData.append('foto', fotoInput.files[0]);
-            }
-
-            try {
-                await fetch('/api/plantas', { method: 'POST', body: formData });
-                document.getElementById('plantaForm').reset();
-                cargarInventario();
-            } catch (err) {
-                alert("Error al guardar planta");
-            }
-        }
-
-        async function eliminarPlanta(id) {
-            if (!confirm("¿Estás seguro de eliminar esta planta?")) return;
-            try {
-                await fetch(`/api/plantas/${id}`, { method: 'DELETE' });
-                cargarInventario();
-            } catch (err) {
-                alert("Error al eliminar");
-            }
-        }
-
-        function buscarPlanta() {
-            const query = document.getElementById('buscarInput').value.toLowerCase();
-            const filtradas = inventario.filter(p => p.nombre.toLowerCase().includes(query));
-            renderTabla(filtradas);
-        }
-
-        cargarInventario();
-    </script>
+    cargarInventario();
+</script>
 </body>
 </html>

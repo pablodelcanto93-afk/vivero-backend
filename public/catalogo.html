@@ -3,129 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vivero Sol y Sombra - Catálogo Online</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>Catálogo - Vivero Sol y Sombra</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
+        body { background: #f9f9f9; padding: 20px; }
+        h1 { text-align: center; color: #2e7d32; margin-bottom: 20px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; max-width: 1200px; margin: 0 auto; }
+        .card { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); text-align: center; padding-bottom: 15px; }
+        .card img { width: 100%; height: 180px; object-fit: cover; }
+        .card h3 { margin: 10px 0 5px; color: #333; }
+        .card p { color: #666; font-size: 0.9em; margin-bottom: 10px; }
+        .price { font-size: 1.2em; color: #2e7d32; font-weight: bold; }
+    </style>
 </head>
-<body class="bg-stone-50 text-stone-800 font-sans">
+<body>
 
-    <!-- Header -->
-    <header class="bg-emerald-800 text-white shadow-md sticky top-0 z-50">
-        <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
-            <div class="flex items-center gap-3">
-                <img src="/logo.png" alt="Logo" class="h-10 w-10 object-contain rounded-full bg-white p-1" onerror="this.style.display='none'">
-                <h1 class="text-xl md:text-2xl font-bold tracking-wide">Vivero Sol y Sombra</h1>
-            </div>
-            <a href="https://wa.me/56953450809" target="_blank" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-full font-semibold flex items-center gap-2 text-sm transition shadow">
-                <i class="fab font-bold fa-whatsapp text-lg"></i>
-                <span class="hidden sm:inline">Contactar</span>
-            </a>
-        </div>
-    </header>
+<h1>Nuestras Plantas - Vivero Sol y Sombra</h1>
+<div class="grid" id="catalogoGrid"></div>
 
-    <!-- Banner -->
-    <section class="bg-emerald-900 text-white py-12 px-4 text-center relative overflow-hidden">
-        <div class="max-w-3xl mx-auto relative z-10">
-            <h2 class="text-3xl md:text-4xl font-extrabold mb-3">Encuentra las mejores plantas para tu hogar y jardín</h2>
-            <p class="text-emerald-100 text-base md:text-lg mb-6">Frutales, plantas de interior, suculentas, arreglos y sustratos. Consulta disponibilidad en tiempo real.</p>
-            
-            <div class="max-w-md mx-auto relative">
-                <input type="text" id="searchInput" onkeyup="filtrarPlantas()" placeholder="Buscar planta por nombre..." class="w-full pl-10 pr-4 py-3 rounded-full text-stone-800 focus:outline-none focus:ring-2 focus:ring-emerald-400 shadow-lg">
-                <i class="fas fa-search absolute left-4 top-3.5 text-stone-400"></i>
-            </div>
-        </div>
-    </section>
-
-    <!-- Catálogo de Plantas -->
-    <main class="max-w-6xl mx-auto px-4 py-10">
-        <h3 class="text-2xl font-bold text-emerald-900 mb-6 border-b-2 border-emerald-200 pb-2">Nuestras Especies Disponibles</h3>
-        
-        <div id="catalogGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            <div class="col-span-full text-center py-10 text-stone-500">Cargando catálogo...</div>
-        </div>
-    </main>
-
-    <!-- Footer con Dirección Exacta -->
-    <footer class="bg-stone-800 text-stone-300 py-8 mt-12 border-t border-stone-700">
-        <div class="max-w-6xl mx-auto px-4 grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
-            <div>
-                <h4 class="text-white font-bold text-lg mb-2">Vivero Sol y Sombra</h4>
-                <p>📍 Camino Internacional, La Victoria, Limache</p>
-                <p>⏰ Horario de Atención: Lunes a Sábado de 09:00 a 18:00 hrs</p>
-            </div>
-            <div class="md:text-right">
-                <p class="mb-2">¿Tienes dudas sobre los cuidados o stock especial?</p>
-                <a href="https://wa.me/56953450809" target="_blank" class="inline-block bg-emerald-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-emerald-500 transition">
-                    Escríbenos por WhatsApp (+56 9 5345 0809)
-                </a>
-            </div>
-        </div>
-    </footer>
-
-    <!-- Lógica JavaScript -->
-    <script>
-        let plantas = [];
-        const NUMERO_WHATSAPP = "56953450809"; 
-
-        async function cargarCatalogo() {
-            try {
-                const response = await fetch('/api/plantas'); 
-                plantas = await response.json();
-                renderizarCatalogo(plantas);
-            } catch (error) {
-                console.error("Error al cargar el catálogo:", error);
-                document.getElementById('catalogGrid').innerHTML = '<p class="col-span-full text-center text-red-500">Error al cargar las plantas. Intenta más tarde.</p>';
-            }
-        }
-
-        function renderizarCatalogo(lista) {
-            const grid = document.getElementById('catalogGrid');
-            grid.innerHTML = '';
-
-            if (lista.length === 0) {
-                grid.innerHTML = '<p class="col-span-full text-center text-stone-500">No hay plantas disponibles por el momento.</p>';
-                return;
-            }
-
-            lista.forEach(planta => {
-                const tieneStock = planta.stock > 0;
-                const mensajeWS = encodeURIComponent(`Hola Vivero Sol y Sombra, vi en la web la planta "${planta.nombre}" y me gustaría consultar disponibilidad/detalles.`);
-                const linkWhatsApp = `https://wa.me/${NUMERO_WHATSAPP}?text=${mensajeWS}`;
-                const imagenRuta = planta.foto || planta.imagen || planta.imagenUrl || '/logo.png';
-
-                const card = document.createElement('div');
-                card.className = "bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition border border-stone-100 flex flex-col justify-between";
-                
-                card.innerHTML = `
-                    <div>
-                        <div class="h-48 bg-stone-200 relative overflow-hidden">
-                            <img src="${imagenRuta}" alt="${planta.nombre}" class="w-full h-full object-cover" onerror="this.src='/logo.png'">
-                            <span class="absolute top-2 right-2 text-xs px-2 py-1 rounded-full font-semibold ${tieneStock ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'}">
-                                ${tieneStock ? 'Disponible' : 'Agotado'}
-                            </span>
-                        </div>
-                        <div class="p-4">
-                            <h4 class="font-bold text-lg text-stone-800 mb-1">${planta.nombre}</h4>
-                            <p class="text-emerald-700 font-extrabold text-xl mb-3">$${Number(planta.precio || 0).toLocaleString('es-CL')}</p>
-                        </div>
-                    </div>
-                    <div class="p-4 pt-0">
-                        <a href="${linkWhatsApp}" target="_blank" class="w-full block text-center bg-emerald-700 hover:bg-emerald-800 text-white font-medium py-2 rounded-lg text-sm transition">
-                            <i class="fab fa-whatsapp mr-1"></i> Consultar por WhatsApp
-                        </a>
-                    </div>
-                `;
-                grid.appendChild(card);
-            });
-        }
-
-        function filtrarPlantas() {
-            const query = document.getElementById('searchInput').value.toLowerCase();
-            const filtradas = plantas.filter(p => p.nombre.toLowerCase().includes(query));
-            renderizarCatalogo(filtradas);
-        }
-
-        cargarCatalogo();
-    </script>
+<script>
+    async function cargarCatalogo() {
+        const res = await fetch('/api/plantas/publico');
+        const plantas = await res.json();
+        const grid = document.getElementById('catalogoGrid');
+        grid.innerHTML = '';
+        plantas.forEach(p => {
+            grid.innerHTML += `
+                <div class="card">
+                    <img src="${p.foto || '/logo.png'}">
+                    <h3>${p.nombre}</h3>
+                    <p><i>${p.cientifico || ''}</i></p>
+                    <div class="price">$${p.precio}</div>
+                </div>
+            `;
+        });
+    }
+    cargarCatalogo();
+</script>
 </body>
 </html>

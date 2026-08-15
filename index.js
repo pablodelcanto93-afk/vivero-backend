@@ -3,9 +3,14 @@ const session = require('express-session');
 const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
+const cors = require('cors');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 app.use(session({
     secret: 'vivero-sol-y-sombra-clave-secreta-2026',
@@ -14,9 +19,7 @@ app.use(session({
     cookie: { maxAge: 24 * 60 * 60 * 1000 }
 }));
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
+// Configurar guardado de imágenes
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         const uploadDir = path.join(__dirname, 'public', 'uploads');
@@ -56,14 +59,14 @@ function requerirAutenticacion(req, res, next) {
     if (req.session && req.session.autenticado) {
         return next();
     }
-    return res.redirect('/login.html');
+    return res.status(401).json({ error: 'No autorizado', redirect: '/login.html' });
 }
 
-// Rutas Públicas
-app.use('/catalogo.html', express.static(path.join(__dirname, 'public', 'catalogo.html')));
+// Servir archivos estáticos de la carpeta /public
+app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
-app.use('/logo.png', express.static(path.join(__dirname, 'public', 'logo.png')));
 
+// --- RUTAS PÚBLICAS ---
 app.get('/api/plantas/publico', (req, res) => {
     res.json(obtenerPlantas());
 });
@@ -82,17 +85,7 @@ app.get('/api/logout', (req, res) => {
     res.redirect('/login.html');
 });
 
-// Rutas Protegidas
-app.get('/', requerirAutenticacion, (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-app.get('/index.html', requerirAutenticacion, (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-app.use(express.static(path.join(__dirname, 'public')));
-
+// --- RUTAS PROTEGIDAS (ADMIN) ---
 app.get('/api/plantas', requerirAutenticacion, (req, res) => {
     res.json(obtenerPlantas());
 });
@@ -122,14 +115,13 @@ app.post('/api/plantas', requerirAutenticacion, upload.single('foto'), (req, res
     }
 });
 
-// RUTA PARA DESCONTAR VENTA
 app.post('/api/ventas', requerirAutenticacion, (req, res) => {
     try {
         const { items } = req.body;
         let plantas = obtenerPlantas();
 
         items.forEach(item => {
-            const p = plantas.find(x => (x.id || x._id) === item.id);
+            const p = plantas.find(x => String(x.id) === String(item.id));
             if (p) {
                 p.stock = Math.max(0, Number(p.stock) - Number(item.cantidad));
             }
@@ -146,7 +138,7 @@ app.delete('/api/plantas/:id', requerirAutenticacion, (req, res) => {
     try {
         let plantas = obtenerPlantas();
         const { id } = req.params;
-        plantas = plantas.filter(p => p.id !== id && p._id !== id);
+        plantas = plantas.filter(p => String(p.id) !== String(id));
         guardarPlantas(plantas);
         res.json({ status: 'ok' });
     } catch (err) {
@@ -154,4 +146,4 @@ app.delete('/api/plantas/:id', requerirAutenticacion, (req, res) => {
     }
 });
 
-app.listen(PORT, () => console.log(`Servidor en puerto ${PORT}`));
+app.listen(PORT, () => console.log(`Servidor iniciado en puerto ${PORT}`));
