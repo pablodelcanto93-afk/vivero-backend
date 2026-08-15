@@ -100,7 +100,7 @@
                 card.innerHTML = `
                     <div>
                         <div class="h-48 bg-stone-200 relative overflow-hidden">
-                            <img src="${planta.imagen || '/logo.png'}" alt="${planta.nombre}" class="w-full h-full object-cover" onerror="this.src='/logo.png'">
+<img src="${planta.foto || planta.imagen || planta.imagenUrl || '/logo.png'}" alt="${planta.nombre}" class="w-full h-full object-cover" onerror="this.src='/logo.png'">
                             <span class="absolute top-2 right-2 text-xs px-2 py-1 rounded-full font-semibold ${tieneStock ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'}">
                                 ${tieneStock ? 'Disponible' : 'Agotado'}
                             </span>
