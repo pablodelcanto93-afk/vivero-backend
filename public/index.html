@@ -167,10 +167,10 @@
               <label>Stock inicial *</label>
               <input type="number" id="stock" name="stock" required placeholder="10">
             </div>
-            <div class="form-group">
-              <label>📷 URL de la foto (Opcional):</label>
-              <input type="text" id="foto" name="foto" placeholder="https://ejemplo.com/foto.jpg">
-            </div>
+<div class="form-group">
+  <label for="foto">📸 Foto de la Planta (Opcional):</label>
+  <input type="file" id="foto" name="foto" accept="image/*" capture="environment">
+</div>
             <button type="submit" id="btn-submit" class="btn btn-green-main">Agregar Planta</button>
             <button type="button" id="btn-cancelar" class="btn btn-cancel" onclick="cancelarEdicion()">Cancelar Edición</button>
           </form>

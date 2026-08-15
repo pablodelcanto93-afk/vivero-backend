@@ -3,98 +3,97 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(express.json());
+// Configurar límite de tamaño para permitir subir imágenes en Base64 desde el celular
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
+
+// Servir archivos estáticos desde la carpeta public
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Base de datos temporal en memoria
 let plantas = [];
 let ventas = [];
-const PIN_ADMIN = "1234"; // Puedes cambiar este PIN por el que tú quieras
+const PIN_ADMIN = process.env.PIN_ADMIN || "1234"; // Clave de acceso
 
 // --- RUTAS DE LA API ---
 
 // Login para ingresar al sistema administrativo
 app.post('/api/login', (req, res) => {
-  const { pin } = req.body;
-  if (pin == PIN_ADMIN || pin == (process.env.PIN_ADMIN || "1234")) {
-    return res.json({ ok: true });
-  }
-  return res.status(401).json({ error: "Clave incorrecta" });
+    const { pin } = req.body;
+    if (pin == PIN_ADMIN) {
+        return res.json({ ok: true });
+    }
+    return res.status(401).json({ error: "Clave incorrecta." });
 });
 
 // Ruta PÚBLICA para el catálogo (sin contraseña)
 app.get('/api/catalogo-publico', (req, res) => {
-  res.json(plantas);
+    res.json(plantas);
 });
 
 // Obtener inventario (Sistema privado)
 app.get('/api/plantas', (req, res) => {
-  res.json(plantas);
+    res.json(plantas);
 });
 
-// Agregar nueva planta
+// Registrar o actualizar una planta (Soporta foto en Base64 o URL)
 app.post('/api/plantas', (req, res) => {
-  const nuevaPlanta = {
-    id: Date.now(),
-    nombre: req.body.nombre || 'Planta sin nombre',
-    nombre_cientifico: req.body.nombre_cientifico || '',
-    categoria: req.body.categoria || '',
-    ubicacion: req.body.ubicacion || '',
-    precio: Number(req.body.precio) || 0,
-    stock: Number(req.body.stock) || 0,
-    foto: req.body.foto || ''
-  };
-  plantas.push(nuevaPlanta);
-  res.json({ ok: true, planta: nuevaPlanta });
-});
-
-// Editar planta existente
-app.put('/api/plantas/:id', (req, res) => {
-  const id = Number(req.params.id);
-  const index = plantas.findIndex(p => p.id === id);
-  if (index !== -1) {
-    plantas[index] = { ...plantas[index], ...req.body };
-    return res.json({ ok: true });
-  }
-  res.status(404).json({ error: "Planta no encontrada" });
-});
-
-// Eliminar planta
-app.delete('/api/plantas/:id', (req, res) => {
-  const id = Number(req.params.id);
-  plantas = plantas.filter(p => p.id !== id);
-  res.json({ ok: true });
-});
-
-// Consultar historial de ventas
-app.get('/api/ventas', (req, res) => {
-  res.json(ventas);
-});
-
-// Registrar una venta y descontar del inventario
-app.post('/api/plantas/:id/venta', (req, res) => {
-  const id = Number(req.params.id);
-  const planta = plantas.find(p => p.id === id);
-
-  if (planta && planta.stock > 0) {
-    planta.stock--;
-    const ahora = new Date();
-    const dia = String(ahora.getDate()).padStart(2, '0');
-    const mes = String(ahora.getMonth() + 1).padStart(2, '0');
-    const anio = ahora.getFullYear();
-    const fechaFormateada = `${dia}-${mes}-${anio}`;
+    const nuevaPlanta = req.body;
     
-    ventas.push({
-      fecha: fechaFormateada,
-      plantaId: planta.id,
-      nombre: planta.nombre,
-      precio: planta.precio
-    });
-    return res.json({ ok: true });
-  }
-  res.status(400).json({ error: "Sin stock suficiente o planta no encontrada" });
+    // Si la planta ya existe, actualizamos sus datos
+    const index = plantas.findIndex(p => p.id === nuevaPlanta.id);
+    if (index !== -1) {
+        plantas[index] = { ...plantas[index], ...nuevaPlanta };
+    } else {
+        // Nueva planta
+        nuevaPlanta.id = Date.now().toString();
+        plantas.push(nuevaPlanta);
+    }
+    
+    res.json({ ok: true, plantas });
 });
 
+// Eliminar una planta
+app.delete('/api/plantas/:id', (req, res) => {
+    const { id } = req.params;
+    plantas = plantas.filter(p => p.id !== id);
+    res.json({ ok: true, plantas });
+});
+
+// Registrar una venta
+app.post('/api/ventas', (req, res) => {
+    const { items, total } = req.body;
+    
+    // Descontar stock
+    items.forEach(item => {
+        const planta = plantas.find(p => p.id === item.id);
+        if (planta) {
+            planta.stock = Math.max(0, parseInt(planta.stock) - parseInt(item.cantidad));
+        }
+    });
+
+    const nuevaVenta = {
+        id: Date.now().toString(),
+        fecha: new Date().toISOString(),
+        items,
+        total
+    };
+
+    ventas.push(nuevaVenta);
+    res.json({ ok: true, ventas, plantas });
+});
+
+// Obtener historial de ventas
+app.get('/api/ventas', (req, res) => {
+    res.json(ventas);
+});
+
+// Redireccionar cualquier otra ruta a la página principal
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Iniciar servidor
 app.listen(PORT, () => {
-  console.log(`Servidor activo en el puerto ${PORT}`);
+    console.log(`Servidor corriendo en el puerto ${PORT}`);
 });
