@@ -32,13 +32,23 @@
         .thumb { width: 45px; height: 45px; object-fit: cover; border-radius: 4px; }
         .btn-quitar { background: #ff5252; color: white; border: none; padding: 2px 6px; border-radius: 3px; cursor: pointer; font-size: 0.8em; margin-left: 5px; }
 
-        /* MODAL REPORTES ADMIN */
+        .select-pago { width: 100%; padding: 10px; margin-top: 10px; border-radius: 4px; border: 1px solid #ccc; font-weight: bold; }
+
+        /* DASHBOARD MODAL ESTILO CIBARI */
         .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
-        .modal-content { background: white; margin: 5% auto; padding: 25px; border-radius: 8px; width: 90%; max-width: 700px; max-height: 85vh; overflow-y: auto; }
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 20px; }
-        .stat-card { background: #e8f5e9; padding: 15px; border-radius: 8px; text-align: center; border-left: 4px solid #2e7d32; }
-        .stat-card h3 { font-size: 0.9em; color: #555; margin-bottom: 5px; }
-        .stat-card p { font-size: 1.4em; font-weight: bold; color: #2e7d32; }
+        .modal-content { background: #f8f9fa; margin: 3% auto; padding: 25px; border-radius: 12px; width: 90%; max-width: 800px; max-height: 90vh; overflow-y: auto; }
+        
+        .dash-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #2e7d32; padding-bottom: 10px; }
+        .dash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        
+        .dash-card { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); text-align: left; border-top: 4px solid #2e7d32; }
+        .dash-card.efectivo { border-top-color: #4caf50; }
+        .dash-card.transf { border-top-color: #2196f3; }
+        .dash-card.debito { border-top-color: #ff9800; }
+        
+        .dash-card h4 { font-size: 0.85em; color: #666; text-transform: uppercase; margin-bottom: 5px; }
+        .dash-card p { font-size: 1.5em; font-weight: bold; color: #1b5e20; }
+
         .btn-admin { background: #ff9800; color: white; padding: 8px 12px; border-radius: 4px; text-decoration: none; font-weight: bold; cursor: pointer; border: none; margin-right: 10px; }
     </style>
 </head>
@@ -50,7 +60,7 @@
         <h1>Vivero Sol y Sombra</h1>
     </div>
     <div>
-        <button id="btnReportes" class="btn-admin" onclick="abrirReporteAdmin()" style="display:none;">📊 Finanzas y Ventas</button>
+        <button id="btnReportes" class="btn-admin" onclick="abrirReporteAdmin()" style="display:none;">📊 Cierre de Caja y Finanzas</button>
         <a href="/catalogo.html" target="_blank" style="color: white; margin-right: 15px; text-decoration: none;">Ver Catálogo 🌐</a>
         <a href="/api/logout" style="color: white; text-decoration: none;">Cerrar Sesión 🚪</a>
     </div>
@@ -70,8 +80,8 @@
                 <input type="number" id="precio" placeholder="Precio ($)" required>
                 <input type="number" id="stock" placeholder="Stock Inicial" required>
                 <input type="text" id="riego" placeholder="💧 Riego (ej: Moderado / 2 veces por semana)">
-                <input type="text" id="clima" placeholder="☀️ Clima / Sol (ej: Sol / Semisombra / Sensible a heladas)">
-                <textarea id="cuidados" placeholder="📝 Ficha técnica / Consejos de cultivo y adaptación..."></textarea>
+                <input type="text" id="clima" placeholder="☀️ Clima / Sol (ej: Sol / Semisombra)">
+                <textarea id="cuidados" placeholder="📝 Ficha técnica / Consejos de cultivo..."></textarea>
                 
                 <div style="grid-column: span 2;">
                     <label style="font-size: 0.85em; font-weight: bold; color: #2e7d32;">📷 Tomar foto o elegir imagen:</label>
@@ -101,46 +111,72 @@
         </div>
     </div>
 
-    <!-- TICKET DE VENTA -->
+    <!-- TICKET DE VENTA Y MEDIO DE PAGO -->
     <div>
         <div class="card">
             <h2>Nueva Venta</h2>
             <div id="listaTicket"></div>
+            
+            <label style="display:block; margin-top:15px; font-weight:bold; font-size:0.9em; color:#555;">💳 Medio de Pago:</label>
+            <select id="medioPago" class="select-pago">
+                <option value="Efectivo">💵 Efectivo</option>
+                <option value="Transferencia">📲 Transferencia</option>
+                <option value="Débito">💳 Débito / Tarjeta</option>
+            </select>
+
             <div class="total">Total: $<span id="totalVenta">0</span></div>
             <button class="btn-finalizar" onclick="finalizarVenta()">Cobrar Venta y Descontar Stock</button>
         </div>
     </div>
 </div>
 
-<!-- MODAL PRIVADO PARA PABLO (ADMIN) -->
+<!-- MODAL DASHBOARD TIPO CIBARI PARA PABLO -->
 <div id="modalReporte" class="modal">
     <div class="modal-content">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h2>📊 Finanzas e Inventario (Uso Exclusivo Jefe)</h2>
+        <div class="dash-header">
+            <h2>📊 Cierre de Caja & Estado Financiero</h2>
             <button onclick="cerrarReporteAdmin()" style="background: none; border: none; font-size: 1.5em; cursor: pointer;">✖</button>
         </div>
 
-        <div class="stats-grid">
-            <div class="stat-card">
-                <h3>💰 Valor en Plantas</h3>
+        <h3 style="margin-bottom: 10px; color: #2e7d32;">💵 Resumen de Cierre de Caja (Medios de Pago)</h3>
+        <div class="dash-grid">
+            <div class="dash-card efectivo">
+                <h4>💵 Total Efectivo</h4>
+                <p id="statEfectivo">$0</p>
+            </div>
+            <div class="dash-card transf">
+                <h4>📲 Total Transferencia</h4>
+                <p id="statTransferencia">$0</p>
+            </div>
+            <div class="dash-card debito">
+                <h4>💳 Total Débito / Tarjeta</h4>
+                <p id="statDebito">$0</p>
+            </div>
+        </div>
+
+        <h3 style="margin-bottom: 10px; color: #2e7d32;">📦 Valorización de Inventario General</h3>
+        <div class="dash-grid">
+            <div class="dash-card">
+                <h4>💰 Valor Total en Plantas</h4>
                 <p id="statValorInventario">$0</p>
             </div>
-            <div class="stat-card">
-                <h3>🪴 Unidades Disponibles</h3>
-                <p id="statTotalStock">0</p>
+            <div class="dash-card">
+                <h4>🪴 Stock Físico Disponible</h4>
+                <p id="statTotalStock">0 u.</p>
             </div>
-            <div class="stat-card">
-                <h3>📈 Total Recaudado Ventas</h3>
+            <div class="dash-card">
+                <h4>📈 Ventas Acumuladas</h4>
                 <p id="statTotalVentas">$0</p>
             </div>
         </div>
 
-        <h3>Historial de Ventas</h3>
+        <h3 style="margin-top: 15px; margin-bottom: 10px;">📋 Historial Reciente de Ventas</h3>
         <table>
             <thead>
                 <tr>
                     <th>Fecha</th>
                     <th>Vendedor</th>
+                    <th>Medio Pago</th>
                     <th>Detalle</th>
                     <th>Total</th>
                 </tr>
@@ -322,13 +358,15 @@
 
     async function finalizarVenta() {
         if (ticket.length === 0) return alert("El ticket está vacío");
+        const medioPago = document.getElementById('medioPago').value;
+
         const res = await fetch('/api/ventas', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ items: ticket })
+            body: JSON.stringify({ items: ticket, medioPago })
         });
         if (res.ok) {
-            alert("¡Venta registrada con éxito y stock descontado!");
+            alert(`¡Venta registrada (${medioPago}) y stock actualizado!`);
             ticket = [];
             renderTicket();
             cargarInventario();
@@ -347,6 +385,12 @@
         if (!res.ok) return alert("No tienes permisos de Administrador.");
         const data = await res.json();
 
+        // Totales de Caja
+        document.getElementById('statEfectivo').innerText = '$' + Number(data.caja.efectivo).toLocaleString('es-CL');
+        document.getElementById('statTransferencia').innerText = '$' + Number(data.caja.transferencia).toLocaleString('es-CL');
+        document.getElementById('statDebito').innerText = '$' + Number(data.caja.debito).toLocaleString('es-CL');
+
+        // Totales de Inventario
         document.getElementById('statValorInventario').innerText = '$' + Number(data.valorTotalInventario).toLocaleString('es-CL');
         document.getElementById('statTotalStock').innerText = Number(data.totalPlantasUnidades).toLocaleString('es-CL') + ' u.';
         document.getElementById('statTotalVentas').innerText = '$' + Number(data.totalRecaudadoVentas).toLocaleString('es-CL');
@@ -360,6 +404,7 @@
                 <tr>
                     <td><small>${fechaFmt}</small></td>
                     <td><b>${v.vendedor}</b></td>
+                    <td><span style="background:#e8f5e9; padding:3px 6px; border-radius:4px; font-size:0.85em;">${v.medioPago || 'Efectivo'}</span></td>
                     <td>${detalle}</td>
                     <td><b>$${Number(v.total).toLocaleString('es-CL')}</b></td>
                 </tr>

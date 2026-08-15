@@ -53,7 +53,6 @@ function guardarJSON(file, data) {
 app.post('/api/login', (req, res) => {
     const { usuario, password } = req.body;
     
-    // USUARIOS
     if (usuario === 'pdelcanto' && password === '1234') {
         req.session.user = { usuario: 'pdelcanto', rol: 'admin', nombre: 'Pablo Del Canto' };
         return res.json({ success: true, rol: 'admin' });
@@ -145,9 +144,9 @@ app.delete('/api/plantas/:id', requireAuth, (req, res) => {
     res.json({ success: true });
 });
 
-// REGISTRAR VENTA
+// REGISTRAR VENTA CON MEDIO DE PAGO
 app.post('/api/ventas', requireAuth, (req, res) => {
-    const { items } = req.body;
+    const { items, medioPago } = req.body;
     if (!items || items.length === 0) return res.status(400).json({ error: 'Sin items' });
 
     const plantas = leerJSON(PLANTAS_FILE);
@@ -166,6 +165,7 @@ app.post('/api/ventas', requireAuth, (req, res) => {
         id: Date.now().toString(),
         fecha: new Date().toISOString(),
         vendedor: req.session.user ? req.session.user.usuario : 'Desconocido',
+        medioPago: medioPago || 'Efectivo',
         items,
         total: totalVenta
     };
@@ -178,10 +178,10 @@ app.post('/api/ventas', requireAuth, (req, res) => {
     res.json({ success: true });
 });
 
-// OBTENER VENTAS Y RESUMEN FINANCIERO (SOLO ADMIN / PBDELCANTO)
+// DASHBOARD DE CAJA Y REPORTES (SOLO ADMIN / PDELCANTO)
 app.get('/api/reporte-admin', requireAuth, (req, res) => {
     if (req.session.user.rol !== 'admin') {
-        return res.status(403).json({ error: 'Acceso denegado. Se requiere perfil Administrador.' });
+        return res.status(403).json({ error: 'Acceso denegado.' });
     }
 
     const plantas = leerJSON(PLANTAS_FILE);
@@ -191,10 +191,28 @@ app.get('/api/reporte-admin', requireAuth, (req, res) => {
     const totalPlantasUnidades = plantas.reduce((acc, p) => acc + p.stock, 0);
     const totalRecaudadoVentas = ventas.reduce((acc, v) => acc + v.total, 0);
 
+    // Cierre de caja por medio de pago
+    let totalEfectivo = 0;
+    let totalTransferencia = 0;
+    let totalDebito = 0;
+
+    ventas.forEach(v => {
+        const medio = v.medioPago ? v.medioPago.toLowerCase() : 'efectivo';
+        if (medio.includes('efectivo')) totalEfectivo += v.total;
+        else if (medio.includes('transferencia')) totalTransferencia += v.total;
+        else if (medio.includes('débito') || medio.includes('debito') || medio.includes('tarjeta')) totalDebito += v.total;
+        else totalEfectivo += v.total;
+    });
+
     res.json({
         valorTotalInventario,
         totalPlantasUnidades,
         totalRecaudadoVentas,
+        caja: {
+            efectivo: totalEfectivo,
+            transferencia: totalTransferencia,
+            debito: totalDebito
+        },
         ventas
     });
 });
