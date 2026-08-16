@@ -152,7 +152,7 @@
 </header>
 
 <div class="search-container">
-    <input type="text" id="buscarInput" placeholder="🔍 Buscar planta por nombre..." onkeyup="filtrarPlantas()">
+    <input type="text" id="buscarInput" placeholder="🔍 Buscar planta por nombre o científico..." onkeyup="filtrarPlantas()">
 </div>
 
 <div class="grid" id="catalogoGrid"></div>
@@ -167,44 +167,49 @@
             renderCatalogo(todasLasPlantas);
         } catch (err) {
             console.error("Error al cargar plantas", err);
+            document.getElementById('catalogoGrid').innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #d32f2f;">Error al conectar con el catálogo.</p>';
         }
     }
 
     function renderCatalogo(plantas) {
         const grid = document.getElementById('catalogoGrid');
-        grid.innerHTML = '';
         
         // Filtramos solo las que tienen stock disponible
-        const disponibles = plantas.filter(p => p.stock > 0);
+        const disponibles = plantas.filter(p => Number(p.stock) > 0);
 
         if (disponibles.length === 0) {
-            grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #666;">No hay plantas disponibles en este momento.</p>';
+            grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #666; padding: 40px 0;">No hay plantas disponibles en este momento.</p>';
             return;
         }
 
-        disponibles.forEach(p => {
+        grid.innerHTML = disponibles.map(p => {
+            const precioFormateado = Number(p.precio || 0).toLocaleString('es-CL');
             const textoCientifico = p.cientifico ? `<div class="card-cientifico">${p.cientifico}</div>` : '';
-            const msgWsp = encodeURIComponent(`Hola, me interesa consultar por la planta ${p.nombre} ($${Number(p.precio).toLocaleString('es-CL')}) vista en su catálogo.`);
+            const msgWsp = encodeURIComponent(`Hola, me interesa consultar por la planta ${p.nombre} ($${precioFormateado}) vista en su catálogo.`);
             
-            grid.innerHTML += `
+            return `
                 <div class="card">
                     <img src="${p.foto || '/logo.png'}" onerror="this.src='/logo.png'">
                     <div class="card-body">
                         <div class="card-title">${p.nombre}</div>
                         ${textoCientifico}
-                        <div class="card-price">$${Number(p.precio).toLocaleString('es-CL')}</div>
+                        <div class="card-price">$${precioFormateado}</div>
                         <a href="https://wa.me/56953450809?text=${msgWsp}" target="_blank" class="btn-wsp">
                             💬 Consultar por WhatsApp
                         </a>
                     </div>
                 </div>
             `;
-        });
+        }).join('');
     }
 
     function filtrarPlantas() {
-        const query = document.getElementById('buscarInput').value.toLowerCase();
-        const filtradas = todasLasPlantas.filter(p => p.nombre.toLowerCase().includes(query) || (p.cientifico && p.cientifico.toLowerCase().includes(query)));
+        const query = document.getElementById('buscarInput').value.toLowerCase().trim();
+        const filtradas = todasLasPlantas.filter(p => 
+            (p.nombre && p.nombre.toLowerCase().includes(query)) || 
+            (p.cientifico && p.cientifico.toLowerCase().includes(query)) ||
+            (p.categoria && p.categoria.toLowerCase().includes(query))
+        );
         renderCatalogo(filtradas);
     }
 

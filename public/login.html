@@ -61,6 +61,7 @@
         }
 
         button:hover { background: #1b5e20; }
+        button:disabled { background: #81c784; cursor: not-allowed; }
 
         .error-msg {
             color: #d32f2f;
@@ -92,7 +93,7 @@
             <input type="password" id="password" placeholder="••••••••" required autocomplete="current-password">
         </div>
 
-        <button type="submit">Ingresar al Sistema 🔑</button>
+        <button type="submit" id="btnSubmit">Ingresar al Sistema 🔑</button>
     </form>
 </div>
 
@@ -102,8 +103,11 @@
         const usuarioInput = document.getElementById('usuario').value.trim();
         const passwordInput = document.getElementById('password').value.trim();
         const errorMsg = document.getElementById('errorMsg');
+        const btnSubmit = document.getElementById('btnSubmit');
 
         errorMsg.style.display = 'none';
+        btnSubmit.disabled = true;
+        btnSubmit.innerText = "Verificando...";
 
         try {
             const res = await fetch('/api/login', {
@@ -115,16 +119,19 @@
             const data = await res.json();
 
             if (res.ok && data.success) {
-                // Redirigir al panel principal
                 window.location.href = '/index.html';
             } else {
                 errorMsg.innerText = data.message || "Credenciales incorrectas";
                 errorMsg.style.display = 'block';
+                btnSubmit.disabled = false;
+                btnSubmit.innerText = "Ingresar al Sistema 🔑";
             }
         } catch (err) {
             console.error("Error al iniciar sesión", err);
             errorMsg.innerText = "Error de conexión con el servidor";
             errorMsg.style.display = 'block';
+            btnSubmit.disabled = false;
+            btnSubmit.innerText = "Ingresar al Sistema 🔑";
         }
     });
 </script>

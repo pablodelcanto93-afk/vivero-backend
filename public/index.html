@@ -4,247 +4,229 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vivero Sol y Sombra - Sistema de Gestión</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: #f4f7f6; display: flex; flex-direction: column; min-height: 100vh; color: #333; }
-
-        .topbar-mobile {
-            display: none; background: #1e293b; color: white; padding: 12px 15px;
-            justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100;
+        :root {
+            --primary-color: #2e7d32;
+            --secondary-color: #81c784;
+            --dark-color: #1b5e20;
+            --light-bg: #f4f6f4;
         }
-
-        .btn-toggle-menu { background: #334155; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 1.2em; cursor: pointer; }
-        .app-container { display: flex; flex-grow: 1; position: relative; }
-
-        .sidebar {
-            width: 260px; background: #1e293b; color: #94a3b8; display: flex; flex-direction: column;
-            justify-content: space-between; padding: 20px 15px; flex-shrink: 0; transition: transform 0.3s ease; z-index: 90;
+        body {
+            background-color: var(--light-bg);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-
-        .brand { display: flex; align-items: center; gap: 12px; color: white; padding-bottom: 20px; border-bottom: 1px solid #334155; margin-bottom: 20px; }
-        .brand img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
-        .brand h2 { font-size: 1.1em; color: #22c55e; }
-
-        .menu-cat { font-size: 0.75em; text-transform: uppercase; letter-spacing: 1px; color: #64748b; margin: 15px 0 8px 10px; font-weight: bold; }
-
-        .menu-item {
-            display: flex; align-items: center; gap: 10px; padding: 10px 12px; color: #cbd5e1;
-            text-decoration: none; border-radius: 6px; font-size: 0.9em; cursor: pointer; margin-bottom: 4px; transition: all 0.2s;
+        .navbar {
+            background-color: var(--dark-color) !important;
         }
-        .menu-item:hover, .menu-item.active { background: #334155; color: #22c55e; font-weight: bold; }
-
-        .user-info { border-top: 1px solid #334155; padding-top: 15px; font-size: 0.85em; }
-        .btn-logout { display: block; margin-top: 10px; color: #ef4444; text-decoration: none; font-weight: bold; }
-
-        .main-content { flex-grow: 1; padding: 20px; overflow-y: auto; width: 100%; }
-        .seccion { display: none; }
-        .seccion.activa { display: block; }
-
-        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        h2 { margin-bottom: 15px; color: #1e293b; font-size: 1.3em; }
-
-        .grid-pos { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
-        form { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        form input, form textarea, form button, select { padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; width: 100%; }
-        form textarea { grid-column: span 2; min-height: 60px; }
-        form button { grid-column: span 2; background: #15803d; color: white; border: none; font-weight: bold; cursor: pointer; }
-
-        .table-responsive { width: 100%; overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0; font-size: 0.9em; }
-        th { background: #f8fafc; color: #475569; }
-        .thumb { width: 40px; height: 40px; border-radius: 4px; object-fit: cover; }
-
-        .btn { padding: 6px 10px; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8em; }
-        .btn-add { background: #22c55e; color: white; }
-
-        .total { font-size: 1.3em; font-weight: bold; margin-top: 15px; text-align: right; color: #15803d; }
-        .btn-finalizar { width: 100%; background: #0284c7; color: white; padding: 12px; border: none; border-radius: 6px; font-weight: bold; margin-top: 10px; cursor: pointer; }
-
-        .dash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
-        .dash-card { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 4px solid #15803d; }
-        .dash-card h4 { font-size: 0.8em; color: #64748b; text-transform: uppercase; margin-bottom: 5px; }
-        .dash-card p { font-size: 1.4em; font-weight: bold; color: #1e293b; }
-
-        @media (max-width: 768px) {
-            .topbar-mobile { display: flex; }
-            .grid-pos { grid-template-columns: 1fr; }
-            form { grid-template-columns: 1fr; }
-            form textarea, form button { grid-column: span 1; }
-            .sidebar { position: fixed; top: 0; left: 0; height: 100vh; transform: translateX(-100%); }
-            .sidebar.abierto { transform: translateX(0); }
-            .overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 80; }
-            .overlay.activo { display: block; }
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+        .card-header {
+            background-color: #fff;
+            border-bottom: 2px solid var(--light-bg);
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        .btn-success {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        .btn-success:hover {
+            background-color: var(--dark-color);
+            border-color: var(--dark-color);
+        }
+        .img-preview {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        .badge-stock {
+            font-size: 0.9em;
         }
     </style>
 </head>
 <body>
 
-    <div class="topbar-mobile">
-        <button class="btn-toggle-menu" onclick="toggleMenu()">☰ Menú</button>
-        <b style="color: #22c55e;">Vivero Sol y Sombra</b>
-    </div>
-
-    <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
-
-    <div class="app-container">
-        <div class="sidebar" id="sidebar">
-            <div>
-                <div class="brand">
-                    <img src="/logo.png" onerror="this.src='https://via.placeholder.com/40'">
-                    <div>
-                        <h2>Sol y Sombra</h2>
-                        <small style="color: #64748b;">Panel de Control</small>
-                    </div>
-                </div>
-
-                <div class="menu-cat">OPERACIONES</div>
-                <div class="menu-item active" onclick="seleccionarOpcion('pos')">🛒 Punto de Venta</div>
-                <div class="menu-item" onclick="seleccionarOpcion('inventario')">🪴 Inventario Plantas</div>
-                <div class="menu-item" onclick="seleccionarOpcion('despachos')">🚚 Repartos Sábado</div>
-
-                <div class="menu-cat">NEGOCIO</div>
-                <div class="menu-item solo-admin" onclick="seleccionarOpcion('caja')">💵 Cierre de Caja</div>
-                <div class="menu-item solo-admin" onclick="seleccionarOpcion('gastos')">📉 Gastos Insumos</div>
-                <div class="menu-item solo-admin" onclick="seleccionarOpcion('historial')">📋 Historial Ventas</div>
-
-                <div class="menu-cat solo-admin">ADMINISTRACIÓN</div>
-                <div class="menu-item solo-admin" onclick="seleccionarOpcion('f29')">📑 Control F29 / IVA</div>
-                <a href="/catalogo.html" target="_blank" class="menu-item" style="text-decoration: none;">🌐 Catálogo Web</a>
-            </div>
-
-            <div class="user-info">
-                👤 Usuario: <b id="nomUsuario">Cargando...</b>
-                <a href="/api/logout" class="btn-logout">🚪 Cerrar Sesión</a>
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg navbar-dark mb-4">
+        <div class="container-fluid">
+            <a class="navbar-brand d-flex align-items-center" href="#">
+                <i class="bi bi-tree-fill me-2"></i> Vivero Sol y Sombra
+            </a>
+            <div class="d-flex align-items-center text-white">
+                <span id="userGreeting" class="me-3"></span>
+                <a href="/api/logout" class="btn btn-outline-light btn-sm"><i class="bi bi-box-arrow-right"></i> Salir</a>
             </div>
         </div>
+    </nav>
 
-        <div class="main-content">
+    <div class="container-fluid px-4">
+        <!-- NAVEGACIÓN POR PESTAÑAS -->
+        <ul class="nav nav-pills mb-4 id="mainTabs" role="tablist">
+            <li class="nav-item">
+                <button class="nav-link active" id="pos-tab" data-bs-toggle="tab" data-bs-target="#pos-sec"><i class="bi bi-cart-check"></i> Punto de Venta</button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" id="inventario-tab" data-bs-toggle="tab" data-bs-target="#inventario-sec"><i class="bi bi-box-seam"></i> Inventario</button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" id="despachos-tab" data-bs-toggle="tab" data-bs-target="#despachos-sec"><i class="bi bi-truck"></i> Repartos Sábado</button>
+            </li>
+            <li class="nav-item admin-only">
+                <button class="nav-link" id="gastos-tab" data-bs-toggle="tab" data-bs-target="#gastos-sec"><i class="bi bi-cash-stack"></i> Gastos Insumos</button>
+            </li>
+            <li class="nav-item admin-only">
+                <button class="nav-link" id="facturas-tab" data-bs-toggle="tab" data-bs-target="#facturas-sec"><i class="bi bi-file-earmark-text"></i> F29 / Facturas</button>
+            </li>
+            <li class="nav-item admin-only">
+                <button class="nav-link" id="caja-tab" data-bs-toggle="tab" data-bs-target="#caja-sec"><i class="bi bi-graph-up-arrow"></i> Reportes & Caja</button>
+            </li>
+        </ul>
 
-            <!-- PUNTO DE VENTA -->
-            <div id="sec-pos" class="seccion activa">
-                <div class="grid-pos">
-                    <div>
+        <div class="tab-content">
+            
+            <!-- SECCIÓN PUNTO DE VENTA (POS) -->
+            <div class="tab-pane fade show active" id="pos-sec">
+                <div class="row">
+                    <div class="col-md-7">
                         <div class="card">
-                            <h2>Inventario Disponible</h2>
-                            <div class="table-responsive">
-                                <table>
-                                    <thead>
-                                        <tr><th>Foto</th><th>Planta</th><th>Precio</th><th>Stock</th><th>Acción</th></tr>
-                                    </thead>
-                                    <tbody id="tablaPOS"></tbody>
-                                </table>
+                            <div class="card-header">Catálogo para Venta</div>
+                            <div class="card-body">
+                                <input type="text" id="searchPos" class="form-control mb-3" placeholder="Buscar planta por nombre o categoría..." onkeyup="filtrarPos()">
+                                <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+                                    <table class="table table-hover align-middle">
+                                        <thead>
+                                            <tr>
+                                                <th>Foto</th>
+                                                <th>Planta</th>
+                                                <th>Precio</th>
+                                                <th>Stock</th>
+                                                <th>Acción</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tablaPos"></tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div>
+                    <div class="col-md-5">
                         <div class="card">
-                            <h2>Nueva Venta</h2>
-                            <div id="listaTicket"></div>
-                            
-                            <label style="display:block; margin-top:15px; font-size:0.85em; font-weight:bold;">Medio de Pago:</label>
-                            <select id="medioPago" style="margin-top:5px;">
-                                <option value="Efectivo">💵 Efectivo</option>
-                                <option value="Transferencia">📲 Transferencia</option>
-                                <option value="Débito">💳 Débito / Tarjeta</option>
-                            </select>
-
-                            <div class="total">Total: $<span id="totalVenta">0</span></div>
-                            <button class="btn-finalizar" onclick="finalizarVenta()">Cobrar y Descontar Stock</button>
+                            <div class="card-header">Detalle de la Venta</div>
+                            <div class="card-body">
+                                <table class="table align-middle">
+                                    <thead>
+                                        <tr>
+                                            <th>Producto</th>
+                                            <th>Cant.</th>
+                                            <th>Subtotal</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tablaTicket"></tbody>
+                                </table>
+                                <hr>
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h4>Total:</h4>
+                                    <h3 class="text-success" id="totalTicket">$0</h3>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Medio de Pago</label>
+                                    <select id="medioPago" class="form-select">
+                                        <option value="Efectivo">Efectivo</option>
+                                        <option value="Transferencia">Transferencia</option>
+                                        <option value="Débito / Crédito">Débito / Crédito</option>
+                                    </select>
+                                </div>
+                                <button class="btn btn-success w-100 btn-lg" onclick="finalizarVenta()"><i class="bi bi-check-circle"></i> Cobrar y Descontar Stock</button>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- INVENTARIO -->
-            <div id="sec-inventario" class="seccion">
+            <!-- SECCIÓN INVENTARIO -->
+            <div class="tab-pane fade" id="inventario-sec">
                 <div class="card">
-                    <h2 id="formTitulo">+ Agregar Nueva Planta</h2>
-                    <form id="plantaForm">
-                        <input type="hidden" id="plantaId">
-                        <input type="text" id="nombre" placeholder="Nombre (ej: Babaco)" required>
-                        <input type="text" id="cientifico" placeholder="Nombre Científico">
-                        <input type="text" id="categoria" placeholder="Categoría (ej: Frutales)">
-                        <input type="text" id="ubicacion" placeholder="Ubicación en Vivero">
-                        <input type="number" id="precio" placeholder="Precio ($)" required>
-                        <input type="number" id="stock" placeholder="Stock Inicial" required>
-                        <input type="text" id="riego" placeholder="💧 Riego">
-                        <input type="text" id="clima" placeholder="☀️ Clima">
-                        <textarea id="cuidados" placeholder="📝 Ficha técnica / Consejos..."></textarea>
-                        <div>
-                            <label style="font-size:0.85em; font-weight:bold;">📷 Foto Planta:</label>
-                            <input type="file" id="fotoInput" accept="image/*" capture="environment">
-                        </div>
-                        <button type="submit" id="btnGuardar">Guardar Planta</button>
-                    </form>
-                </div>
-            </div>
-
-            <!-- CIERRE DE CAJA -->
-            <div id="sec-caja" class="seccion">
-                <div class="card" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-                    <h2>💵 Cierre de Caja y Balance Diario</h2>
-                    <div>
-                        <label style="font-size:0.85em; font-weight:bold;">Seleccionar Fecha:</label>
-                        <input type="date" id="fechaCaja" onchange="cargarReporteAdmin()" style="padding:6px; border:1px solid #cbd5e1; border-radius:6px;">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>Gestión de Inventario</span>
+                        <button class="btn btn-success btn-sm" onclick="abrirModalPlanta()"><i class="bi bi-plus-lg"></i> Agregar Planta</button>
                     </div>
-                </div>
-
-                <div class="dash-grid">
-                    <div class="dash-card"><h4>💵 Total Efectivo</h4><p id="statEfectivo">$0</p></div>
-                    <div class="dash-card"><h4>📲 Total Transferencia</h4><p id="statTransferencia">$0</p></div>
-                    <div class="dash-card"><h4>💳 Total Débito</h4><p id="statDebito">$0</p></div>
-                </div>
-
-                <div class="dash-grid">
-                    <div class="dash-card" style="border-left-color: #0284c7;"><h4>📈 Total Recaudado</h4><p id="statTotalVentas">$0</p></div>
-                    <div class="dash-card" style="border-left-color: #0284c7;"><h4>🛍️ Ventas Realizadas</h4><p id="statCantVentas">0</p></div>
-                    <div class="dash-card" style="border-left-color: #f59e0b;"><h4>🪴 Valor Total Inventario</h4><p id="statValorInventario">$0</p></div>
-                </div>
-
-                <div class="card">
-                    <h2>🔍 Arqueo de Efectivo (Cuadre de Cajón)</h2>
-                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; align-items:center;">
-                        <div>
-                            <label style="font-size:0.85em; font-weight:bold;">Efectivo contado en cajón ($):</label>
-                            <input type="number" id="efectivoReal" placeholder="Ej: 45000" oninput="calcularDiferenciaCaja()" style="margin-top:5px;">
-                        </div>
-                        <div id="resultadoArqueo" style="padding:15px; border-radius:6px; background:#f8fafc; border:1px solid #cbd5e1;">
-                            <span style="font-size:0.9em; color:#64748b;">Ingrese el dinero contado para verificar si cuadra con el sistema.</span>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Foto</th>
+                                        <th>Nombre</th>
+                                        <th>Científico</th>
+                                        <th>Categoría</th>
+                                        <th>Ubicación</th>
+                                        <th>Precio</th>
+                                        <th>Stock</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tablaInventario"></tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- GASTOS DE INSUMOS -->
-            <div id="sec-gastos" class="seccion">
+            <!-- SECCIÓN REPARTOS SÁBADO -->
+            <div class="tab-pane fade" id="despachos-sec">
                 <div class="card">
-                    <h2>📉 Registrar Nuevo Gasto de Insumos</h2>
-                    <form id="gastoForm">
-                        <input type="text" id="gastoDesc" placeholder="Descripción (ej: Sustrato, Bolsas, Malla)" required>
-                        <select id="gastoCat">
-                            <option value="Sustratos y Tierra">🪴 Sustratos y Tierra</option>
-                            <option value="Maceteros y Bolsas">📦 Maceteros y Bolsas</option>
-                            <option value="Fertilizantes y Pesti.">🧪 Fertilizantes / Plaguicidas</option>
-                            <option value="Herramientas y Riego">🛠️ Herramientas y Riego</option>
-                            <option value="Otros Gastos">📌 Otros Gastos</option>
-                        </select>
-                        <input type="number" id="gastoMonto" placeholder="Monto Total ($)" required>
-                        <select id="gastoMedio">
-                            <option value="Efectivo">💵 Efectivo</option>
-                            <option value="Transferencia">📲 Transferencia</option>
-                            <option value="Débito">💳 Débito / Tarjeta</option>
-                        </select>
-                        <button type="submit">Guardar Gasto</button>
-                    </form>
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>Agendar Repartos para el Sábado</span>
+                        <button class="btn btn-success btn-sm" onclick="abrirModalDespacho()"><i class="bi bi-plus-lg"></i> Agendar Despacho</button>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Cliente</th>
+                                        <th>Dirección</th>
+                                        <th>Teléfono</th>
+                                        <th>Detalle / Pedido</th>
+                                        <th>Monto ($)</th>
+                                        <th>Estado Pago</th>
+                                        <th>Entrega</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tablaDespachos"></tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
+            </div>
 
+            <!-- SECCIÓN GASTOS -->
+            <div class="tab-pane fade admin-only" id="gastos-sec">
                 <div class="card">
-                    <h2>📋 Registro General de Gastos</h2>
-                    <div class="table-responsive">
-                        <table>
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>Registro de Gastos e Insumos</span>
+                        <button class="btn btn-success btn-sm" onclick="abrirModalGasto()"><i class="bi bi-plus-lg"></i> Registrar Gasto</button>
+                    </div>
+                    <div class="card-body">
+                        <table class="table align-middle">
                             <thead>
-                                <tr><th>Fecha</th><th>Descripción</th><th>Categoría</th><th>Medio</th><th>Monto</th><th>Acción</th></tr>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Descripción</th>
+                                    <th>Categoría</th>
+                                    <th>Monto</th>
+                                    <th>Medio Pago</th>
+                                    <th>Acción</th>
+                                </tr>
                             </thead>
                             <tbody id="tablaGastos"></tbody>
                         </table>
@@ -252,44 +234,26 @@
                 </div>
             </div>
 
-            <!-- HISTORIAL DE VENTAS -->
-            <div id="sec-historial" class="seccion">
+            <!-- SECCIÓN F29 / FACTURAS -->
+            <div class="tab-pane fade admin-only" id="facturas-sec">
                 <div class="card">
-                    <h2>📋 Historial Completo de Ventas</h2>
-                    <div class="table-responsive">
-                        <table>
-                            <thead>
-                                <tr><th>Fecha / Hora</th><th>Vendedor</th><th>Detalle</th><th>Medio</th><th>Total</th></tr>
-                            </thead>
-                            <tbody id="tablaHistorial"></tbody>
-                        </table>
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>Facturas de Compra (Crédito Fiscal IVA - F29)</span>
+                        <button class="btn btn-success btn-sm" onclick="abrirModalFactura()"><i class="bi bi-plus-lg"></i> Ingresar Factura</button>
                     </div>
-                </div>
-            </div>
-
-            <!-- CONTROL F29 / IVA -->
-            <div id="sec-f29" class="seccion">
-                <div class="card">
-                    <h2>📑 Registrar Factura de Compra (Crédito Fiscal IVA)</h2>
-                    <form id="facturaForm">
-                        <input type="text" id="factProveedor" placeholder="Proveedor (ej: Distribuidora Sol)" required>
-                        <input type="text" id="factNum" placeholder="N° Factura" required>
-                        <input type="date" id="factFecha" required>
-                        <input type="number" id="factNeto" placeholder="Monto NETO ($)" required>
-                        <div>
-                            <label style="font-size:0.85em; font-weight:bold;">PDF / Foto Factura:</label>
-                            <input type="file" id="factFile" accept="image/*,application/pdf">
-                        </div>
-                        <button type="submit">Guardar Factura para F29</button>
-                    </form>
-                </div>
-
-                <div class="card">
-                    <h2>📊 Respaldo de Compras con IVA Recuperable</h2>
-                    <div class="table-responsive">
-                        <table>
+                    <div class="card-body">
+                        <table class="table align-middle">
                             <thead>
-                                <tr><th>Fecha</th><th>Proveedor</th><th>N° Factura</th><th>Neto</th><th>IVA (19%)</th><th>Total</th><th>Archivo</th><th>Acción</th></tr>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Proveedor</th>
+                                    <th>N° Factura</th>
+                                    <th>Neto</th>
+                                    <th>IVA (19%)</th>
+                                    <th>Total</th>
+                                    <th>Adjunto</th>
+                                    <th>Acciones</th>
+                                </tr>
                             </thead>
                             <tbody id="tablaFacturas"></tbody>
                         </table>
@@ -297,216 +261,334 @@
                 </div>
             </div>
 
-            <!-- REPARTOS SÁBADO -->
-            <div id="sec-despachos" class="seccion">
-                <div class="card">
-                    <h2>🚚 Agendar Nuevo Reparto para el Sábado</h2>
-                    <form id="despachoForm">
-                        <input type="text" id="despCliente" placeholder="Nombre del Cliente" required>
-                        <input type="text" id="despDireccion" placeholder="Dirección de Entrega (ej: Limache / Olmué)" required>
-                        <input type="tel" id="despTelefono" placeholder="Teléfono / WhatsApp (+569...)">
-                        <input type="number" id="despMonto" placeholder="Monto Total a Cobrar ($)" required>
-                        <textarea id="despDetalle" placeholder="Detalle del pedido (ej: 2 Limones Pica, 1 Palto Cruz)"></textarea>
-                        
-                        <div>
-                            <label style="font-size:0.85em; font-weight:bold;">Estado del Pago:</label>
-                            <select id="despEstadoPago" style="margin-top:5px;">
-                                <option value="Pendiente">⏳ Pago Pendiente (Cobrar en entrega)</option>
-                                <option value="Pagado">✅ Ya Pagado (Transferencia previo envio)</option>
-                            </select>
+            <!-- SECCIÓN CAJA Y REPORTES -->
+            <div class="tab-pane fade admin-only" id="caja-sec">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="card text-center bg-primary text-white">
+                            <div class="card-body">
+                                <h6>Valor Total Inventario</h6>
+                                <h3 id="repValInventario">$0</h3>
+                            </div>
                         </div>
-
-                        <button type="submit">Agendar Entrega Sábado</button>
-                    </form>
-                </div>
-
-                <div class="card">
-                    <h2>📋 Hoja de Ruta - Próximo Sábado</h2>
-                    <div id="listaDespachos"></div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-center bg-success text-white">
+                            <div class="card-body">
+                                <h6>Total Ventas Registradas</h6>
+                                <h3 id="repTotalVentas">$0</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-center bg-info text-white">
+                            <div class="card-body">
+                                <h6>Total Unidades en Stock</h6>
+                                <h3 id="repUnidadesStock">0</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-center bg-warning text-dark">
+                            <div class="card-body">
+                                <h6>Efectivo en Caja</h6>
+                                <h3 id="repEfectivo">$0</h3>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
         </div>
     </div>
 
+    <!-- MODALES -->
+    <!-- MODAL PLANTA -->
+    <div class="modal fade" id="modalPlanta" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <form id="formPlanta" onsubmit="guardarPlanta(event)">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalPlantaTitulo">Planta</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body row g-3">
+                        <input type="hidden" id="plantaId">
+                        <div class="col-md-6">
+                            <label class="form-label">Nombre Común</label>
+                            <input type="text" id="plantaNombre" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Nombre Científico</label>
+                            <input type="text" id="plantaCientifico" class="form-control">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Categoría</label>
+                            <input type="text" id="plantaCategoria" class="form-control" placeholder="Ej: Cítricos, Suculentas">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Precio ($)</label>
+                            <input type="number" id="plantaPrecio" class="form-control" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Stock</label>
+                            <input type="number" id="plantaStock" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Ubicación</label>
+                            <input type="text" id="plantaUbicacion" class="form-control" placeholder="Ej: Sector A, Invernadero 2">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Foto</label>
+                            <input type="file" id="plantaFoto" class="form-control" accept="image/*">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-success">Guardar Planta</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DESPACHO -->
+    <div class="modal fade" id="modalDespacho" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="formDespacho" onsubmit="guardarDespacho(event)">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Agendar Despacho Sábado</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body row g-3">
+                        <div class="col-md-12">
+                            <label class="form-label">Nombre Cliente</label>
+                            <input type="text" id="despCliente" class="form-control" required>
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Dirección de Entrega</label>
+                            <input type="text" id="despDireccion" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Teléfono</label>
+                            <input type="text" id="despTelefono" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Monto a Cobrar ($)</label>
+                            <input type="number" id="despMonto" class="form-control" value="0">
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Detalle del Pedido</label>
+                            <textarea id="despDetalle" class="form-control" rows="2" required></textarea>
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Estado de Pago</label>
+                            <select id="despEstadoPago" class="form-select">
+                                <option value="Pendiente">Pendiente (Cobrar al entregar)</option>
+                                <option value="Pagado">Pagado (Transferencia previa)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-success">Agendar Reparto</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL GASTO -->
+    <div class="modal fade" id="modalGasto" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="formGasto" onsubmit="guardarGasto(event)">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Registrar Gasto</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body row g-3">
+                        <div class="col-md-12">
+                            <label class="form-label">Descripción</label>
+                            <input type="text" id="gastoDesc" class="form-control" placeholder="Ej: Bolsas de sustrato, maceteros" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Categoría</label>
+                            <input type="text" id="gastoCat" class="form-control" value="Insumos">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Monto ($)</label>
+                            <input type="number" id="gastoMonto" class="form-control" required>
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Medio de Pago</label>
+                            <select id="gastoMedio" class="form-select">
+                                <option value="Efectivo">Efectivo</option>
+                                <option value="Transferencia">Transferencia</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-success">Guardar Gasto</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL FACTURA -->
+    <div class="modal fade" id="modalFactura" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="formFactura" onsubmit="guardarFactura(event)">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Ingresar Factura de Compra</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Proveedor</label>
+                            <input type="text" id="facProveedor" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">N° Factura</label>
+                            <input type="text" id="facNum" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Monto Neto ($)</label>
+                            <input type="number" id="facNeto" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Fecha</label>
+                            <input type="date" id="facFecha" class="form-control">
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Adjuntar PDF / Foto</label>
+                            <input type="file" id="facArchivo" class="form-control">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-success">Guardar Factura</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         let inventario = [];
         let ticket = [];
-        let usuarioActual = null;
-        let efectivoEsperadoSistema = 0;
+        let currentUser = null;
 
-        function toggleMenu() {
-            document.getElementById('sidebar').classList.toggle('abierto');
-            document.getElementById('overlay').classList.toggle('activo');
-        }
-
-        function seleccionarOpcion(sec) {
-            mostrarSeccion(sec);
-            if (sec === 'despachos') cargarDespachos();
-            if (sec === 'gastos') cargarGastos();
-            if (sec === 'historial') cargarHistorialVentas();
-            if (sec === 'f29') cargarFacturas();
-            if (window.innerWidth <= 768) toggleMenu();
-        }
+        document.addEventListener("DOMContentLoaded", async () => {
+            await verificarSesion();
+            await cargarInventario();
+            await cargarDespachos();
+            if (currentUser && currentUser.rol === 'admin') {
+                await cargarGastos();
+                await cargarFacturas();
+                await cargarReporte();
+            }
+        });
 
         async function verificarSesion() {
             const res = await fetch('/api/session');
             const data = await res.json();
-            if (!data.loggedIn) return window.location.href = '/login.html';
-
-            usuarioActual = data.user;
-            document.getElementById('nomUsuario').innerText = usuarioActual.nombre;
-
-            if (usuarioActual.rol !== 'admin') {
-                document.querySelectorAll('.solo-admin').forEach(el => el.style.display = 'none');
+            if (!data.loggedIn) {
+                window.location.href = '/login.html';
+            } else {
+                currentUser = data.user;
+                document.getElementById('userGreeting').innerText = `Hola, ${currentUser.nombre}`;
+                if (currentUser.rol !== 'admin') {
+                    document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
+                }
             }
-
-            document.getElementById('fechaCaja').value = new Date().toISOString().split('T')[0];
-            document.getElementById('factFecha').value = new Date().toISOString().split('T')[0];
-            cargarInventario();
-        }
-
-        function mostrarSeccion(sec) {
-            document.querySelectorAll('.seccion').forEach(s => s.classList.remove('activa'));
-            document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
-            document.getElementById(`sec-${sec}`).classList.add('activa');
-            if (sec === 'caja') cargarReporteAdmin();
         }
 
         async function cargarInventario() {
             const res = await fetch('/api/plantas');
             inventario = await res.json();
-            renderPOS();
+            renderInventario();
+            renderPos();
         }
 
-        function renderPOS() {
-            const tbody = document.getElementById('tablaPOS');
-            tbody.innerHTML = '';
-            inventario.forEach(p => {
-                tbody.innerHTML += `
-                    <tr>
-                        <td><img src="${p.foto || '/logo.png'}" class="thumb"></td>
-                        <td><b>${p.nombre}</b></td>
-                        <td>$${Number(p.precio).toLocaleString('es-CL')}</td>
-                        <td><b>${p.stock}</b></td>
-                        <td>
-                            <div style="display:flex; gap:5px; align-items:center;">
-                                <button class="btn btn-add" onclick="agregarAlTicket('${p.id}')">+ Añadir</button>
-                                <button class="btn" style="background:#ef4444; color:white;" onclick="eliminarPlanta('${p.id}')">🗑️</button>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-            });
+        function renderInventario() {
+            const tbody = document.getElementById('tablaInventario');
+            tbody.innerHTML = inventario.map(p => `
+                <tr>
+                    <td><img src="${p.foto || '/logo.png'}" class="img-preview"></td>
+                    <td><strong>${p.nombre}</strong></td>
+                    <td><em>${p.cientifico || '-'}</em></td>
+                    <td><span class="badge bg-secondary">${p.categoria || 'General'}</span></td>
+                    <td>${p.ubicacion || '-'}</td>
+                    <td>$${p.precio.toLocaleString('es-CL')}</td>
+                    <td><span class="badge ${p.stock > 5 ? 'bg-success' : 'bg-danger'} badge-stock">${p.stock}</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" onclick="editarPlanta('${p.id}')"><i class="bi bi-pencil"></i></button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="eliminarPlanta('${p.id}')"><i class="bi bi-trash"></i></button>
+                    </td>
+                </tr>
+            `).join('');
         }
 
-        async function eliminarPlanta(id) {
-            if (confirm("¿Estás seguro de que deseas eliminar esta planta del inventario?")) {
-                const res = await fetch(`/api/plantas/${id}`, { method: 'DELETE' });
-                if (res.ok) {
-                    await cargarInventario();
-                } else {
-                    alert("Error al eliminar la planta.");
-                }
-            }
+        function renderPos(filtro = '') {
+            const tbody = document.getElementById('tablaPos');
+            const lista = inventario.filter(p => p.nombre.toLowerCase().includes(filtro.toLowerCase()) || p.categoria.toLowerCase().includes(filtro.toLowerCase()));
+            
+            tbody.innerHTML = lista.map(p => `
+                <tr>
+                    <td><img src="${p.foto || '/logo.png'}" class="img-preview"></td>
+                    <td><strong>${p.nombre}</strong></td>
+                    <td>$${p.precio.toLocaleString('es-CL')}</td>
+                    <td><span class="badge bg-info text-dark">${p.stock}</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-success" ${p.stock <= 0 ? 'disabled' : ''} onclick="agregarAlTicket('${p.id}')">
+                            <i class="bi bi-cart-plus"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
         }
 
-        // GUARDA PLANTA Y RECARGA INVENTARIO / CATÁLOGO
-        document.getElementById('plantaForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const formData = new FormData();
-            formData.append('id', document.getElementById('plantaId').value);
-            formData.append('nombre', document.getElementById('nombre').value);
-            formData.append('cientifico', document.getElementById('cientifico').value);
-            formData.append('categoria', document.getElementById('categoria').value);
-            formData.append('ubicacion', document.getElementById('ubicacion').value);
-            formData.append('precio', document.getElementById('precio').value);
-            formData.append('stock', document.getElementById('stock').value);
-            formData.append('riego', document.getElementById('riego').value);
-            formData.append('clima', document.getElementById('clima').value);
-            formData.append('cuidados', document.getElementById('cuidados').value);
-
-            const fotoInput = document.getElementById('fotoInput');
-            if (fotoInput.files[0]) formData.append('foto', fotoInput.files[0]);
-
-            const res = await fetch('/api/plantas', { method: 'POST', body: formData });
-            if (res.ok) {
-                alert("¡Planta guardada correctamente!");
-                document.getElementById('plantaForm').reset();
-                document.getElementById('plantaId').value = '';
-                await cargarInventario();
-                seleccionarOpcion('pos');
-            } else {
-                alert("Error al guardar la planta.");
-            }
-        });
+        function filtrarPos() {
+            const val = document.getElementById('searchPos').value;
+            renderPos(val);
+        }
 
         function agregarAlTicket(id) {
-            const p = inventario.find(x => String(x.id) === String(id));
-            if (!p || p.stock <= 0) return alert("Sin stock disponible");
+            const planta = inventario.find(p => String(p.id) === String(id));
+            if (!planta) return;
 
-            const enTicket = ticket.find(x => String(x.id) === String(id));
+            const enTicket = ticket.find(item => String(item.id) === String(id));
             if (enTicket) {
-                if (enTicket.cantidad < p.stock) enTicket.cantidad++;
-                else alert("Llegaste al límite de stock disponible");
+                if (enTicket.cantidad < planta.stock) enTicket.cantidad++;
+                else alert("Límite de stock alcanzado");
             } else {
-                ticket.push({ id: String(p.id), nombre: p.nombre, precio: p.precio, cantidad: 1 });
+                ticket.push({ id: planta.id, nombre: planta.nombre, precio: planta.precio, cantidad: 1 });
             }
             renderTicket();
         }
 
         function renderTicket() {
-            const cont = document.getElementById('listaTicket');
-            cont.innerHTML = '';
+            const tbody = document.getElementById('tablaTicket');
             let total = 0;
-
-            if (ticket.length === 0) {
-                cont.innerHTML = '<p style="color:#64748b; font-size:0.85em; text-align:center; padding:10px;">El carrito está vacío</p>';
-                document.getElementById('totalVenta').innerText = '0';
-                return;
-            }
-
-            ticket.forEach(item => {
-                const sub = item.precio * item.cantidad;
-                total += sub;
-                cont.innerHTML += `
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; border-bottom:1px dashed #cbd5e1; padding-bottom:6px;">
-                        <div>
-                            <b>${item.nombre}</b><br>
-                            <small style="color:#64748b;">$${item.precio.toLocaleString('es-CL')} c/u</small>
-                        </div>
-                        <div style="display:flex; align-items:center; gap:5px;">
-                            <button onclick="modificarCantidad('${item.id}', -1)" style="background:#e2e8f0; border:none; padding:2px 6px; border-radius:4px; font-weight:bold; cursor:pointer;">-</button>
-                            <span><b>${item.cantidad}</b></span>
-                            <button onclick="modificarCantidad('${item.id}', 1)" style="background:#e2e8f0; border:none; padding:2px 6px; border-radius:4px; font-weight:bold; cursor:pointer;">+</button>
-                            <b style="margin-left:5px;">$${sub.toLocaleString('es-CL')}</b>
-                            <button onclick="eliminarDelTicket('${item.id}')" style="background:#ef4444; color:white; border:none; padding:2px 6px; border-radius:4px; cursor:pointer; margin-left:5px;">🗑️</button>
-                        </div>
-                    </div>
+            tbody.innerHTML = ticket.map((item, idx) => {
+                const subtotal = item.precio * item.cantidad;
+                total += subtotal;
+                return `
+                    <tr>
+                        <td>${item.nombre}</td>
+                        <td>${item.cantidad}</td>
+                        <td>$${subtotal.toLocaleString('es-CL')}</td>
+                        <td><button class="btn btn-sm btn-danger" onclick="quitarDelTicket(${idx})">&times;</button></td>
+                    </tr>
                 `;
-            });
-            document.getElementById('totalVenta').innerText = total.toLocaleString('es-CL');
+            }).join('');
+            document.getElementById('totalTicket').innerText = `$${total.toLocaleString('es-CL')}`;
         }
 
-        function modificarCantidad(id, cambio) {
-            const item = ticket.find(x => String(x.id) === String(id));
-            const p = inventario.find(x => String(x.id) === String(id));
-
-            if (item && p) {
-                if (cambio > 0 && item.cantidad >= p.stock) {
-                    return alert("No hay más stock disponible de esta planta");
-                }
-                item.cantidad += cambio;
-                if (item.cantidad <= 0) {
-                    eliminarDelTicket(id);
-                } else {
-                    renderTicket();
-                }
-            }
-        }
-
-        function eliminarDelTicket(id) {
-            ticket = ticket.filter(x => String(x.id) !== String(id));
+        function quitarDelTicket(idx) {
+            ticket.splice(idx, 1);
             renderTicket();
         }
 
@@ -525,236 +607,230 @@
                 ticket = [];
                 renderTicket();
                 await cargarInventario();
+                if (currentUser.rol === 'admin') cargarReporte();
             } else {
-                alert("Ocurrió un error al registrar la venta");
+                alert("Error al procesar la venta");
             }
         }
 
-        async function cargarReporteAdmin() {
-            const fecha = document.getElementById('fechaCaja').value;
-            const res = await fetch(`/api/reporte-admin?fecha=${fecha}`);
-            if (!res.ok) return;
-            const data = await res.json();
+        // PLANTAS MODAL & ACCIONES
+        const modalPlanta = new bootstrap.Modal(document.getElementById('modalPlanta'));
+        function abrirModalPlanta() {
+            document.getElementById('formPlanta').reset();
+            document.getElementById('plantaId').value = '';
+            document.getElementById('modalPlantaTitulo').innerText = 'Agregar Nueva Planta';
+            modalPlanta.show();
+        }
+
+        function editarPlanta(id) {
+            const p = inventario.find(x => String(x.id) === String(id));
+            if (!p) return;
+            document.getElementById('plantaId').value = p.id;
+            document.getElementById('plantaNombre').value = p.nombre;
+            document.getElementById('plantaCientifico').value = p.cientifico || '';
+            document.getElementById('plantaCategoria').value = p.categoria || '';
+            document.getElementById('plantaPrecio').value = p.precio;
+            document.getElementById('plantaStock').value = p.stock;
+            document.getElementById('plantaUbicacion').value = p.ubicacion || '';
+            document.getElementById('modalPlantaTitulo').innerText = 'Editar Planta';
+            modalPlanta.show();
+        }
+
+        async function guardarPlanta(e) {
+            e.preventDefault();
+            const formData = new FormData();
+            formData.append('id', document.getElementById('plantaId').value);
+            formData.append('nombre', document.getElementById('plantaNombre').value);
+            formData.append('cientifico', document.getElementById('plantaCientifico').value);
+            formData.append('categoria', document.getElementById('plantaCategoria').value);
+            formData.append('precio', document.getElementById('plantaPrecio').value);
+            formData.append('stock', document.getElementById('plantaStock').value);
+            formData.append('ubicacion', document.getElementById('plantaUbicacion').value);
             
-            efectivoEsperadoSistema = data.caja.efectivo;
-            document.getElementById('statEfectivo').innerText = '$' + Number(data.caja.efectivo).toLocaleString('es-CL');
-            document.getElementById('statTransferencia').innerText = '$' + Number(data.caja.transferencia).toLocaleString('es-CL');
-            document.getElementById('statDebito').innerText = '$' + Number(data.caja.debito).toLocaleString('es-CL');
-            document.getElementById('statTotalVentas').innerText = '$' + Number(data.totalRecaudadoVentas).toLocaleString('es-CL');
-            document.getElementById('statCantVentas').innerText = data.cantidadVentas + ' ventas';
-            document.getElementById('statValorInventario').innerText = '$' + Number(data.valorTotalInventario).toLocaleString('es-CL');
-            calcularDiferenciaCaja();
+            const fotoInput = document.getElementById('plantaFoto');
+            if (fotoInput.files[0]) formData.append('foto', fotoInput.files[0]);
+
+            await fetch('/api/plantas', { method: 'POST', body: formData });
+            modalPlanta.hide();
+            await cargarInventario();
         }
 
-        function calcularDiferenciaCaja() {
-            const inputVal = document.getElementById('efectivoReal').value;
-            const resDiv = document.getElementById('resultadoArqueo');
-            if (inputVal === '') {
-                resDiv.innerHTML = '<span style="font-size:0.9em; color:#64748b;">Ingrese el dinero contado para verificar si cuadra con el sistema.</span>';
-                return;
+        async function eliminarPlanta(id) {
+            if (confirm("¿Seguro que deseas eliminar esta planta del inventario?")) {
+                await fetch(`/api/plantas/${id}`, { method: 'DELETE' });
+                await cargarInventario();
             }
-            const contado = Number(inputVal);
-            const dif = contado - efectivoEsperadoSistema;
-            if (dif === 0) resDiv.innerHTML = '<b style="color:#22c55e; font-size:1.1em;">✅ Caja Perfecta: El efectivo coincide de forma exacta.</b>';
-            else if (dif > 0) resDiv.innerHTML = `<b style="color:#0284c7; font-size:1.1em;">🔵 Sobrante en Caja:</b> Hay $${dif.toLocaleString('es-CL')} más de lo registrado.`;
-            else resDiv.innerHTML = `<b style="color:#ef4444; font-size:1.1em;">⚠️ Faltante en Caja:</b> Faltan $${Math.abs(dif).toLocaleString('es-CL')} en el cajón.`;
+        }
+
+        // DESPACHOS
+        const modalDespacho = new bootstrap.Modal(document.getElementById('modalDespacho'));
+        function abrirModalDespacho() {
+            document.getElementById('formDespacho').reset();
+            modalDespacho.show();
+        }
+
+        async function cargarDespachos() {
+            const res = await fetch('/api/despachos');
+            const despachos = await res.json();
+            const tbody = document.getElementById('tablaDespachos');
+            tbody.innerHTML = despachos.map(d => `
+                <tr>
+                    <td><strong>${d.cliente}</strong></td>
+                    <td>${d.direccion}</td>
+                    <td>${d.telefono || '-'}</td>
+                    <td>${d.detalle}</td>
+                    <td>$${d.monto ? d.monto.toLocaleString('es-CL') : '0'}</td>
+                    <td><span class="badge ${d.estadoPago === 'Pagado' ? 'bg-success' : 'bg-warning text-dark'}">${d.estadoPago}</span></td>
+                    <td>
+                        <select class="form-select form-select-sm" onchange="cambiarEstadoDespacho('${d.id}', this.value)">
+                            <option value="Pendiente" ${d.estadoEntrega === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
+                            <option value="En Ruta" ${d.estadoEntrega === 'En Ruta' ? 'selected' : ''}>En Ruta</option>
+                            <option value="Entregado" ${d.estadoEntrega === 'Entregado' ? 'selected' : ''}>Entregado</option>
+                        </select>
+                    </td>
+                    <td><button class="btn btn-sm btn-outline-danger" onclick="eliminarDespacho('${d.id}')"><i class="bi bi-trash"></i></button></td>
+                </tr>
+            `).join('');
+        }
+
+        async function guardarDespacho(e) {
+            e.preventDefault();
+            const body = {
+                cliente: document.getElementById('despCliente').value,
+                direccion: document.getElementById('despDireccion').value,
+                telefono: document.getElementById('despTelefono').value,
+                detalle: document.getElementById('despDetalle').value,
+                monto: document.getElementById('despMonto').value,
+                estadoPago: document.getElementById('despEstadoPago').value
+            };
+            await fetch('/api/despachos', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            modalDespacho.hide();
+            await cargarDespachos();
+        }
+
+        async function cambiarEstadoDespacho(id, estado) {
+            await fetch(`/api/despachos/${id}/estado`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ estadoEntrega: estado })
+            });
+        }
+
+        async function eliminarDespacho(id) {
+            if (confirm("¿Eliminar reparto?")) {
+                await fetch(`/api/despachos/${id}`, { method: 'DELETE' });
+                await cargarDespachos();
+            }
         }
 
         // GASTOS
-        document.getElementById('gastoForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const data = {
-                descripcion: document.getElementById('gastoDesc').value,
-                categoria: document.getElementById('gastoCat').value,
-                monto: document.getElementById('gastoMonto').value,
-                medioPago: document.getElementById('gastoMedio').value
-            };
-            const res = await fetch('/api/gastos', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
-            if (res.ok) {
-                alert("¡Gasto guardado!");
-                document.getElementById('gastoForm').reset();
-                cargarGastos();
-            }
-        });
+        const modalGasto = new bootstrap.Modal(document.getElementById('modalGasto'));
+        function abrirModalGasto() {
+            document.getElementById('formGasto').reset();
+            modalGasto.show();
+        }
 
         async function cargarGastos() {
             const res = await fetch('/api/gastos');
             const gastos = await res.json();
             const tbody = document.getElementById('tablaGastos');
-            tbody.innerHTML = '';
-            gastos.reverse().forEach(g => {
-                const f = new Date(g.fecha).toLocaleDateString('es-CL');
-                tbody.innerHTML += `
-                    <tr>
-                        <td>${f}</td>
-                        <td><b>${g.descripcion}</b></td>
-                        <td>${g.categoria}</td>
-                        <td>${g.medioPago}</td>
-                        <td><b>$${Number(g.monto).toLocaleString('es-CL')}</b></td>
-                        <td><button onclick="eliminarGasto('${g.id}')" style="background:#ef4444; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">🗑️</button></td>
-                    </tr>
-                `;
+            tbody.innerHTML = gastos.map(g => `
+                <tr>
+                    <td>${new Date(g.fecha).toLocaleDateString('es-CL')}</td>
+                    <td>${g.descripcion}</td>
+                    <td><span class="badge bg-secondary">${g.categoria}</span></td>
+                    <td>$${g.monto.toLocaleString('es-CL')}</td>
+                    <td>${g.medioPago}</td>
+                    <td><button class="btn btn-sm btn-outline-danger" onclick="eliminarGasto('${g.id}')"><i class="bi bi-trash"></i></button></td>
+                </tr>
+            `).join('');
+        }
+
+        async function guardarGasto(e) {
+            e.preventDefault();
+            const body = {
+                descripcion: document.getElementById('gastoDesc').value,
+                categoria: document.getElementById('gastoCat').value,
+                monto: document.getElementById('gastoMonto').value,
+                medioPago: document.getElementById('gastoMedio').value
+            };
+            await fetch('/api/gastos', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
             });
+            modalGasto.hide();
+            await cargarGastos();
         }
 
         async function eliminarGasto(id) {
-            if (confirm("¿Borrar gasto?")) {
+            if (confirm("¿Eliminar registro de gasto?")) {
                 await fetch(`/api/gastos/${id}`, { method: 'DELETE' });
-                cargarGastos();
+                await cargarGastos();
             }
         }
 
-        // HISTORIAL VENTAS
-        async function cargarHistorialVentas() {
-            const res = await fetch('/api/ventas');
-            const ventas = await res.json();
-            const tbody = document.getElementById('tablaHistorial');
-            tbody.innerHTML = '';
-            ventas.reverse().forEach(v => {
-                const f = new Date(v.fecha).toLocaleString('es-CL');
-                const detalle = v.items.map(i => `${i.nombre} (x${i.cantidad})`).join(', ');
-                tbody.innerHTML += `
-                    <tr>
-                        <td>${f}</td>
-                        <td><b>${v.vendedor}</b></td>
-                        <td>${detalle}</td>
-                        <td>${v.medioPago}</td>
-                        <td><b style="color:#15803d;">$${Number(v.total).toLocaleString('es-CL')}</b></td>
-                    </tr>
-                `;
-            });
+        // FACTURAS
+        const modalFactura = new bootstrap.Modal(document.getElementById('modalFactura'));
+        function abrirModalFactura() {
+            document.getElementById('formFactura').reset();
+            modalFactura.show();
         }
-
-        // F29 / FACTURAS
-        document.getElementById('facturaForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const formData = new FormData();
-            formData.append('proveedor', document.getElementById('factProveedor').value);
-            formData.append('numFactura', document.getElementById('factNum').value);
-            formData.append('fecha', document.getElementById('factFecha').value);
-            formData.append('montoNeto', document.getElementById('factNeto').value);
-
-            const fileInput = document.getElementById('factFile');
-            if (fileInput.files[0]) formData.append('archivo', fileInput.files[0]);
-
-            const res = await fetch('/api/facturas', { method: 'POST', body: formData });
-            if (res.ok) {
-                alert("¡Factura guardada para respaldos del F29!");
-                document.getElementById('facturaForm').reset();
-                document.getElementById('factFecha').value = new Date().toISOString().split('T')[0];
-                cargarFacturas();
-            }
-        });
 
         async function cargarFacturas() {
             const res = await fetch('/api/facturas');
             const facturas = await res.json();
             const tbody = document.getElementById('tablaFacturas');
-            tbody.innerHTML = '';
-            facturas.reverse().forEach(f => {
-                tbody.innerHTML += `
-                    <tr>
-                        <td>${f.fecha}</td>
-                        <td><b>${f.proveedor}</b></td>
-                        <td>#${f.numFactura}</td>
-                        <td>$${Number(f.montoNeto).toLocaleString('es-CL')}</td>
-                        <td><b style="color:#0284c7;">$${Number(f.ivaRecuperable).toLocaleString('es-CL')}</b></td>
-                        <td><b>$${Number(f.total).toLocaleString('es-CL')}</b></td>
-                        <td>${f.adjunto ? `<a href="${f.adjunto}" target="_blank">📄 Ver Documento</a>` : 'Sin adjunto'}</td>
-                        <td><button onclick="eliminarFactura('${f.id}')" style="background:#ef4444; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">🗑️</button></td>
-                    </tr>
-                `;
-            });
+            tbody.innerHTML = facturas.map(f => `
+                <tr>
+                    <td>${f.fecha}</td>
+                    <td><strong>${f.proveedor}</strong></td>
+                    <td>${f.numFactura}</td>
+                    <td>$${f.montoNeto.toLocaleString('es-CL')}</td>
+                    <td class="text-success">$${f.ivaRecuperable.toLocaleString('es-CL')}</td>
+                    <td>$${f.total.toLocaleString('es-CL')}</td>
+                    <td>${f.adjunto ? `<a href="${f.adjunto}" target="_blank" class="btn btn-sm btn-outline-info"><i class="bi bi-file-pdf"></i> Ver</a>` : '-'}</td>
+                    <td><button class="btn btn-sm btn-outline-danger" onclick="eliminarFactura('${f.id}')"><i class="bi bi-trash"></i></button></td>
+                </tr>
+            `).join('');
+        }
+
+        async function guardarFactura(e) {
+            e.preventDefault();
+            const formData = new FormData();
+            formData.append('proveedor', document.getElementById('facProveedor').value);
+            formData.append('numFactura', document.getElementById('facNum').value);
+            formData.append('montoNeto', document.getElementById('facNeto').value);
+            formData.append('fecha', document.getElementById('facFecha').value);
+            
+            const file = document.getElementById('facArchivo').files[0];
+            if (file) formData.append('archivo', file);
+
+            await fetch('/api/facturas', { method: 'POST', body: formData });
+            modalFactura.hide();
+            await cargarFacturas();
         }
 
         async function eliminarFactura(id) {
-            if (confirm("¿Borrar factura?")) {
+            if (confirm("¿Eliminar factura?")) {
                 await fetch(`/api/facturas/${id}`, { method: 'DELETE' });
-                cargarFacturas();
+                await cargarFacturas();
             }
         }
 
-        // DESPACHOS
-        document.getElementById('despachoForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const data = {
-                cliente: document.getElementById('despCliente').value,
-                direccion: document.getElementById('despDireccion').value,
-                telefono: document.getElementById('despTelefono').value,
-                monto: document.getElementById('despMonto').value,
-                detalle: document.getElementById('despDetalle').value,
-                estadoPago: document.getElementById('despEstadoPago').value
-            };
-            const res = await fetch('/api/despachos', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
-            if (res.ok) {
-                alert("¡Reparto agendado!");
-                document.getElementById('despachoForm').reset();
-                cargarDespachos();
-            }
-        });
-
-        async function cargarDespachos() {
-            const res = await fetch('/api/despachos');
-            const despachos = await res.json();
-            const cont = document.getElementById('listaDespachos');
-            cont.innerHTML = '';
-
-            if (despachos.length === 0) {
-                cont.innerHTML = '<p style="color:#666;">No hay repartos agendados para este sábado.</p>';
-                return;
-            }
-
-            despachos.reverse().forEach(d => {
-                const esEntregado = d.estadoEntrega === 'Entregado';
-                cont.innerHTML += `
-                    <div style="background: ${esEntregado ? '#f0fdf4' : '#fff'}; border-left: 5px solid ${esEntregado ? '#22c55e' : '#f59e0b'}; padding: 15px; border-radius: 6px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
-                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                            <div>
-                                <b style="font-size:1.1em; color:#1e293b;">👤 ${d.cliente}</b>
-                                <p style="font-size:0.9em; color:#475569; margin:4px 0;">📍 <b>Dirección:</b> ${d.direccion}</p>
-                                ${d.telefono ? `<p style="font-size:0.9em; color:#0284c7;">📞 <a href="https://wa.me/${d.telefono.replace(/\+/g,'')}" target="_blank" style="color:#0284c7; text-decoration:none;">${d.telefono} (WhatsApp)</a></p>` : ''}
-                                <p style="font-size:0.9em; color:#334155; margin-top:6px;">📦 <b>Plantas:</b> ${d.detalle}</p>
-                            </div>
-                            <div style="text-align:right;">
-                                <span style="font-size:1.2em; font-weight:bold; color:#15803d;">$${Number(d.monto).toLocaleString('es-CL')}</span>
-                                <br>
-                                <span style="font-size:0.75em; padding:2px 6px; border-radius:4px; background:${d.estadoPago === 'Pagado' ? '#bbf7d0' : '#fef08a'}; color:${d.estadoPago === 'Pagado' ? '#15803d' : '#854d0e'}; font-weight:bold; display:inline-block; margin-top:4px;">${d.estadoPago}</span>
-                            </div>
-                        </div>
-                        <div style="margin-top:12px; display:flex; gap:8px; justify-content:flex-end;">
-                            ${!esEntregado ? `<button onclick="marcarEntregado('${d.id}')" style="background:#22c55e; color:white; border:none; padding:6px 12px; border-radius:4px; font-weight:bold; cursor:pointer;">✅ Marcar Entregado</button>` : '<b style="color:#22c55e;">✅ Entregado</b>'}
-                            <button onclick="eliminarDespacho('${d.id}')" style="background:#ef4444; color:white; border:none; padding:6px 10px; border-radius:4px; cursor:pointer;">🗑️</button>
-                        </div>
-                    </div>
-                `;
-            });
+        // REPORTES
+        async function cargarReporte() {
+            const res = await fetch('/api/reporte-admin');
+            const data = await res.json();
+            document.getElementById('repValInventario').innerText = `$${data.valorTotalInventario.toLocaleString('es-CL')}`;
+            document.getElementById('repTotalVentas').innerText = `$${data.totalRecaudadoVentas.toLocaleString('es-CL')}`;
+            document.getElementById('repUnidadesStock').innerText = data.totalPlantasUnidades;
+            document.getElementById('repEfectivo').innerText = `$${data.caja.efectivo.toLocaleString('es-CL')}`;
         }
-
-        async function marcarEntregado(id) {
-            await fetch(`/api/despachos/${id}/estado`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ estadoEntrega: 'Entregado' })
-            });
-            cargarDespachos();
-        }
-
-        async function eliminarDespacho(id) {
-            if (confirm("¿Borrar entrega?")) {
-                await fetch(`/api/despachos/${id}`, { method: 'DELETE' });
-                cargarDespachos();
-            }
-        }
-
-        verificarSesion();
     </script>
 </body>
 </html>
