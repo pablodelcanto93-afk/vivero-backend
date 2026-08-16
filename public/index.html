@@ -57,6 +57,7 @@
     <nav class="navbar navbar-expand-lg navbar-dark mb-4">
         <div class="container-fluid">
             <a class="navbar-brand d-flex align-items-center" href="#">
+                <img src="/logo.png" alt="Logo" class="me-2" style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover;" onerror="this.style.display='none'">
                 <i class="bi bi-tree-fill me-2"></i> Vivero Sol y Sombra
             </a>
             <div class="d-flex align-items-center text-white">
@@ -68,7 +69,7 @@
 
     <div class="container-fluid px-4">
         <!-- NAVEGACIÓN POR PESTAÑAS -->
-        <ul class="nav nav-pills mb-4 id="mainTabs" role="tablist">
+        <ul class="nav nav-pills mb-4" id="mainTabs" role="tablist">
             <li class="nav-item">
                 <button class="nav-link active" id="pos-tab" data-bs-toggle="tab" data-bs-target="#pos-sec"><i class="bi bi-cart-check"></i> Punto de Venta</button>
             </li>
@@ -174,7 +175,7 @@
                                     </tr>
                                 </thead>
                                 <tbody id="tablaInventario"></tbody>
-                            </table>
+                                </table>
                         </div>
                     </div>
                 </div>
@@ -492,62 +493,83 @@
         });
 
         async function verificarSesion() {
-            const res = await fetch('/api/session');
-            const data = await res.json();
-            if (!data.loggedIn) {
-                window.location.href = '/login.html';
-            } else {
-                currentUser = data.user;
-                document.getElementById('userGreeting').innerText = `Hola, ${currentUser.nombre}`;
-                if (currentUser.rol !== 'admin') {
-                    document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
+            try {
+                const res = await fetch('/api/session');
+                const data = await res.json();
+                if (!data.loggedIn) {
+                    window.location.href = '/login.html';
+                } else {
+                    currentUser = data.user;
+                    document.getElementById('userGreeting').innerText = `Hola, ${currentUser.nombre}`;
+                    if (currentUser.rol !== 'admin') {
+                        document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
+                    }
                 }
+            } catch (err) {
+                console.error("Error al verificar sesión", err);
             }
         }
 
+        function getId(p) {
+            return p._id || p.id;
+        }
+
         async function cargarInventario() {
-            const res = await fetch('/api/plantas');
-            inventario = await res.json();
-            renderInventario();
-            renderPos();
+            try {
+                const res = await fetch('/api/plantas');
+                inventario = await res.json();
+                renderInventario();
+                renderPos();
+            } catch (err) {
+                console.error("Error al cargar plantas", err);
+            }
         }
 
         function renderInventario() {
             const tbody = document.getElementById('tablaInventario');
-            tbody.innerHTML = inventario.map(p => `
+            tbody.innerHTML = inventario.map(p => {
+                const id = getId(p);
+                const precio = Number(p.precio || 0);
+                return `
                 <tr>
-                    <td><img src="${p.foto || '/logo.png'}" class="img-preview"></td>
-                    <td><strong>${p.nombre}</strong></td>
+                    <td><img src="${p.foto || '/logo.png'}" class="img-preview" onerror="this.src='/logo.png'"></td>
+                    <td><strong>${p.nombre || 'Sin nombre'}</strong></td>
                     <td><em>${p.cientifico || '-'}</em></td>
                     <td><span class="badge bg-secondary">${p.categoria || 'General'}</span></td>
                     <td>${p.ubicacion || '-'}</td>
-                    <td>$${p.precio.toLocaleString('es-CL')}</td>
+                    <td>$${precio.toLocaleString('es-CL')}</td>
                     <td><span class="badge ${p.stock > 5 ? 'bg-success' : 'bg-danger'} badge-stock">${p.stock}</span></td>
                     <td>
-                        <button class="btn btn-sm btn-outline-primary" onclick="editarPlanta('${p.id}')"><i class="bi bi-pencil"></i></button>
-                        <button class="btn btn-sm btn-outline-danger" onclick="eliminarPlanta('${p.id}')"><i class="bi bi-trash"></i></button>
+                        <button class="btn btn-sm btn-outline-primary" onclick="editarPlanta('${id}')"><i class="bi bi-pencil"></i></button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="eliminarPlanta('${id}')"><i class="bi bi-trash"></i></button>
                     </td>
                 </tr>
-            `).join('');
+            `}).join('');
         }
 
         function renderPos(filtro = '') {
             const tbody = document.getElementById('tablaPos');
-            const lista = inventario.filter(p => p.nombre.toLowerCase().includes(filtro.toLowerCase()) || p.categoria.toLowerCase().includes(filtro.toLowerCase()));
+            const lista = inventario.filter(p => 
+                (p.nombre && p.nombre.toLowerCase().includes(filtro.toLowerCase())) || 
+                (p.categoria && p.categoria.toLowerCase().includes(filtro.toLowerCase()))
+            );
             
-            tbody.innerHTML = lista.map(p => `
+            tbody.innerHTML = lista.map(p => {
+                const id = getId(p);
+                const precio = Number(p.precio || 0);
+                return `
                 <tr>
-                    <td><img src="${p.foto || '/logo.png'}" class="img-preview"></td>
-                    <td><strong>${p.nombre}</strong></td>
-                    <td>$${p.precio.toLocaleString('es-CL')}</td>
+                    <td><img src="${p.foto || '/logo.png'}" class="img-preview" onerror="this.src='/logo.png'"></td>
+                    <td><strong>${p.nombre || 'Sin nombre'}</strong></td>
+                    <td>$${precio.toLocaleString('es-CL')}</td>
                     <td><span class="badge bg-info text-dark">${p.stock}</span></td>
                     <td>
-                        <button class="btn btn-sm btn-success" ${p.stock <= 0 ? 'disabled' : ''} onclick="agregarAlTicket('${p.id}')">
+                        <button class="btn btn-sm btn-success" ${p.stock <= 0 ? 'disabled' : ''} onclick="agregarAlTicket('${id}')">
                             <i class="bi bi-cart-plus"></i>
                         </button>
                     </td>
                 </tr>
-            `).join('');
+            `}).join('');
         }
 
         function filtrarPos() {
@@ -556,7 +578,7 @@
         }
 
         function agregarAlTicket(id) {
-            const planta = inventario.find(p => String(p.id) === String(id));
+            const planta = inventario.find(p => String(getId(p)) === String(id));
             if (!planta) return;
 
             const enTicket = ticket.find(item => String(item.id) === String(id));
@@ -564,7 +586,7 @@
                 if (enTicket.cantidad < planta.stock) enTicket.cantidad++;
                 else alert("Límite de stock alcanzado");
             } else {
-                ticket.push({ id: planta.id, nombre: planta.nombre, precio: planta.precio, cantidad: 1 });
+                ticket.push({ id: getId(planta), nombre: planta.nombre, precio: Number(planta.precio || 0), cantidad: 1 });
             }
             renderTicket();
         }
@@ -607,7 +629,7 @@
                 ticket = [];
                 renderTicket();
                 await cargarInventario();
-                if (currentUser.rol === 'admin') cargarReporte();
+                if (currentUser && currentUser.rol === 'admin') cargarReporte();
             } else {
                 alert("Error al procesar la venta");
             }
@@ -623,14 +645,14 @@
         }
 
         function editarPlanta(id) {
-            const p = inventario.find(x => String(x.id) === String(id));
+            const p = inventario.find(x => String(getId(x)) === String(id));
             if (!p) return;
-            document.getElementById('plantaId').value = p.id;
-            document.getElementById('plantaNombre').value = p.nombre;
+            document.getElementById('plantaId').value = getId(p);
+            document.getElementById('plantaNombre').value = p.nombre || '';
             document.getElementById('plantaCientifico').value = p.cientifico || '';
             document.getElementById('plantaCategoria').value = p.categoria || '';
-            document.getElementById('plantaPrecio').value = p.precio;
-            document.getElementById('plantaStock').value = p.stock;
+            document.getElementById('plantaPrecio').value = p.precio || 0;
+            document.getElementById('plantaStock').value = p.stock || 0;
             document.getElementById('plantaUbicacion').value = p.ubicacion || '';
             document.getElementById('modalPlantaTitulo').innerText = 'Editar Planta';
             modalPlanta.show();
@@ -670,27 +692,34 @@
         }
 
         async function cargarDespachos() {
-            const res = await fetch('/api/despachos');
-            const despachos = await res.json();
-            const tbody = document.getElementById('tablaDespachos');
-            tbody.innerHTML = despachos.map(d => `
-                <tr>
-                    <td><strong>${d.cliente}</strong></td>
-                    <td>${d.direccion}</td>
-                    <td>${d.telefono || '-'}</td>
-                    <td>${d.detalle}</td>
-                    <td>$${d.monto ? d.monto.toLocaleString('es-CL') : '0'}</td>
-                    <td><span class="badge ${d.estadoPago === 'Pagado' ? 'bg-success' : 'bg-warning text-dark'}">${d.estadoPago}</span></td>
-                    <td>
-                        <select class="form-select form-select-sm" onchange="cambiarEstadoDespacho('${d.id}', this.value)">
-                            <option value="Pendiente" ${d.estadoEntrega === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
-                            <option value="En Ruta" ${d.estadoEntrega === 'En Ruta' ? 'selected' : ''}>En Ruta</option>
-                            <option value="Entregado" ${d.estadoEntrega === 'Entregado' ? 'selected' : ''}>Entregado</option>
-                        </select>
-                    </td>
-                    <td><button class="btn btn-sm btn-outline-danger" onclick="eliminarDespacho('${d.id}')"><i class="bi bi-trash"></i></button></td>
-                </tr>
-            `).join('');
+            try {
+                const res = await fetch('/api/despachos');
+                const despachos = await res.json();
+                const tbody = document.getElementById('tablaDespachos');
+                tbody.innerHTML = despachos.map(d => {
+                    const id = getId(d);
+                    const monto = Number(d.monto || 0);
+                    return `
+                    <tr>
+                        <td><strong>${d.cliente || ''}</strong></td>
+                        <td>${d.direccion || ''}</td>
+                        <td>${d.telefono || '-'}</td>
+                        <td>${d.detalle || ''}</td>
+                        <td>$${monto.toLocaleString('es-CL')}</td>
+                        <td><span class="badge ${d.estadoPago === 'Pagado' ? 'bg-success' : 'bg-warning text-dark'}">${d.estadoPago}</span></td>
+                        <td>
+                            <select class="form-select form-select-sm" onchange="cambiarEstadoDespacho('${id}', this.value)">
+                                <option value="Pendiente" ${d.estadoEntrega === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
+                                <option value="En Ruta" ${d.estadoEntrega === 'En Ruta' ? 'selected' : ''}>En Ruta</option>
+                                <option value="Entregado" ${d.estadoEntrega === 'Entregado' ? 'selected' : ''}>Entregado</option>
+                            </select>
+                        </td>
+                        <td><button class="btn btn-sm btn-outline-danger" onclick="eliminarDespacho('${id}')"><i class="bi bi-trash"></i></button></td>
+                    </tr>
+                `}).join('');
+            } catch(err) {
+                console.error("Error al cargar despachos", err);
+            }
         }
 
         async function guardarDespacho(e) {
@@ -735,19 +764,26 @@
         }
 
         async function cargarGastos() {
-            const res = await fetch('/api/gastos');
-            const gastos = await res.json();
-            const tbody = document.getElementById('tablaGastos');
-            tbody.innerHTML = gastos.map(g => `
-                <tr>
-                    <td>${new Date(g.fecha).toLocaleDateString('es-CL')}</td>
-                    <td>${g.descripcion}</td>
-                    <td><span class="badge bg-secondary">${g.categoria}</span></td>
-                    <td>$${g.monto.toLocaleString('es-CL')}</td>
-                    <td>${g.medioPago}</td>
-                    <td><button class="btn btn-sm btn-outline-danger" onclick="eliminarGasto('${g.id}')"><i class="bi bi-trash"></i></button></td>
-                </tr>
-            `).join('');
+            try {
+                const res = await fetch('/api/gastos');
+                const gastos = await res.json();
+                const tbody = document.getElementById('tablaGastos');
+                tbody.innerHTML = gastos.map(g => {
+                    const id = getId(g);
+                    const monto = Number(g.monto || 0);
+                    return `
+                    <tr>
+                        <td>${new Date(g.fecha).toLocaleDateString('es-CL')}</td>
+                        <td>${g.descripcion || ''}</td>
+                        <td><span class="badge bg-secondary">${g.categoria || ''}</span></td>
+                        <td>$${monto.toLocaleString('es-CL')}</td>
+                        <td>${g.medioPago || ''}</td>
+                        <td><button class="btn btn-sm btn-outline-danger" onclick="eliminarGasto('${id}')"><i class="bi bi-trash"></i></button></td>
+                    </tr>
+                `}).join('');
+            } catch (err) {
+                console.error("Error al cargar gastos", err);
+            }
         }
 
         async function guardarGasto(e) {
@@ -782,21 +818,30 @@
         }
 
         async function cargarFacturas() {
-            const res = await fetch('/api/facturas');
-            const facturas = await res.json();
-            const tbody = document.getElementById('tablaFacturas');
-            tbody.innerHTML = facturas.map(f => `
-                <tr>
-                    <td>${f.fecha}</td>
-                    <td><strong>${f.proveedor}</strong></td>
-                    <td>${f.numFactura}</td>
-                    <td>$${f.montoNeto.toLocaleString('es-CL')}</td>
-                    <td class="text-success">$${f.ivaRecuperable.toLocaleString('es-CL')}</td>
-                    <td>$${f.total.toLocaleString('es-CL')}</td>
-                    <td>${f.adjunto ? `<a href="${f.adjunto}" target="_blank" class="btn btn-sm btn-outline-info"><i class="bi bi-file-pdf"></i> Ver</a>` : '-'}</td>
-                    <td><button class="btn btn-sm btn-outline-danger" onclick="eliminarFactura('${f.id}')"><i class="bi bi-trash"></i></button></td>
-                </tr>
-            `).join('');
+            try {
+                const res = await fetch('/api/facturas');
+                const facturas = await res.json();
+                const tbody = document.getElementById('tablaFacturas');
+                tbody.innerHTML = facturas.map(f => {
+                    const id = getId(f);
+                    const neto = Number(f.montoNeto || 0);
+                    const iva = Number(f.ivaRecuperable || 0);
+                    const total = Number(f.total || 0);
+                    return `
+                    <tr>
+                        <td>${f.fecha || ''}</td>
+                        <td><strong>${f.proveedor || ''}</strong></td>
+                        <td>${f.numFactura || ''}</td>
+                        <td>$${neto.toLocaleString('es-CL')}</td>
+                        <td class="text-success">$${iva.toLocaleString('es-CL')}</td>
+                        <td>$${total.toLocaleString('es-CL')}</td>
+                        <td>${f.adjunto ? `<a href="${f.adjunto}" target="_blank" class="btn btn-sm btn-outline-info"><i class="bi bi-file-pdf"></i> Ver</a>` : '-'}</td>
+                        <td><button class="btn btn-sm btn-outline-danger" onclick="eliminarFactura('${id}')"><i class="bi bi-trash"></i></button></td>
+                    </tr>
+                `}).join('');
+            } catch (err) {
+                console.error("Error al cargar facturas", err);
+            }
         }
 
         async function guardarFactura(e) {
@@ -824,12 +869,16 @@
 
         // REPORTES
         async function cargarReporte() {
-            const res = await fetch('/api/reporte-admin');
-            const data = await res.json();
-            document.getElementById('repValInventario').innerText = `$${data.valorTotalInventario.toLocaleString('es-CL')}`;
-            document.getElementById('repTotalVentas').innerText = `$${data.totalRecaudadoVentas.toLocaleString('es-CL')}`;
-            document.getElementById('repUnidadesStock').innerText = data.totalPlantasUnidades;
-            document.getElementById('repEfectivo').innerText = `$${data.caja.efectivo.toLocaleString('es-CL')}`;
+            try {
+                const res = await fetch('/api/reporte-admin');
+                const data = await res.json();
+                document.getElementById('repValInventario').innerText = `$${Number(data.valorTotalInventario || 0).toLocaleString('es-CL')}`;
+                document.getElementById('repTotalVentas').innerText = `$${Number(data.totalRecaudadoVentas || 0).toLocaleString('es-CL')}`;
+                document.getElementById('repUnidadesStock').innerText = data.totalPlantasUnidades || 0;
+                document.getElementById('repEfectivo').innerText = `$${Number(data.caja?.efectivo || 0).toLocaleString('es-CL')}`;
+            } catch (err) {
+                console.error("Error al cargar reportes", err);
+            }
         }
     </script>
 </body>
