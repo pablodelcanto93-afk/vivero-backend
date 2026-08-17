@@ -3,225 +3,758 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Control - Vivero Sol y Sombra</title>
+    <title>Vivero Sol y Sombra - Sistema de Gestión</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: #f4f7f6; color: #333; }
-        
-        header { background: #1b5e20; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
-        .header-brand { display: flex; align-items: center; gap: 12px; }
-        .logo-head { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; }
-        
-        .header-user { display: flex; align-items: center; gap: 15px; }
-        .btn-logout { background: transparent; border: 1px solid white; color: white; padding: 6px 12px; border-radius: 4px; text-decoration: none; font-size: 0.9em; }
-        .btn-logout:hover { background: rgba(255,255,255,0.2); }
+        body { background-color: #f4f7f6; display: flex; flex-direction: column; min-height: 100vh; color: #333; }
 
-        /* Barra de Navegación por Pestañas */
-        nav { background: #e8f5e9; border-bottom: 2px solid #a5d6a7; padding: 0 30px; display: flex; gap: 10px; overflow-x: auto; }
-        nav button { background: none; border: none; padding: 12px 18px; font-weight: bold; color: #2e7d32; cursor: pointer; border-bottom: 3px solid transparent; font-size: 0.95em; white-space: nowrap; }
-        nav button.active { border-bottom-color: #1b5e20; color: #1b5e20; background: rgba(255,255,255,0.5); }
-        nav button:hover { background: rgba(255,255,255,0.7); }
+        .topbar-mobile {
+            display: none; background: #1e293b; color: white; padding: 12px 15px;
+            justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100;
+        }
 
-        .container { max-width: 1100px; margin: 25px auto; padding: 0 20px; }
-        .section-tab { display: none; }
-        .section-tab.active { display: block; }
+        .btn-toggle-menu { background: #334155; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 1.2em; cursor: pointer; }
+        .app-container { display: flex; flex-grow: 1; position: relative; }
 
-        .actions-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .btn-primary { background: #2e7d32; color: white; border: none; padding: 10px 18px; border-radius: 6px; font-weight: bold; cursor: pointer; }
-        .btn-primary:hover { background: #1b5e20; }
-        
-        table { width: 100%; background: white; border-collapse: collapse; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
-        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; }
-        th { background: #e8f5e9; color: #2e7d32; }
-        .img-thumb { width: 50px; height: 50px; object-fit: cover; border-radius: 6px; }
+        .sidebar {
+            width: 260px; background: #1e293b; color: #94a3b8; display: flex; flex-direction: column;
+            justify-content: space-between; padding: 20px 15px; flex-shrink: 0; transition: transform 0.3s ease; z-index: 90;
+        }
 
-        /* Modal */
-        .modal-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 100; }
-        .modal { background: white; padding: 25px; border-radius: 10px; width: 100%; max-width: 520px; position: relative; }
-        .close-btn { position: absolute; top: 15px; right: 20px; font-size: 1.5em; cursor: pointer; }
-        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; }
-        .form-group { display: flex; flex-direction: column; }
-        .form-group.full { grid-column: 1 / -1; }
-        label { font-size: 0.85em; font-weight: bold; margin-bottom: 4px; color: #555; }
-        input { padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.95em; }
-        .btn-danger { background: #c62828; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; }
+        .brand { display: flex; align-items: center; gap: 12px; color: white; padding-bottom: 20px; border-bottom: 1px solid #334155; margin-bottom: 20px; }
+        .brand img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+        .brand h2 { font-size: 1.1em; color: #22c55e; }
+
+        .menu-cat { font-size: 0.75em; text-transform: uppercase; letter-spacing: 1px; color: #64748b; margin: 15px 0 8px 10px; font-weight: bold; }
+
+        .menu-item {
+            display: flex; align-items: center; gap: 10px; padding: 10px 12px; color: #cbd5e1;
+            text-decoration: none; border-radius: 6px; font-size: 0.9em; cursor: pointer; margin-bottom: 4px; transition: all 0.2s;
+        }
+        .menu-item:hover, .menu-item.active { background: #334155; color: #22c55e; font-weight: bold; }
+
+        .user-info { border-top: 1px solid #334155; padding-top: 15px; font-size: 0.85em; }
+        .btn-logout { display: block; margin-top: 10px; color: #ef4444; text-decoration: none; font-weight: bold; }
+
+        .main-content { flex-grow: 1; padding: 20px; overflow-y: auto; width: 100%; }
+        .seccion { display: none; }
+        .seccion.activa { display: block; }
+
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        h2 { margin-bottom: 15px; color: #1e293b; font-size: 1.3em; }
+
+        .grid-pos { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+        form { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        form input, form textarea, form button, select { padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; width: 100%; }
+        form textarea { grid-column: span 2; min-height: 60px; }
+        form button { grid-column: span 2; background: #15803d; color: white; border: none; font-weight: bold; cursor: pointer; }
+
+        .table-responsive { width: 100%; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0; font-size: 0.9em; }
+        th { background: #f8fafc; color: #475569; }
+        .thumb { width: 40px; height: 40px; border-radius: 4px; object-fit: cover; }
+
+        .btn { padding: 6px 10px; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8em; }
+        .btn-add { background: #22c55e; color: white; }
+
+        .total { font-size: 1.3em; font-weight: bold; margin-top: 15px; text-align: right; color: #15803d; }
+        .btn-finalizar { width: 100%; background: #0284c7; color: white; padding: 12px; border: none; border-radius: 6px; font-weight: bold; margin-top: 10px; cursor: pointer; }
+
+        .dash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .dash-card { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 4px solid #15803d; }
+        .dash-card h4 { font-size: 0.8em; color: #64748b; text-transform: uppercase; margin-bottom: 5px; }
+        .dash-card p { font-size: 1.4em; font-weight: bold; color: #1e293b; }
+
+        @media (max-width: 768px) {
+            .topbar-mobile { display: flex; }
+            .grid-pos { grid-template-columns: 1fr; }
+            form { grid-template-columns: 1fr; }
+            form textarea, form button { grid-column: span 1; }
+            .sidebar { position: fixed; top: 0; left: 0; height: 100vh; transform: translateX(-100%); }
+            .sidebar.abierto { transform: translateX(0); }
+            .overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 80; }
+            .overlay.activo { display: block; }
+        }
     </style>
 </head>
 <body>
 
-<header>
-    <div class="header-brand">
-        <img src="/logo.png" class="logo-head" onerror="this.style.display='none'">
-        <span style="font-size: 1.2em; font-weight: bold;">Vivero Sol y Sombra</span>
+    <div class="topbar-mobile">
+        <button class="btn-toggle-menu" onclick="toggleMenu()">☰ Menú</button>
+        <b style="color: #22c55e;">Vivero Sol y Sombra</b>
     </div>
-    <div class="header-user">
-        <a href="/catalogo.html" target="_blank" style="color: white; text-decoration: none; font-weight: bold;">🌐 Ver Catálogo</a>
-        <a href="/login.html" class="btn-logout">🚪 Salir</a>
-    </div>
-</header>
 
-<nav>
-    <button class="active" onclick="cambiarTab('inventario', this)">📦 Inventario</button>
-    <button onclick="cambiarTab('pos', this)">🛒 Punto de Venta</button>
-    <button onclick="cambiarTab('ventas', this)">📊 Historial Ventas</button>
-    <button onclick="cambiarTab('finanzas', this)">💰 Ingresos / Egresos</button>
-</nav>
+    <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
 
-<div class="container">
-    <!-- SECCIÓN INVENTARIO -->
-    <div id="tab-inventario" class="section-tab active">
-        <div class="actions-bar">
-            <h2>Gestión de Inventario</h2>
-            <button class="btn-primary" onclick="abrirModal()">+ Agregar Planta</button>
+    <div class="app-container">
+        <div class="sidebar" id="sidebar">
+            <div>
+                <div class="brand">
+                    <img src="/logo.png" onerror="this.src='https://via.placeholder.com/40'">
+                    <div>
+                        <h2>Sol y Sombra</h2>
+                        <small style="color: #64748b;">Panel de Control</small>
+                    </div>
+                </div>
+
+                <div class="menu-cat">OPERACIONES</div>
+                <div class="menu-item active" onclick="seleccionarOpcion('pos')">🛒 Punto de Venta</div>
+                <div class="menu-item" onclick="seleccionarOpcion('inventario')">🪴 Inventario Plantas</div>
+                <div class="menu-item" onclick="seleccionarOpcion('despachos')">🚚 Repartos Sábado</div>
+
+                <div class="menu-cat">NEGOCIO</div>
+                <div class="menu-item solo-admin" onclick="seleccionarOpcion('caja')">💵 Cierre de Caja</div>
+                <div class="menu-item solo-admin" onclick="seleccionarOpcion('gastos')">📉 Gastos Insumos</div>
+                <div class="menu-item solo-admin" onclick="seleccionarOpcion('historial')">📋 Historial Ventas</div>
+
+                <div class="menu-cat solo-admin">ADMINISTRACIÓN</div>
+                <div class="menu-item solo-admin" onclick="seleccionarOpcion('f29')">📑 Control F29 / IVA</div>
+                <a href="/catalogo.html" target="_blank" class="menu-item" style="text-decoration: none;">🌐 Catálogo Web</a>
+            </div>
+
+            <div class="user-info">
+                👤 Usuario: <b id="nomUsuario">Cargando...</b>
+                <a href="/api/logout" class="btn-logout">🚪 Cerrar Sesión</a>
+            </div>
         </div>
 
-        <table>
-            <thead>
-                <tr>
-                    <th>Foto</th>
-                    <th>Nombre</th>
-                    <th>Categoría</th>
-                    <th>Precio</th>
-                    <th>Stock</th>
-                    <th>Ubicación</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody id="tablaPlantas"></tbody>
-        </table>
-    </div>
+        <div class="main-content">
 
-    <!-- SECCIÓN PUNTO DE VENTA -->
-    <div id="tab-pos" class="section-tab">
-        <h2>Punto de Venta (POS)</h2>
-        <p style="margin-top: 10px; color: #666;">Selecciona los productos para registrar una nueva venta.</p>
-    </div>
+            <!-- PUNTO DE VENTA -->
+            <div id="sec-pos" class="seccion activa">
+                <div class="grid-pos">
+                    <div>
+                        <div class="card">
+                            <h2>Inventario Disponible</h2>
+                            <div class="table-responsive">
+                                <table>
+                                    <thead>
+                                        <tr><th>Foto</th><th>Planta</th><th>Precio</th><th>Stock</th><th>Acción</th></tr>
+                                    </thead>
+                                    <tbody id="tablaPOS"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="card">
+                            <h2>Nueva Venta</h2>
+                            <div id="listaTicket"></div>
+                            
+                            <label style="display:block; margin-top:15px; font-size:0.85em; font-weight:bold;">Medio de Pago:</label>
+                            <select id="medioPago" style="margin-top:5px;">
+                                <option value="Efectivo">💵 Efectivo</option>
+                                <option value="Transferencia">📲 Transferencia</option>
+                                <option value="Débito">💳 Débito / Tarjeta</option>
+                            </select>
 
-    <!-- SECCIÓN HISTORIAL -->
-    <div id="tab-ventas" class="section-tab">
-        <h2>Historial de Ventas</h2>
-        <p style="margin-top: 10px; color: #666;">Registro general de transacciones del vivero.</p>
-    </div>
-
-    <!-- SECCIÓN FINANZAS -->
-    <div id="tab-finanzas" class="section-tab">
-        <h2>Ingresos y Egresos</h2>
-        <p style="margin-top: 10px; color: #666;">Control financiero de compras y gastos operativos.</p>
-    </div>
-</div>
-
-<!-- Modal Agregar Planta -->
-<div class="modal-bg" id="modalPlanta">
-    <div class="modal">
-        <span class="close-btn" onclick="cerrarModal()">&times;</span>
-        <h3>Agregar Nueva Planta</h3>
-        <form id="formPlanta" enctype="multipart/form-data">
-            <div class="form-grid">
-                <div class="form-group">
-                    <label>Nombre Común *</label>
-                    <input type="text" name="nombre" required>
-                </div>
-                <div class="form-group">
-                    <label>Nombre Científico</label>
-                    <input type="text" name="cientifico">
-                </div>
-                <div class="form-group">
-                    <label>Categoría</label>
-                    <input type="text" name="categoria" placeholder="Ej: Frutal, Nativo">
-                </div>
-                <div class="form-group">
-                    <label>Precio ($) *</label>
-                    <input type="number" name="precio" required min="0">
-                </div>
-                <div class="form-group">
-                    <label>Stock *</label>
-                    <input type="number" name="stock" required min="0">
-                </div>
-                <div class="form-group">
-                    <label>Ubicación</label>
-                    <input type="text" name="ubicacion" placeholder="Ej: Nav. Sombra">
-                </div>
-                <div class="form-group full">
-                    <label>Foto de la Planta</label>
-                    <input type="file" name="foto" accept="image/*">
+                            <div class="total">Total: $<span id="totalVenta">0</span></div>
+                            <button class="btn-finalizar" onclick="finalizarVenta()">Cobrar y Descontar Stock</button>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <button type="submit" class="btn-primary" style="width: 100%; margin-top: 18px;" id="btnGuardar">Guardar Planta</button>
-        </form>
+
+            <!-- INVENTARIO -->
+            <div id="sec-inventario" class="seccion">
+                <div class="card">
+                    <h2 id="formTitulo">+ Agregar Nueva Planta</h2>
+                    <form id="plantaForm">
+                        <input type="hidden" id="plantaId">
+                        <input type="text" id="nombre" placeholder="Nombre (ej: Babaco)" required>
+                        <input type="text" id="cientifico" placeholder="Nombre Científico">
+                        <input type="text" id="categoria" placeholder="Categoría (ej: Frutales)">
+                        <input type="text" id="ubicacion" placeholder="Ubicación en Vivero">
+                        <input type="number" id="precio" placeholder="Precio ($)" required>
+                        <input type="number" id="stock" placeholder="Stock Inicial" required>
+                        <input type="text" id="riego" placeholder="💧 Riego">
+                        <input type="text" id="clima" placeholder="☀️ Clima">
+                        <textarea id="cuidados" placeholder="📝 Ficha técnica / Consejos..."></textarea>
+                        <div>
+                            <label style="font-size:0.85em; font-weight:bold;">📷 Foto Planta:</label>
+                            <input type="file" id="fotoInput" accept="image/*" capture="environment">
+                        </div>
+                        <button type="submit" id="btnGuardar">Guardar Planta</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- CIERRE DE CAJA -->
+            <div id="sec-caja" class="seccion">
+                <div class="card" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                    <h2>💵 Cierre de Caja y Balance Diario</h2>
+                    <div>
+                        <label style="font-size:0.85em; font-weight:bold;">Seleccionar Fecha:</label>
+                        <input type="date" id="fechaCaja" onchange="cargarReporteAdmin()" style="padding:6px; border:1px solid #cbd5e1; border-radius:6px;">
+                    </div>
+                </div>
+
+                <div class="dash-grid">
+                    <div class="dash-card"><h4>💵 Total Efectivo</h4><p id="statEfectivo">$0</p></div>
+                    <div class="dash-card"><h4>📲 Total Transferencia</h4><p id="statTransferencia">$0</p></div>
+                    <div class="dash-card"><h4>💳 Total Débito</h4><p id="statDebito">$0</p></div>
+                </div>
+
+                <div class="dash-grid">
+                    <div class="dash-card" style="border-left-color: #0284c7;"><h4>📈 Total Recaudado</h4><p id="statTotalVentas">$0</p></div>
+                    <div class="dash-card" style="border-left-color: #0284c7;"><h4>🛍️ Ventas Realizadas</h4><p id="statCantVentas">0</p></div>
+                    <div class="dash-card" style="border-left-color: #f59e0b;"><h4>🪴 Valor Total Inventario</h4><p id="statValorInventario">$0</p></div>
+                </div>
+
+                <div class="card">
+                    <h2>🔍 Arqueo de Efectivo (Cuadre de Cajón)</h2>
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; align-items:center;">
+                        <div>
+                            <label style="font-size:0.85em; font-weight:bold;">Efectivo contado en cajón ($):</label>
+                            <input type="number" id="efectivoReal" placeholder="Ej: 45000" oninput="calcularDiferenciaCaja()" style="margin-top:5px;">
+                        </div>
+                        <div id="resultadoArqueo" style="padding:15px; border-radius:6px; background:#f8fafc; border:1px solid #cbd5e1;">
+                            <span style="font-size:0.9em; color:#64748b;">Ingrese el dinero contado para verificar si cuadra con el sistema.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- GASTOS DE INSUMOS -->
+            <div id="sec-gastos" class="seccion">
+                <div class="card">
+                    <h2>📉 Registrar Nuevo Gasto de Insumos</h2>
+                    <form id="gastoForm">
+                        <input type="text" id="gastoDesc" placeholder="Descripción (ej: Sustrato, Bolsas, Malla)" required>
+                        <select id="gastoCat">
+                            <option value="Sustratos y Tierra">🪴 Sustratos y Tierra</option>
+                            <option value="Maceteros y Bolsas">📦 Maceteros y Bolsas</option>
+                            <option value="Fertilizantes y Pesti.">🧪 Fertilizantes / Plaguicidas</option>
+                            <option value="Herramientas y Riego">🛠️ Herramientas y Riego</option>
+                            <option value="Otros Gastos">📌 Otros Gastos</option>
+                        </select>
+                        <input type="number" id="gastoMonto" placeholder="Monto Total ($)" required>
+                        <select id="gastoMedio">
+                            <option value="Efectivo">💵 Efectivo</option>
+                            <option value="Transferencia">📲 Transferencia</option>
+                            <option value="Débito">💳 Débito / Tarjeta</option>
+                        </select>
+                        <button type="submit">Guardar Gasto</button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h2>📋 Registro General de Gastos</h2>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr><th>Fecha</th><th>Descripción</th><th>Categoría</th><th>Medio</th><th>Monto</th><th>Acción</th></tr>
+                            </thead>
+                            <tbody id="tablaGastos"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- HISTORIAL DE VENTAS -->
+            <div id="sec-historial" class="seccion">
+                <div class="card">
+                    <h2>📋 Historial Completo de Ventas</h2>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr><th>Fecha / Hora</th><th>Vendedor</th><th>Detalle</th><th>Medio</th><th>Total</th></tr>
+                            </thead>
+                            <tbody id="tablaHistorial"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CONTROL F29 / IVA -->
+            <div id="sec-f29" class="seccion">
+                <div class="card">
+                    <h2>📑 Registrar Factura de Compra (Crédito Fiscal IVA)</h2>
+                    <form id="facturaForm">
+                        <input type="text" id="factProveedor" placeholder="Proveedor (ej: Distribuidora Sol)" required>
+                        <input type="text" id="factNum" placeholder="N° Factura" required>
+                        <input type="date" id="factFecha" required>
+                        <input type="number" id="factNeto" placeholder="Monto NETO ($)" required>
+                        <div>
+                            <label style="font-size:0.85em; font-weight:bold;">PDF / Foto Factura:</label>
+                            <input type="file" id="factFile" accept="image/*,application/pdf">
+                        </div>
+                        <button type="submit">Guardar Factura para F29</button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h2>📊 Respaldo de Compras con IVA Recuperable</h2>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr><th>Fecha</th><th>Proveedor</th><th>N° Factura</th><th>Neto</th><th>IVA (19%)</th><th>Total</th><th>Archivo</th><th>Acción</th></tr>
+                            </thead>
+                            <tbody id="tablaFacturas"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- REPARTOS SÁBADO -->
+            <div id="sec-despachos" class="seccion">
+                <div class="card">
+                    <h2>🚚 Agendar Nuevo Reparto para el Sábado</h2>
+                    <form id="despachoForm">
+                        <input type="text" id="despCliente" placeholder="Nombre del Cliente" required>
+                        <input type="text" id="despDireccion" placeholder="Dirección de Entrega (ej: Limache / Olmué)" required>
+                        <input type="tel" id="despTelefono" placeholder="Teléfono / WhatsApp (+569...)">
+                        <input type="number" id="despMonto" placeholder="Monto Total a Cobrar ($)" required>
+                        <textarea id="despDetalle" placeholder="Detalle del pedido (ej: 2 Limones Pica, 1 Palto Cruz)"></textarea>
+                        
+                        <div>
+                            <label style="font-size:0.85em; font-weight:bold;">Estado del Pago:</label>
+                            <select id="despEstadoPago" style="margin-top:5px;">
+                                <option value="Pendiente">⏳ Pago Pendiente (Cobrar en entrega)</option>
+                                <option value="Pagado">✅ Ya Pagado (Transferencia previo envio)</option>
+                            </select>
+                        </div>
+
+                        <button type="submit">Agendar Entrega Sábado</button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h2>📋 Hoja de Ruta - Próximo Sábado</h2>
+                    <div id="listaDespachos"></div>
+                </div>
+            </div>
+
+        </div>
     </div>
-</div>
 
-<script>
-    function cambiarTab(tabName, btn) {
-        document.querySelectorAll('.section-tab').forEach(el => el.classList.remove('active'));
-        document.querySelectorAll('nav button').forEach(el => el.classList.remove('active'));
-        
-        document.getElementById(`tab-${tabName}`).classList.add('active');
-        btn.classList.add('active');
-    }
+    <script>
+        let inventario = [];
+        let ticket = [];
+        let usuarioActual = null;
+        let efectivoEsperadoSistema = 0;
 
-    async function cargarTabla() {
-        try {
-            const res = await fetch('/api/plantas');
-            const plantas = await res.json();
-            const tbody = document.getElementById('tablaPlantas');
-            
-            tbody.innerHTML = plantas.map(p => `
-                <tr>
-                    <td><img src="${p.foto}" class="img-thumb" onerror="this.src='/logo.png'"></td>
-                    <td><b>${p.nombre}</b><br><small><i>${p.cientifico || ''}</i></small></td>
-                    <td>${p.categoria || '-'}</td>
-                    <td>$${Number(p.precio).toLocaleString('es-CL')}</td>
-                    <td>${p.stock} u.</td>
-                    <td>${p.ubicacion || '-'}</td>
-                    <td><button class="btn-danger" onclick="eliminarPlanta(${p.id})">Eliminar</button></td>
-                </tr>
-            `).join('');
-        } catch(e) {
-            console.error("Error al cargar la tabla", e);
+        function toggleMenu() {
+            document.getElementById('sidebar').classList.toggle('abierto');
+            document.getElementById('overlay').classList.toggle('activo');
         }
-    }
 
-    document.getElementById('formPlanta').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const btn = document.getElementById('btnGuardar');
-        btn.disabled = true;
-        btn.innerText = 'Guardando...';
+        function seleccionarOpcion(sec) {
+            mostrarSeccion(sec);
+            if (sec === 'despachos') cargarDespachos();
+            if (sec === 'gastos') cargarGastos();
+            if (sec === 'historial') cargarHistorialVentas();
+            if (sec === 'f29') cargarFacturas();
+            if (window.innerWidth <= 768) toggleMenu();
+        }
 
-        const formData = new FormData(e.target);
+        async function verificarSesion() {
+            const res = await fetch('/api/session');
+            const data = await res.json();
+            if (!data.loggedIn) return window.location.href = '/login.html';
 
-        try {
-            const res = await fetch('/api/plantas', {
-                method: 'POST',
-                body: formData
+            usuarioActual = data.user;
+            document.getElementById('nomUsuario').innerText = usuarioActual.nombre;
+
+            if (usuarioActual.rol !== 'admin') {
+                document.querySelectorAll('.solo-admin').forEach(el => el.style.display = 'none');
+            }
+
+            document.getElementById('fechaCaja').value = new Date().toISOString().split('T')[0];
+            document.getElementById('factFecha').value = new Date().toISOString().split('T')[0];
+            cargarInventario();
+        }
+
+        function mostrarSeccion(sec) {
+            document.querySelectorAll('.seccion').forEach(s => s.classList.remove('activa'));
+            document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+            document.getElementById(`sec-${sec}`).classList.add('activa');
+            if (sec === 'caja') cargarReporteAdmin();
+        }
+
+        async function cargarInventario() {
+            const res = await fetch('/api/plantas');
+            inventario = await res.json();
+            renderPOS();
+        }
+
+        function renderPOS() {
+            const tbody = document.getElementById('tablaPOS');
+            tbody.innerHTML = '';
+            inventario.forEach(p => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td><img src="${p.foto || '/logo.png'}" class="thumb"></td>
+                        <td><b>${p.nombre}</b></td>
+                        <td>$${Number(p.precio).toLocaleString('es-CL')}</td>
+                        <td><b>${p.stock}</b></td>
+                        <td>
+                            <div style="display:flex; gap:5px; align-items:center;">
+                                <button class="btn btn-add" onclick="agregarAlTicket('${p.id}')">+ Añadir</button>
+                                <button class="btn" style="background:#ef4444; color:white;" onclick="eliminarPlanta('${p.id}')">🗑️</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
             });
+        }
+
+        async function eliminarPlanta(id) {
+            if (confirm("¿Estás seguro de que deseas eliminar esta planta del inventario?")) {
+                const res = await fetch(`/api/plantas/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    await cargarInventario();
+                } else {
+                    alert("Error al eliminar la planta.");
+                }
+            }
+        }
+
+        // GUARDA PLANTA Y RECARGA INVENTARIO / CATÁLOGO
+        document.getElementById('plantaForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData();
+            formData.append('id', document.getElementById('plantaId').value);
+            formData.append('nombre', document.getElementById('nombre').value);
+            formData.append('cientifico', document.getElementById('cientifico').value);
+            formData.append('categoria', document.getElementById('categoria').value);
+            formData.append('ubicacion', document.getElementById('ubicacion').value);
+            formData.append('precio', document.getElementById('precio').value);
+            formData.append('stock', document.getElementById('stock').value);
+            formData.append('riego', document.getElementById('riego').value);
+            formData.append('clima', document.getElementById('clima').value);
+            formData.append('cuidados', document.getElementById('cuidados').value);
+
+            const fotoInput = document.getElementById('fotoInput');
+            if (fotoInput.files[0]) formData.append('foto', fotoInput.files[0]);
+
+            const res = await fetch('/api/plantas', { method: 'POST', body: formData });
+            if (res.ok) {
+                alert("¡Planta guardada correctamente!");
+                document.getElementById('plantaForm').reset();
+                document.getElementById('plantaId').value = '';
+                await cargarInventario();
+                seleccionarOpcion('pos');
+            } else {
+                alert("Error al guardar la planta.");
+            }
+        });
+
+        function agregarAlTicket(id) {
+            const p = inventario.find(x => String(x.id) === String(id));
+            if (!p || p.stock <= 0) return alert("Sin stock disponible");
+
+            const enTicket = ticket.find(x => String(x.id) === String(id));
+            if (enTicket) {
+                if (enTicket.cantidad < p.stock) enTicket.cantidad++;
+                else alert("Llegaste al límite de stock disponible");
+            } else {
+                ticket.push({ id: String(p.id), nombre: p.nombre, precio: p.precio, cantidad: 1 });
+            }
+            renderTicket();
+        }
+
+        function renderTicket() {
+            const cont = document.getElementById('listaTicket');
+            cont.innerHTML = '';
+            let total = 0;
+
+            if (ticket.length === 0) {
+                cont.innerHTML = '<p style="color:#64748b; font-size:0.85em; text-align:center; padding:10px;">El carrito está vacío</p>';
+                document.getElementById('totalVenta').innerText = '0';
+                return;
+            }
+
+            ticket.forEach(item => {
+                const sub = item.precio * item.cantidad;
+                total += sub;
+                cont.innerHTML += `
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; border-bottom:1px dashed #cbd5e1; padding-bottom:6px;">
+                        <div>
+                            <b>${item.nombre}</b><br>
+                            <small style="color:#64748b;">$${item.precio.toLocaleString('es-CL')} c/u</small>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:5px;">
+                            <button onclick="modificarCantidad('${item.id}', -1)" style="background:#e2e8f0; border:none; padding:2px 6px; border-radius:4px; font-weight:bold; cursor:pointer;">-</button>
+                            <span><b>${item.cantidad}</b></span>
+                            <button onclick="modificarCantidad('${item.id}', 1)" style="background:#e2e8f0; border:none; padding:2px 6px; border-radius:4px; font-weight:bold; cursor:pointer;">+</button>
+                            <b style="margin-left:5px;">$${sub.toLocaleString('es-CL')}</b>
+                            <button onclick="eliminarDelTicket('${item.id}')" style="background:#ef4444; color:white; border:none; padding:2px 6px; border-radius:4px; cursor:pointer; margin-left:5px;">🗑️</button>
+                        </div>
+                    </div>
+                `;
+            });
+            document.getElementById('totalVenta').innerText = total.toLocaleString('es-CL');
+        }
+
+        function modificarCantidad(id, cambio) {
+            const item = ticket.find(x => String(x.id) === String(id));
+            const p = inventario.find(x => String(x.id) === String(id));
+
+            if (item && p) {
+                if (cambio > 0 && item.cantidad >= p.stock) {
+                    return alert("No hay más stock disponible de esta planta");
+                }
+                item.cantidad += cambio;
+                if (item.cantidad <= 0) {
+                    eliminarDelTicket(id);
+                } else {
+                    renderTicket();
+                }
+            }
+        }
+
+        function eliminarDelTicket(id) {
+            ticket = ticket.filter(x => String(x.id) !== String(id));
+            renderTicket();
+        }
+
+        async function finalizarVenta() {
+            if (ticket.length === 0) return alert("El carrito está vacío");
+            const medioPago = document.getElementById('medioPago').value;
+
+            const res = await fetch('/api/ventas', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ items: ticket, medioPago })
+            });
+
+            if (res.ok) {
+                alert("¡Venta registrada y stock actualizado!");
+                ticket = [];
+                renderTicket();
+                await cargarInventario();
+            } else {
+                alert("Ocurrió un error al registrar la venta");
+            }
+        }
+
+        async function cargarReporteAdmin() {
+            const fecha = document.getElementById('fechaCaja').value;
+            const res = await fetch(`/api/reporte-admin?fecha=${fecha}`);
+            if (!res.ok) return;
             const data = await res.json();
             
-            if (data.success) {
-                cerrarModal();
-                e.target.reset();
-                cargarTabla();
-            } else {
-                alert('Error al guardar: ' + data.message);
-            }
-        } catch (err) {
-            alert('Error de conexión con el servidor');
-        } finally {
-            btn.disabled = false;
-            btn.innerText = 'Guardar Planta';
+            efectivoEsperadoSistema = data.caja.efectivo;
+            document.getElementById('statEfectivo').innerText = '$' + Number(data.caja.efectivo).toLocaleString('es-CL');
+            document.getElementById('statTransferencia').innerText = '$' + Number(data.caja.transferencia).toLocaleString('es-CL');
+            document.getElementById('statDebito').innerText = '$' + Number(data.caja.debito).toLocaleString('es-CL');
+            document.getElementById('statTotalVentas').innerText = '$' + Number(data.totalRecaudadoVentas).toLocaleString('es-CL');
+            document.getElementById('statCantVentas').innerText = data.cantidadVentas + ' ventas';
+            document.getElementById('statValorInventario').innerText = '$' + Number(data.valorTotalInventario).toLocaleString('es-CL');
+            calcularDiferenciaCaja();
         }
-    });
 
-    async function eliminarPlanta(id) {
-        if (!confirm('¿Eliminar esta planta?')) return;
-        await fetch(`/api/plantas/${id}`, { method: 'DELETE' });
-        cargarTabla();
-    }
+        function calcularDiferenciaCaja() {
+            const inputVal = document.getElementById('efectivoReal').value;
+            const resDiv = document.getElementById('resultadoArqueo');
+            if (inputVal === '') {
+                resDiv.innerHTML = '<span style="font-size:0.9em; color:#64748b;">Ingrese el dinero contado para verificar si cuadra con el sistema.</span>';
+                return;
+            }
+            const contado = Number(inputVal);
+            const dif = contado - efectivoEsperadoSistema;
+            if (dif === 0) resDiv.innerHTML = '<b style="color:#22c55e; font-size:1.1em;">✅ Caja Perfecta: El efectivo coincide de forma exacta.</b>';
+            else if (dif > 0) resDiv.innerHTML = `<b style="color:#0284c7; font-size:1.1em;">🔵 Sobrante en Caja:</b> Hay $${dif.toLocaleString('es-CL')} más de lo registrado.`;
+            else resDiv.innerHTML = `<b style="color:#ef4444; font-size:1.1em;">⚠️ Faltante en Caja:</b> Faltan $${Math.abs(dif).toLocaleString('es-CL')} en el cajón.`;
+        }
 
-    function abrirModal() { document.getElementById('modalPlanta').style.display = 'flex'; }
-    function cerrarModal() { document.getElementById('modalPlanta').style.display = 'none'; }
+        // GASTOS
+        document.getElementById('gastoForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = {
+                descripcion: document.getElementById('gastoDesc').value,
+                categoria: document.getElementById('gastoCat').value,
+                monto: document.getElementById('gastoMonto').value,
+                medioPago: document.getElementById('gastoMedio').value
+            };
+            const res = await fetch('/api/gastos', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            if (res.ok) {
+                alert("¡Gasto guardado!");
+                document.getElementById('gastoForm').reset();
+                cargarGastos();
+            }
+        });
 
-    cargarTabla();
-</script>
+        async function cargarGastos() {
+            const res = await fetch('/api/gastos');
+            const gastos = await res.json();
+            const tbody = document.getElementById('tablaGastos');
+            tbody.innerHTML = '';
+            gastos.reverse().forEach(g => {
+                const f = new Date(g.fecha).toLocaleDateString('es-CL');
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${f}</td>
+                        <td><b>${g.descripcion}</b></td>
+                        <td>${g.categoria}</td>
+                        <td>${g.medioPago}</td>
+                        <td><b>$${Number(g.monto).toLocaleString('es-CL')}</b></td>
+                        <td><button onclick="eliminarGasto('${g.id}')" style="background:#ef4444; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">🗑️</button></td>
+                    </tr>
+                `;
+            });
+        }
+
+        async function eliminarGasto(id) {
+            if (confirm("¿Borrar gasto?")) {
+                await fetch(`/api/gastos/${id}`, { method: 'DELETE' });
+                cargarGastos();
+            }
+        }
+
+        // HISTORIAL VENTAS
+        async function cargarHistorialVentas() {
+            const res = await fetch('/api/ventas');
+            const ventas = await res.json();
+            const tbody = document.getElementById('tablaHistorial');
+            tbody.innerHTML = '';
+            ventas.reverse().forEach(v => {
+                const f = new Date(v.fecha).toLocaleString('es-CL');
+                const detalle = v.items.map(i => `${i.nombre} (x${i.cantidad})`).join(', ');
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${f}</td>
+                        <td><b>${v.vendedor}</b></td>
+                        <td>${detalle}</td>
+                        <td>${v.medioPago}</td>
+                        <td><b style="color:#15803d;">$${Number(v.total).toLocaleString('es-CL')}</b></td>
+                    </tr>
+                `;
+            });
+        }
+
+        // F29 / FACTURAS
+        document.getElementById('facturaForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData();
+            formData.append('proveedor', document.getElementById('factProveedor').value);
+            formData.append('numFactura', document.getElementById('factNum').value);
+            formData.append('fecha', document.getElementById('factFecha').value);
+            formData.append('montoNeto', document.getElementById('factNeto').value);
+
+            const fileInput = document.getElementById('factFile');
+            if (fileInput.files[0]) formData.append('archivo', fileInput.files[0]);
+
+            const res = await fetch('/api/facturas', { method: 'POST', body: formData });
+            if (res.ok) {
+                alert("¡Factura guardada para respaldos del F29!");
+                document.getElementById('facturaForm').reset();
+                document.getElementById('factFecha').value = new Date().toISOString().split('T')[0];
+                cargarFacturas();
+            }
+        });
+
+        async function cargarFacturas() {
+            const res = await fetch('/api/facturas');
+            const facturas = await res.json();
+            const tbody = document.getElementById('tablaFacturas');
+            tbody.innerHTML = '';
+            facturas.reverse().forEach(f => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${f.fecha}</td>
+                        <td><b>${f.proveedor}</b></td>
+                        <td>#${f.numFactura}</td>
+                        <td>$${Number(f.montoNeto).toLocaleString('es-CL')}</td>
+                        <td><b style="color:#0284c7;">$${Number(f.ivaRecuperable).toLocaleString('es-CL')}</b></td>
+                        <td><b>$${Number(f.total).toLocaleString('es-CL')}</b></td>
+                        <td>${f.adjunto ? `<a href="${f.adjunto}" target="_blank">📄 Ver Documento</a>` : 'Sin adjunto'}</td>
+                        <td><button onclick="eliminarFactura('${f.id}')" style="background:#ef4444; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">🗑️</button></td>
+                    </tr>
+                `;
+            });
+        }
+
+        async function eliminarFactura(id) {
+            if (confirm("¿Borrar factura?")) {
+                await fetch(`/api/facturas/${id}`, { method: 'DELETE' });
+                cargarFacturas();
+            }
+        }
+
+        // DESPACHOS
+        document.getElementById('despachoForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = {
+                cliente: document.getElementById('despCliente').value,
+                direccion: document.getElementById('despDireccion').value,
+                telefono: document.getElementById('despTelefono').value,
+                monto: document.getElementById('despMonto').value,
+                detalle: document.getElementById('despDetalle').value,
+                estadoPago: document.getElementById('despEstadoPago').value
+            };
+            const res = await fetch('/api/despachos', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            if (res.ok) {
+                alert("¡Reparto agendado!");
+                document.getElementById('despachoForm').reset();
+                cargarDespachos();
+            }
+        });
+
+        async function cargarDespachos() {
+            const res = await fetch('/api/despachos');
+            const despachos = await res.json();
+            const cont = document.getElementById('listaDespachos');
+            cont.innerHTML = '';
+
+            if (despachos.length === 0) {
+                cont.innerHTML = '<p style="color:#666;">No hay repartos agendados para este sábado.</p>';
+                return;
+            }
+
+            despachos.reverse().forEach(d => {
+                const esEntregado = d.estadoEntrega === 'Entregado';
+                cont.innerHTML += `
+                    <div style="background: ${esEntregado ? '#f0fdf4' : '#fff'}; border-left: 5px solid ${esEntregado ? '#22c55e' : '#f59e0b'}; padding: 15px; border-radius: 6px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                            <div>
+                                <b style="font-size:1.1em; color:#1e293b;">👤 ${d.cliente}</b>
+                                <p style="font-size:0.9em; color:#475569; margin:4px 0;">📍 <b>Dirección:</b> ${d.direccion}</p>
+                                ${d.telefono ? `<p style="font-size:0.9em; color:#0284c7;">📞 <a href="https://wa.me/${d.telefono.replace(/\+/g,'')}" target="_blank" style="color:#0284c7; text-decoration:none;">${d.telefono} (WhatsApp)</a></p>` : ''}
+                                <p style="font-size:0.9em; color:#334155; margin-top:6px;">📦 <b>Plantas:</b> ${d.detalle}</p>
+                            </div>
+                            <div style="text-align:right;">
+                                <span style="font-size:1.2em; font-weight:bold; color:#15803d;">$${Number(d.monto).toLocaleString('es-CL')}</span>
+                                <br>
+                                <span style="font-size:0.75em; padding:2px 6px; border-radius:4px; background:${d.estadoPago === 'Pagado' ? '#bbf7d0' : '#fef08a'}; color:${d.estadoPago === 'Pagado' ? '#15803d' : '#854d0e'}; font-weight:bold; display:inline-block; margin-top:4px;">${d.estadoPago}</span>
+                            </div>
+                        </div>
+                        <div style="margin-top:12px; display:flex; gap:8px; justify-content:flex-end;">
+                            ${!esEntregado ? `<button onclick="marcarEntregado('${d.id}')" style="background:#22c55e; color:white; border:none; padding:6px 12px; border-radius:4px; font-weight:bold; cursor:pointer;">✅ Marcar Entregado</button>` : '<b style="color:#22c55e;">✅ Entregado</b>'}
+                            <button onclick="eliminarDespacho('${d.id}')" style="background:#ef4444; color:white; border:none; padding:6px 10px; border-radius:4px; cursor:pointer;">🗑️</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        async function marcarEntregado(id) {
+            await fetch(`/api/despachos/${id}/estado`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ estadoEntrega: 'Entregado' })
+            });
+            cargarDespachos();
+        }
+
+        async function eliminarDespacho(id) {
+            if (confirm("¿Borrar entrega?")) {
+                await fetch(`/api/despachos/${id}`, { method: 'DELETE' });
+                cargarDespachos();
+            }
+        }
+
+        verificarSesion();
+    </script>
 </body>
 </html>
