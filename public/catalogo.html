@@ -5,86 +5,78 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Catálogo - Vivero Sol y Sombra</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
-        body { background-color: #f4f7f6; padding-bottom: 40px; color: #333; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; }
+        body { background-color: #f3f6f4; color: #2d3748; padding-bottom: 50px; }
         
-        header { 
-            background: #1b5e20; 
-            color: white; 
-            padding: 20px; 
+        .header {
+            background: linear-gradient(135deg, #1b5e20, #2e7d32);
+            color: white;
+            padding: 30px 15px;
             text-align: center;
         }
 
-        .header-content {
+        .header-title {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 15px;
+            gap: 12px;
             margin-bottom: 15px;
         }
 
-        .logo {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: white;
-            object-fit: cover;
-        }
+        .logo { width: 60px; height: 60px; border-radius: 50%; border: 2px solid white; background: white; }
 
         .info-box {
-            background: rgba(0, 0, 0, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
             border-radius: 8px;
             padding: 12px;
-            max-width: 600px;
+            max-width: 650px;
             margin: 0 auto;
             font-size: 0.9em;
             line-height: 1.5;
+            text-align: left;
         }
 
-        .info-box a {
-            color: #81c784;
-            font-weight: bold;
-            text-decoration: underline;
-        }
+        .info-box a { color: #81c784; font-weight: bold; }
 
-        .search-container {
-            max-width: 1000px;
+        .search-box {
+            max-width: 900px;
             margin: 20px auto;
             padding: 0 15px;
         }
 
-        #buscarInput {
+        .search-box input {
             width: 100%;
-            padding: 12px 15px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
+            padding: 12px 18px;
+            border: 2px solid #a5d6a7;
+            border-radius: 25px;
             font-size: 1em;
             outline: none;
         }
 
         .grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
             gap: 20px;
-            max-width: 1000px;
+            max-width: 900px;
             margin: 0 auto;
             padding: 0 15px;
         }
 
         .card {
             background: white;
-            border-radius: 8px;
+            border-radius: 10px;
             overflow: hidden;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
             display: flex;
             flex-direction: column;
         }
 
         .card img {
             width: 100%;
-            height: 220px;
+            height: 180px;
             object-fit: cover;
+            background: #e0e0e0;
         }
 
         .card-body {
@@ -94,126 +86,109 @@
             flex-grow: 1;
         }
 
-        .card-title {
-            font-size: 1.2em;
+        .tag {
+            align-self: flex-start;
+            background: #e8f5e9;
             color: #2e7d32;
-            margin-bottom: 4px;
-        }
-
-        .card-cientifico {
-            font-size: 0.85em;
-            color: #666;
-            font-style: italic;
+            font-size: 0.75em;
+            font-weight: bold;
+            padding: 3px 8px;
+            border-radius: 12px;
             margin-bottom: 8px;
         }
 
-        .card-price {
-            font-size: 1.1em;
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 12px;
-        }
+        .title { font-size: 1.1em; font-weight: bold; color: #1b5e20; }
+        .sub { font-size: 0.85em; color: #666; font-style: italic; margin-bottom: 8px; }
+        .price { font-size: 1.25em; font-weight: bold; color: #111; margin-bottom: 12px; }
 
         .btn-wsp {
             background: #25d366;
             color: white;
             text-decoration: none;
             padding: 10px;
-            border-radius: 5px;
+            border-radius: 6px;
             text-align: center;
             font-weight: bold;
             margin-top: auto;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
+            display: block;
         }
 
-        .btn-wsp:hover {
-            background: #128c7e;
-        }
+        .btn-wsp:hover { background: #128c7e; }
+        .empty { grid-column: 1 / -1; text-align: center; color: #777; padding: 40px; }
     </style>
 </head>
 <body>
 
-<header>
-    <div class="header-content">
+<div class="header">
+    <div class="header-title">
         <img src="/logo.png" class="logo" onerror="this.style.display='none'">
         <h1>Vivero Sol y Sombra</h1>
     </div>
-    
     <div class="info-box">
-        📍 <b>Ubicación:</b> Camino Internacional, Sector La Victoria. Limache. — 
-        <a href="https://www.google.com/maps/place/AgroServicio+Sol+y+Sombra/@-32.9246823,-71.4244564,17z/data=!4m6!3m5!1s0x9689db0044ae9183:0xcb56b7e29284535d!8m2!3d-32.9246823!4d-71.4244564!16s%2Fg%2F11w3v1r78p" target="_blank">Ver ubicación en Google Maps 🗺️</a><br>
+        📍 <b>Ubicación:</b> Camino Internacional, Sector La Victoria, Limache. 
+        <a href="https://www.google.com/maps/place/AgroServicio+Sol+y+Sombra/@-32.9246823,-71.4244564,17z" target="_blank">Ver Mapa 🗺️</a><br>
         🎯 <b>Atención presencial:</b> Previo aviso.<br>
-        🚚 <b>Reparto a domicilio:</b> Todos los sábados.<br>
-        📞 <b>Contacto / Pedidos:</b> +56 9 5345 0809
+        🚚 <b>Reparto a domicilio:</b> Sábados.<br>
+        📞 <b>Contacto:</b> +56 9 5345 0809
     </div>
-</header>
-
-<div class="search-container">
-    <input type="text" id="buscarInput" placeholder="🔍 Buscar planta por nombre o científico..." onkeyup="filtrarPlantas()">
 </div>
 
-<div class="grid" id="catalogoGrid"></div>
+<div class="search-box">
+    <input type="text" id="buscar" placeholder="🔍 Buscar por planta o categoría..." onkeyup="filtrar()">
+</div>
+
+<div class="grid" id="grid"></div>
 
 <script>
-    let todasLasPlantas = [];
+    let lista = [];
 
-    async function cargarCatalogo() {
+    async function cargar() {
         try {
             const res = await fetch('/api/plantas');
-            todasLasPlantas = await res.json();
-            renderCatalogo(todasLasPlantas);
-        } catch (err) {
-            console.error("Error al cargar plantas", err);
-            document.getElementById('catalogoGrid').innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #d32f2f;">Error al conectar con el catálogo.</p>';
+            lista = await res.json();
+            dibujar(lista);
+        } catch (e) {
+            document.getElementById('grid').innerHTML = '<p class="empty">Error al cargar plantas.</p>';
         }
     }
 
-    function renderCatalogo(plantas) {
-        const grid = document.getElementById('catalogoGrid');
-        
-        // Filtramos solo las que tienen stock disponible
-        const disponibles = plantas.filter(p => Number(p.stock) > 0);
+    function dibujar(datos) {
+        const grid = document.getElementById('grid');
+        const disponibles = datos.filter(p => Number(p.stock) > 0);
 
         if (disponibles.length === 0) {
-            grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #666; padding: 40px 0;">No hay plantas disponibles en este momento.</p>';
+            grid.innerHTML = '<p class="empty">No hay plantas disponibles en este momento.</p>';
             return;
         }
 
         grid.innerHTML = disponibles.map(p => {
-            const precioFormateado = Number(p.precio || 0).toLocaleString('es-CL');
-            const textoCientifico = p.cientifico ? `<div class="card-cientifico">${p.cientifico}</div>` : '';
-            const msgWsp = encodeURIComponent(`Hola, me interesa consultar por la planta ${p.nombre} ($${precioFormateado}) vista en su catálogo.`);
-            
+            const precio = Number(p.precio).toLocaleString('es-CL');
+            const msg = encodeURIComponent(`Hola, me interesa consultar por la planta ${p.nombre} ($${precio}) vista en el catálogo.`);
             return `
                 <div class="card">
-                    <img src="${p.foto || '/logo.png'}" onerror="this.src='/logo.png'">
+                    <img src="${p.foto}" onerror="this.src='/logo.png'">
                     <div class="card-body">
-                        <div class="card-title">${p.nombre}</div>
-                        ${textoCientifico}
-                        <div class="card-price">$${precioFormateado}</div>
-                        <a href="https://wa.me/56953450809?text=${msgWsp}" target="_blank" class="btn-wsp">
-                            💬 Consultar por WhatsApp
-                        </a>
+                        ${p.categoria ? `<span class="tag">${p.categoria}</span>` : ''}
+                        <div class="title">${p.nombre}</div>
+                        <div class="sub">${p.cientifico || ''}</div>
+                        <div class="price">$${precio}</div>
+                        <a href="https://wa.me/56953450809?text=${msg}" target="_blank" class="btn-wsp">💬 Consultar por WhatsApp</a>
                     </div>
                 </div>
             `;
         }).join('');
     }
 
-    function filtrarPlantas() {
-        const query = document.getElementById('buscarInput').value.toLowerCase().trim();
-        const filtradas = todasLasPlantas.filter(p => 
-            (p.nombre && p.nombre.toLowerCase().includes(query)) || 
-            (p.cientifico && p.cientifico.toLowerCase().includes(query)) ||
-            (p.categoria && p.categoria.toLowerCase().includes(query))
+    function filtrar() {
+        const q = document.getElementById('buscar').value.toLowerCase();
+        const res = lista.filter(p => 
+            p.nombre.toLowerCase().includes(q) || 
+            (p.categoria && p.categoria.toLowerCase().includes(q))
         );
-        renderCatalogo(filtradas);
+        dibujar(res);
     }
 
-    cargarCatalogo();
+    cargar();
 </script>
 
 </body>

@@ -3,884 +3,170 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vivero Sol y Sombra - Sistema de Gestión</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <title>Panel de Control - Vivero Sol y Sombra</title>
     <style>
-        :root {
-            --primary-color: #2e7d32;
-            --secondary-color: #81c784;
-            --dark-color: #1b5e20;
-            --light-bg: #f4f6f4;
-        }
-        body {
-            background-color: var(--light-bg);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        .navbar {
-            background-color: var(--dark-color) !important;
-        }
-        .card {
-            border: none;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            margin-bottom: 20px;
-        }
-        .card-header {
-            background-color: #fff;
-            border-bottom: 2px solid var(--light-bg);
-            font-weight: bold;
-            color: var(--primary-color);
-        }
-        .btn-success {
-            background-color: var(--primary-color);
-            border-color: var(--primary-color);
-        }
-        .btn-success:hover {
-            background-color: var(--dark-color);
-            border-color: var(--dark-color);
-        }
-        .img-preview {
-            width: 50px;
-            height: 50px;
-            object-fit: cover;
-            border-radius: 8px;
-        }
-        .badge-stock {
-            font-size: 0.9em;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; }
+        body { background-color: #f4f7f6; color: #333; }
+        header { background: #1b5e20; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
+        .logo-head { width: 45px; height: 45px; border-radius: 50%; vertical-align: middle; margin-right: 10px; }
+        .container { max-width: 1000px; margin: 30px auto; padding: 0 20px; }
+        .actions-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .btn-primary { background: #2e7d32; color: white; border: none; padding: 10px 18px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        .btn-primary:hover { background: #1b5e20; }
+        
+        table { width: 100%; background: white; border-collapse: collapse; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #e8f5e9; color: #2e7d32; }
+        .img-thumb { width: 50px; height: 50px; object-fit: cover; border-radius: 6px; }
+
+        /* Modal */
+        .modal-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 100; }
+        .modal { background: white; padding: 25px; border-radius: 10px; width: 100%; max-width: 500px; position: relative; }
+        .close-btn { position: absolute; top: 15px; right: 20px; font-size: 1.5em; cursor: pointer; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; }
+        .form-group { display: flex; flex-direction: column; }
+        .form-group.full { grid-column: 1 / -1; }
+        label { font-size: 0.85em; font-weight: bold; margin-bottom: 4px; color: #555; }
+        input { padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.95em; }
+        .btn-danger { background: #c62828; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <!-- NAVBAR -->
-    <nav class="navbar navbar-expand-lg navbar-dark mb-4">
-        <div class="container-fluid">
-            <a class="navbar-brand d-flex align-items-center" href="#">
-                <img src="/logo.png" alt="Logo" class="me-2" style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover;" onerror="this.style.display='none'">
-                <i class="bi bi-tree-fill me-2"></i> Vivero Sol y Sombra
-            </a>
-            <div class="d-flex align-items-center text-white">
-                <span id="userGreeting" class="me-3"></span>
-                <a href="/api/logout" class="btn btn-outline-light btn-sm"><i class="bi bi-box-arrow-right"></i> Salir</a>
-            </div>
-        </div>
-    </nav>
+<header>
+    <div>
+        <img src="/logo.png" class="logo-head" onerror="this.style.display='none'">
+        <span style="font-size: 1.2em; font-weight: bold;">Vivero Sol y Sombra</span>
+    </div>
+    <a href="/catalogo.html" target="_blank" style="color: white; text-decoration: none; font-weight: bold;">🌐 Ver Catálogo</a>
+</header>
 
-    <div class="container-fluid px-4">
-        <!-- NAVEGACIÓN POR PESTAÑAS -->
-        <ul class="nav nav-pills mb-4" id="mainTabs" role="tablist">
-            <li class="nav-item">
-                <button class="nav-link active" id="pos-tab" data-bs-toggle="tab" data-bs-target="#pos-sec"><i class="bi bi-cart-check"></i> Punto de Venta</button>
-            </li>
-            <li class="nav-item">
-                <button class="nav-link" id="inventario-tab" data-bs-toggle="tab" data-bs-target="#inventario-sec"><i class="bi bi-box-seam"></i> Inventario</button>
-            </li>
-            <li class="nav-item">
-                <button class="nav-link" id="despachos-tab" data-bs-toggle="tab" data-bs-target="#despachos-sec"><i class="bi bi-truck"></i> Repartos Sábado</button>
-            </li>
-            <li class="nav-item admin-only">
-                <button class="nav-link" id="gastos-tab" data-bs-toggle="tab" data-bs-target="#gastos-sec"><i class="bi bi-cash-stack"></i> Gastos Insumos</button>
-            </li>
-            <li class="nav-item admin-only">
-                <button class="nav-link" id="facturas-tab" data-bs-toggle="tab" data-bs-target="#facturas-sec"><i class="bi bi-file-earmark-text"></i> F29 / Facturas</button>
-            </li>
-            <li class="nav-item admin-only">
-                <button class="nav-link" id="caja-tab" data-bs-toggle="tab" data-bs-target="#caja-sec"><i class="bi bi-graph-up-arrow"></i> Reportes & Caja</button>
-            </li>
-        </ul>
-
-        <div class="tab-content">
-            
-            <!-- SECCIÓN PUNTO DE VENTA (POS) -->
-            <div class="tab-pane fade show active" id="pos-sec">
-                <div class="row">
-                    <div class="col-md-7">
-                        <div class="card">
-                            <div class="card-header">Catálogo para Venta</div>
-                            <div class="card-body">
-                                <input type="text" id="searchPos" class="form-control mb-3" placeholder="Buscar planta por nombre o categoría..." onkeyup="filtrarPos()">
-                                <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
-                                    <table class="table table-hover align-middle">
-                                        <thead>
-                                            <tr>
-                                                <th>Foto</th>
-                                                <th>Planta</th>
-                                                <th>Precio</th>
-                                                <th>Stock</th>
-                                                <th>Acción</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="tablaPos"></tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-5">
-                        <div class="card">
-                            <div class="card-header">Detalle de la Venta</div>
-                            <div class="card-body">
-                                <table class="table align-middle">
-                                    <thead>
-                                        <tr>
-                                            <th>Producto</th>
-                                            <th>Cant.</th>
-                                            <th>Subtotal</th>
-                                            <th></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="tablaTicket"></tbody>
-                                </table>
-                                <hr>
-                                <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <h4>Total:</h4>
-                                    <h3 class="text-success" id="totalTicket">$0</h3>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Medio de Pago</label>
-                                    <select id="medioPago" class="form-select">
-                                        <option value="Efectivo">Efectivo</option>
-                                        <option value="Transferencia">Transferencia</option>
-                                        <option value="Débito / Crédito">Débito / Crédito</option>
-                                    </select>
-                                </div>
-                                <button class="btn btn-success w-100 btn-lg" onclick="finalizarVenta()"><i class="bi bi-check-circle"></i> Cobrar y Descontar Stock</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- SECCIÓN INVENTARIO -->
-            <div class="tab-pane fade" id="inventario-sec">
-                <div class="card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <span>Gestión de Inventario</span>
-                        <button class="btn btn-success btn-sm" onclick="abrirModalPlanta()"><i class="bi bi-plus-lg"></i> Agregar Planta</button>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-striped align-middle">
-                                <thead>
-                                    <tr>
-                                        <th>Foto</th>
-                                        <th>Nombre</th>
-                                        <th>Científico</th>
-                                        <th>Categoría</th>
-                                        <th>Ubicación</th>
-                                        <th>Precio</th>
-                                        <th>Stock</th>
-                                        <th>Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="tablaInventario"></tbody>
-                                </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- SECCIÓN REPARTOS SÁBADO -->
-            <div class="tab-pane fade" id="despachos-sec">
-                <div class="card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <span>Agendar Repartos para el Sábado</span>
-                        <button class="btn btn-success btn-sm" onclick="abrirModalDespacho()"><i class="bi bi-plus-lg"></i> Agendar Despacho</button>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-bordered align-middle">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th>Cliente</th>
-                                        <th>Dirección</th>
-                                        <th>Teléfono</th>
-                                        <th>Detalle / Pedido</th>
-                                        <th>Monto ($)</th>
-                                        <th>Estado Pago</th>
-                                        <th>Entrega</th>
-                                        <th>Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="tablaDespachos"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- SECCIÓN GASTOS -->
-            <div class="tab-pane fade admin-only" id="gastos-sec">
-                <div class="card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <span>Registro de Gastos e Insumos</span>
-                        <button class="btn btn-success btn-sm" onclick="abrirModalGasto()"><i class="bi bi-plus-lg"></i> Registrar Gasto</button>
-                    </div>
-                    <div class="card-body">
-                        <table class="table align-middle">
-                            <thead>
-                                <tr>
-                                    <th>Fecha</th>
-                                    <th>Descripción</th>
-                                    <th>Categoría</th>
-                                    <th>Monto</th>
-                                    <th>Medio Pago</th>
-                                    <th>Acción</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tablaGastos"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- SECCIÓN F29 / FACTURAS -->
-            <div class="tab-pane fade admin-only" id="facturas-sec">
-                <div class="card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <span>Facturas de Compra (Crédito Fiscal IVA - F29)</span>
-                        <button class="btn btn-success btn-sm" onclick="abrirModalFactura()"><i class="bi bi-plus-lg"></i> Ingresar Factura</button>
-                    </div>
-                    <div class="card-body">
-                        <table class="table align-middle">
-                            <thead>
-                                <tr>
-                                    <th>Fecha</th>
-                                    <th>Proveedor</th>
-                                    <th>N° Factura</th>
-                                    <th>Neto</th>
-                                    <th>IVA (19%)</th>
-                                    <th>Total</th>
-                                    <th>Adjunto</th>
-                                    <th>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tablaFacturas"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- SECCIÓN CAJA Y REPORTES -->
-            <div class="tab-pane fade admin-only" id="caja-sec">
-                <div class="row">
-                    <div class="col-md-3">
-                        <div class="card text-center bg-primary text-white">
-                            <div class="card-body">
-                                <h6>Valor Total Inventario</h6>
-                                <h3 id="repValInventario">$0</h3>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card text-center bg-success text-white">
-                            <div class="card-body">
-                                <h6>Total Ventas Registradas</h6>
-                                <h3 id="repTotalVentas">$0</h3>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card text-center bg-info text-white">
-                            <div class="card-body">
-                                <h6>Total Unidades en Stock</h6>
-                                <h3 id="repUnidadesStock">0</h3>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card text-center bg-warning text-dark">
-                            <div class="card-body">
-                                <h6>Efectivo en Caja</h6>
-                                <h3 id="repEfectivo">$0</h3>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-        </div>
+<div class="container">
+    <div class="actions-bar">
+        <h2>Gestión de Inventario</h2>
+        <button class="btn-primary" onclick="abrirModal()">+ Agregar Planta</button>
     </div>
 
-    <!-- MODALES -->
-    <!-- MODAL PLANTA -->
-    <div class="modal fade" id="modalPlanta" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <form id="formPlanta" onsubmit="guardarPlanta(event)">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="modalPlantaTitulo">Planta</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body row g-3">
-                        <input type="hidden" id="plantaId">
-                        <div class="col-md-6">
-                            <label class="form-label">Nombre Común</label>
-                            <input type="text" id="plantaNombre" class="form-control" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Nombre Científico</label>
-                            <input type="text" id="plantaCientifico" class="form-control">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Categoría</label>
-                            <input type="text" id="plantaCategoria" class="form-control" placeholder="Ej: Cítricos, Suculentas">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Precio ($)</label>
-                            <input type="number" id="plantaPrecio" class="form-control" required>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Stock</label>
-                            <input type="number" id="plantaStock" class="form-control" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Ubicación</label>
-                            <input type="text" id="plantaUbicacion" class="form-control" placeholder="Ej: Sector A, Invernadero 2">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Foto</label>
-                          <input type="file" class="form-control" id="foto" name="foto" accept="image/*" capture="environment">
-                        </div>
-<div class="modal-footer">
-    <button type="button" class="btn btn-success" onclick="guardarPlanta()">Guardar Planta</button>
+    <table>
+        <thead>
+            <tr>
+                <th>Foto</th>
+                <th>Nombre</th>
+                <th>Categoría</th>
+                <th>Precio</th>
+                <th>Stock</th>
+                <th>Ubicación</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody id="tablaPlantas"></tbody>
+    </table>
 </div>
-                </form>
+
+<!-- Modal Agregar Planta -->
+<div class="modal-bg" id="modalPlanta">
+    <div class="modal">
+        <span class="close-btn" onclick="cerrarModal()">&times;</span>
+        <h3>Agregar Nueva Planta</h3>
+        <form id="formPlanta" enctype="multipart/form-data">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Nombre Común *</label>
+                    <input type="text" name="nombre" required>
+                </div>
+                <div class="form-group">
+                    <label>Nombre Científico</label>
+                    <input type="text" name="cientifico">
+                </div>
+                <div class="form-group">
+                    <label>Categoría</label>
+                    <input type="text" name="categoria" placeholder="Frutal, Cítrico...">
+                </div>
+                <div class="form-group">
+                    <label>Precio ($) *</label>
+                    <input type="number" name="precio" required min="0">
+                </div>
+                <div class="form-group">
+                    <label>Stock *</label>
+                    <input type="number" name="stock" required min="0">
+                </div>
+                <div class="form-group">
+                    <label>Ubicación</label>
+                    <input type="text" name="ubicacion" placeholder="Ej: n1">
+                </div>
+                <div class="form-group full">
+                    <label>Foto de la Planta</label>
+                    <input type="file" name="foto" accept="image/*">
+                </div>
             </div>
-        </div>
+            <button type="submit" class="btn-primary" style="width: 100%; margin-top: 18px;" id="btnGuardar">Guardar Planta</button>
+        </form>
     </div>
+</div>
 
-    <!-- MODAL DESPACHO -->
-    <div class="modal fade" id="modalDespacho" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <form id="formDespacho" onsubmit="guardarDespacho(event)">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Agendar Despacho Sábado</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body row g-3">
-                        <div class="col-md-12">
-                            <label class="form-label">Nombre Cliente</label>
-                            <input type="text" id="despCliente" class="form-control" required>
-                        </div>
-                        <div class="col-md-12">
-                            <label class="form-label">Dirección de Entrega</label>
-                            <input type="text" id="despDireccion" class="form-control" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Teléfono</label>
-                            <input type="text" id="despTelefono" class="form-control">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Monto a Cobrar ($)</label>
-                            <input type="number" id="despMonto" class="form-control" value="0">
-                        </div>
-                        <div class="col-md-12">
-                            <label class="form-label">Detalle del Pedido</label>
-                            <textarea id="despDetalle" class="form-control" rows="2" required></textarea>
-                        </div>
-                        <div class="col-md-12">
-                            <label class="form-label">Estado de Pago</label>
-                            <select id="despEstadoPago" class="form-select">
-                                <option value="Pendiente">Pendiente (Cobrar al entregar)</option>
-                                <option value="Pagado">Pagado (Transferencia previa)</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="submit" class="btn btn-success">Agendar Reparto</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL GASTO -->
-    <div class="modal fade" id="modalGasto" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <form id="formGasto" onsubmit="guardarGasto(event)">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Registrar Gasto</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body row g-3">
-                        <div class="col-md-12">
-                            <label class="form-label">Descripción</label>
-                            <input type="text" id="gastoDesc" class="form-control" placeholder="Ej: Bolsas de sustrato, maceteros" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Categoría</label>
-                            <input type="text" id="gastoCat" class="form-control" value="Insumos">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Monto ($)</label>
-                            <input type="number" id="gastoMonto" class="form-control" required>
-                        </div>
-                        <div class="col-md-12">
-                            <label class="form-label">Medio de Pago</label>
-                            <select id="gastoMedio" class="form-select">
-                                <option value="Efectivo">Efectivo</option>
-                                <option value="Transferencia">Transferencia</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="submit" class="btn btn-success">Guardar Gasto</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL FACTURA -->
-    <div class="modal fade" id="modalFactura" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <form id="formFactura" onsubmit="guardarFactura(event)">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Ingresar Factura de Compra</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label">Proveedor</label>
-                            <input type="text" id="facProveedor" class="form-control" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">N° Factura</label>
-                            <input type="text" id="facNum" class="form-control" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Monto Neto ($)</label>
-                            <input type="number" id="facNeto" class="form-control" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Fecha</label>
-                            <input type="date" id="facFecha" class="form-control">
-                        </div>
-                        <div class="col-md-12">
-                            <label class="form-label">Adjuntar PDF / Foto</label>
-                            <input type="file" id="facArchivo" class="form-control">
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="submit" class="btn btn-success">Guardar Factura</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        let inventario = [];
-        let ticket = [];
-        let currentUser = null;
-
-       document.addEventListener("DOMContentLoaded", async () => {
-    await verificarSesion();
-    await cargarInventario();
-    if (typeof renderTablaInventario === 'function') renderTablaInventario();
-    if (typeof renderTablaPos === 'function') renderTablaPos();
-    await cargarDespachos();
-    if (currentUser && currentUser.rol === 'admin') {
-        await cargarGastos();
-        await cargarFacturas();
-        await cargarReporte();
-    }
-});
-
-        async function verificarSesion() {
-            try {
-                const res = await fetch('/api/session');
-                const data = await res.json();
-                if (!data.loggedIn) {
-                    window.location.href = '/login.html';
-                } else {
-                    currentUser = data.user;
-                    document.getElementById('userGreeting').innerText = `Hola, ${currentUser.nombre}`;
-                    if (currentUser.rol !== 'admin') {
-                        document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
-                    }
-                }
-            } catch (err) {
-                console.error("Error al verificar sesión", err);
-            }
-        }
-
-        function getId(p) {
-            return p._id || p.id;
-        }
-
-        async function cargarInventario() {
-            try {
-                const res = await fetch('/api/plantas');
-                inventario = await res.json();
-                renderInventario();
-                renderPos();
-            } catch (err) {
-                console.error("Error al cargar plantas", err);
-            }
-        }
-
-        function renderInventario() {
-            const tbody = document.getElementById('tablaInventario');
-            tbody.innerHTML = inventario.map(p => {
-                const id = getId(p);
-                const precio = Number(p.precio || 0);
-                return `
+<script>
+    async function cargarTabla() {
+        try {
+            const res = await fetch('/api/plantas');
+            const plantas = await res.json();
+            const tbody = document.getElementById('tablaPlantas');
+            
+            tbody.innerHTML = plantas.map(p => `
                 <tr>
-                    <td><img src="${p.foto || '/logo.png'}" class="img-preview" onerror="this.src='/logo.png'"></td>
-                    <td><strong>${p.nombre || 'Sin nombre'}</strong></td>
-                    <td><em>${p.cientifico || '-'}</em></td>
-                    <td><span class="badge bg-secondary">${p.categoria || 'General'}</span></td>
+                    <td><img src="${p.foto}" class="img-thumb" onerror="this.src='/logo.png'"></td>
+                    <td><b>${p.nombre}</b><br><small><i>${p.cientifico || ''}</i></small></td>
+                    <td>${p.categoria || '-'}</td>
+                    <td>$${Number(p.precio).toLocaleString('es-CL')}</td>
+                    <td>${p.stock} u.</td>
                     <td>${p.ubicacion || '-'}</td>
-                    <td>$${precio.toLocaleString('es-CL')}</td>
-                    <td><span class="badge ${p.stock > 5 ? 'bg-success' : 'bg-danger'} badge-stock">${p.stock}</span></td>
-                    <td>
-                        <button class="btn btn-sm btn-outline-primary" onclick="editarPlanta('${id}')"><i class="bi bi-pencil"></i></button>
-                        <button class="btn btn-sm btn-outline-danger" onclick="eliminarPlanta('${id}')"><i class="bi bi-trash"></i></button>
-                    </td>
+                    <td><button class="btn-danger" onclick="eliminarPlanta(${p.id})">Eliminar</button></td>
                 </tr>
-            `}).join('');
+            `).join('');
+        } catch(e) {
+            console.error("Error al cargar la tabla", e);
         }
+    }
 
-        function renderPos(filtro = '') {
-            const tbody = document.getElementById('tablaPos');
-            const lista = inventario.filter(p => 
-                (p.nombre && p.nombre.toLowerCase().includes(filtro.toLowerCase())) || 
-                (p.categoria && p.categoria.toLowerCase().includes(filtro.toLowerCase()))
-            );
+    document.getElementById('formPlanta').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('btnGuardar');
+        btn.disabled = true;
+        btn.innerText = 'Guardando...';
+
+        const formData = new FormData(e.target);
+
+        try {
+            const res = await fetch('/api/plantas', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
             
-            tbody.innerHTML = lista.map(p => {
-                const id = getId(p);
-                const precio = Number(p.precio || 0);
-                return `
-                <tr>
-                    <td><img src="${p.foto || '/logo.png'}" class="img-preview" onerror="this.src='/logo.png'"></td>
-                    <td><strong>${p.nombre || 'Sin nombre'}</strong></td>
-                    <td>$${precio.toLocaleString('es-CL')}</td>
-                    <td><span class="badge bg-info text-dark">${p.stock}</span></td>
-                    <td>
-                        <button class="btn btn-sm btn-success" ${p.stock <= 0 ? 'disabled' : ''} onclick="agregarAlTicket('${id}')">
-                            <i class="bi bi-cart-plus"></i>
-                        </button>
-                    </td>
-                </tr>
-            `}).join('');
-        }
-
-        function filtrarPos() {
-            const val = document.getElementById('searchPos').value;
-            renderPos(val);
-        }
-
-        function agregarAlTicket(id) {
-            const planta = inventario.find(p => String(getId(p)) === String(id));
-            if (!planta) return;
-
-            const enTicket = ticket.find(item => String(item.id) === String(id));
-            if (enTicket) {
-                if (enTicket.cantidad < planta.stock) enTicket.cantidad++;
-                else alert("Límite de stock alcanzado");
+            if (data.success) {
+                cerrarModal();
+                e.target.reset();
+                cargarTabla();
             } else {
-                ticket.push({ id: getId(planta), nombre: planta.nombre, precio: Number(planta.precio || 0), cantidad: 1 });
+                alert('Error al guardar: ' + data.message);
             }
-            renderTicket();
+        } catch (err) {
+            alert('Error de conexión con el servidor');
+        } finally {
+            btn.disabled = false;
+            btn.innerText = 'Guardar Planta';
         }
+    });
 
-        function renderTicket() {
-            const tbody = document.getElementById('tablaTicket');
-            let total = 0;
-            tbody.innerHTML = ticket.map((item, idx) => {
-                const subtotal = item.precio * item.cantidad;
-                total += subtotal;
-                return `
-                    <tr>
-                        <td>${item.nombre}</td>
-                        <td>${item.cantidad}</td>
-                        <td>$${subtotal.toLocaleString('es-CL')}</td>
-                        <td><button class="btn btn-sm btn-danger" onclick="quitarDelTicket(${idx})">&times;</button></td>
-                    </tr>
-                `;
-            }).join('');
-            document.getElementById('totalTicket').innerText = `$${total.toLocaleString('es-CL')}`;
-        }
+    async function eliminarPlanta(id) {
+        if (!confirm('¿Eliminar esta planta?')) return;
+        await fetch(`/api/plantas/${id}`, { method: 'DELETE' });
+        cargarTabla();
+    }
 
-        function quitarDelTicket(idx) {
-            ticket.splice(idx, 1);
-            renderTicket();
-        }
+    function abrirModal() { document.getElementById('modalPlanta').style.display = 'flex'; }
+    function cerrarModal() { document.getElementById('modalPlanta').style.display = 'none'; }
 
-        async function finalizarVenta() {
-            if (ticket.length === 0) return alert("El carrito está vacío");
-            const medioPago = document.getElementById('medioPago').value;
-
-            const res = await fetch('/api/ventas', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ items: ticket, medioPago })
-            });
-
-            if (res.ok) {
-                alert("¡Venta registrada y stock actualizado!");
-                ticket = [];
-                renderTicket();
-                await cargarInventario();
-                if (currentUser && currentUser.rol === 'admin') cargarReporte();
-            } else {
-                alert("Error al procesar la venta");
-            }
-        }
-
-        // PLANTAS MODAL & ACCIONES
-        const modalPlanta = new bootstrap.Modal(document.getElementById('modalPlanta'));
-        function abrirModalPlanta() {
-            document.getElementById('formPlanta').reset();
-            document.getElementById('plantaId').value = '';
-            document.getElementById('modalPlantaTitulo').innerText = 'Agregar Nueva Planta';
-            modalPlanta.show();
-        }
-
-        function editarPlanta(id) {
-            const p = inventario.find(x => String(getId(x)) === String(id));
-            if (!p) return;
-            document.getElementById('plantaId').value = getId(p);
-            document.getElementById('plantaNombre').value = p.nombre || '';
-            document.getElementById('plantaCientifico').value = p.cientifico || '';
-            document.getElementById('plantaCategoria').value = p.categoria || '';
-            document.getElementById('plantaPrecio').value = p.precio || 0;
-            document.getElementById('plantaStock').value = p.stock || 0;
-            document.getElementById('plantaUbicacion').value = p.ubicacion || '';
-            document.getElementById('modalPlantaTitulo').innerText = 'Editar Planta';
-            modalPlanta.show();
-        }
-
-        async function guardarPlanta(e) {
-            e.preventDefault();
-            const formData = new FormData();
-            formData.append('id', document.getElementById('plantaId').value);
-            formData.append('nombre', document.getElementById('plantaNombre').value);
-            formData.append('cientifico', document.getElementById('plantaCientifico').value);
-            formData.append('categoria', document.getElementById('plantaCategoria').value);
-            formData.append('precio', document.getElementById('plantaPrecio').value);
-            formData.append('stock', document.getElementById('plantaStock').value);
-            formData.append('ubicacion', document.getElementById('plantaUbicacion').value);
-            
-            const fotoInput = document.getElementById('plantaFoto');
-            if (fotoInput.files[0]) formData.append('foto', fotoInput.files[0]);
-
-            await fetch('/api/plantas', { method: 'POST', body: formData });
-            modalPlanta.hide();
-            await cargarInventario();
-        }
-
-        async function eliminarPlanta(id) {
-            if (confirm("¿Seguro que deseas eliminar esta planta del inventario?")) {
-                await fetch(`/api/plantas/${id}`, { method: 'DELETE' });
-                await cargarInventario();
-            }
-        }
-
-        // DESPACHOS
-        const modalDespacho = new bootstrap.Modal(document.getElementById('modalDespacho'));
-        function abrirModalDespacho() {
-            document.getElementById('formDespacho').reset();
-            modalDespacho.show();
-        }
-
-        async function cargarDespachos() {
-            try {
-                const res = await fetch('/api/despachos');
-                const despachos = await res.json();
-                const tbody = document.getElementById('tablaDespachos');
-                tbody.innerHTML = despachos.map(d => {
-                    const id = getId(d);
-                    const monto = Number(d.monto || 0);
-                    return `
-                    <tr>
-                        <td><strong>${d.cliente || ''}</strong></td>
-                        <td>${d.direccion || ''}</td>
-                        <td>${d.telefono || '-'}</td>
-                        <td>${d.detalle || ''}</td>
-                        <td>$${monto.toLocaleString('es-CL')}</td>
-                        <td><span class="badge ${d.estadoPago === 'Pagado' ? 'bg-success' : 'bg-warning text-dark'}">${d.estadoPago}</span></td>
-                        <td>
-                            <select class="form-select form-select-sm" onchange="cambiarEstadoDespacho('${id}', this.value)">
-                                <option value="Pendiente" ${d.estadoEntrega === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
-                                <option value="En Ruta" ${d.estadoEntrega === 'En Ruta' ? 'selected' : ''}>En Ruta</option>
-                                <option value="Entregado" ${d.estadoEntrega === 'Entregado' ? 'selected' : ''}>Entregado</option>
-                            </select>
-                        </td>
-                        <td><button class="btn btn-sm btn-outline-danger" onclick="eliminarDespacho('${id}')"><i class="bi bi-trash"></i></button></td>
-                    </tr>
-                `}).join('');
-            } catch(err) {
-                console.error("Error al cargar despachos", err);
-            }
-        }
-
-        async function guardarDespacho(e) {
-            e.preventDefault();
-            const body = {
-                cliente: document.getElementById('despCliente').value,
-                direccion: document.getElementById('despDireccion').value,
-                telefono: document.getElementById('despTelefono').value,
-                detalle: document.getElementById('despDetalle').value,
-                monto: document.getElementById('despMonto').value,
-                estadoPago: document.getElementById('despEstadoPago').value
-            };
-            await fetch('/api/despachos', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(body)
-            });
-            modalDespacho.hide();
-            await cargarDespachos();
-        }
-
-        async function cambiarEstadoDespacho(id, estado) {
-            await fetch(`/api/despachos/${id}/estado`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ estadoEntrega: estado })
-            });
-        }
-
-        async function eliminarDespacho(id) {
-            if (confirm("¿Eliminar reparto?")) {
-                await fetch(`/api/despachos/${id}`, { method: 'DELETE' });
-                await cargarDespachos();
-            }
-        }
-
-        // GASTOS
-        const modalGasto = new bootstrap.Modal(document.getElementById('modalGasto'));
-        function abrirModalGasto() {
-            document.getElementById('formGasto').reset();
-            modalGasto.show();
-        }
-
-        async function cargarGastos() {
-            try {
-                const res = await fetch('/api/gastos');
-                const gastos = await res.json();
-                const tbody = document.getElementById('tablaGastos');
-                tbody.innerHTML = gastos.map(g => {
-                    const id = getId(g);
-                    const monto = Number(g.monto || 0);
-                    return `
-                    <tr>
-                        <td>${new Date(g.fecha).toLocaleDateString('es-CL')}</td>
-                        <td>${g.descripcion || ''}</td>
-                        <td><span class="badge bg-secondary">${g.categoria || ''}</span></td>
-                        <td>$${monto.toLocaleString('es-CL')}</td>
-                        <td>${g.medioPago || ''}</td>
-                        <td><button class="btn btn-sm btn-outline-danger" onclick="eliminarGasto('${id}')"><i class="bi bi-trash"></i></button></td>
-                    </tr>
-                `}).join('');
-            } catch (err) {
-                console.error("Error al cargar gastos", err);
-            }
-        }
-
-        async function guardarGasto(e) {
-            e.preventDefault();
-            const body = {
-                descripcion: document.getElementById('gastoDesc').value,
-                categoria: document.getElementById('gastoCat').value,
-                monto: document.getElementById('gastoMonto').value,
-                medioPago: document.getElementById('gastoMedio').value
-            };
-            await fetch('/api/gastos', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(body)
-            });
-            modalGasto.hide();
-            await cargarGastos();
-        }
-
-        async function eliminarGasto(id) {
-            if (confirm("¿Eliminar registro de gasto?")) {
-                await fetch(`/api/gastos/${id}`, { method: 'DELETE' });
-                await cargarGastos();
-            }
-        }
-
-        // FACTURAS
-        const modalFactura = new bootstrap.Modal(document.getElementById('modalFactura'));
-        function abrirModalFactura() {
-            document.getElementById('formFactura').reset();
-            modalFactura.show();
-        }
-
-        async function cargarFacturas() {
-            try {
-                const res = await fetch('/api/facturas');
-                const facturas = await res.json();
-                const tbody = document.getElementById('tablaFacturas');
-                tbody.innerHTML = facturas.map(f => {
-                    const id = getId(f);
-                    const neto = Number(f.montoNeto || 0);
-                    const iva = Number(f.ivaRecuperable || 0);
-                    const total = Number(f.total || 0);
-                    return `
-                    <tr>
-                        <td>${f.fecha || ''}</td>
-                        <td><strong>${f.proveedor || ''}</strong></td>
-                        <td>${f.numFactura || ''}</td>
-                        <td>$${neto.toLocaleString('es-CL')}</td>
-                        <td class="text-success">$${iva.toLocaleString('es-CL')}</td>
-                        <td>$${total.toLocaleString('es-CL')}</td>
-                        <td>${f.adjunto ? `<a href="${f.adjunto}" target="_blank" class="btn btn-sm btn-outline-info"><i class="bi bi-file-pdf"></i> Ver</a>` : '-'}</td>
-                        <td><button class="btn btn-sm btn-outline-danger" onclick="eliminarFactura('${id}')"><i class="bi bi-trash"></i></button></td>
-                    </tr>
-                `}).join('');
-            } catch (err) {
-                console.error("Error al cargar facturas", err);
-            }
-        }
-
-        async function guardarFactura(e) {
-            e.preventDefault();
-            const formData = new FormData();
-            formData.append('proveedor', document.getElementById('facProveedor').value);
-            formData.append('numFactura', document.getElementById('facNum').value);
-            formData.append('montoNeto', document.getElementById('facNeto').value);
-            formData.append('fecha', document.getElementById('facFecha').value);
-            
-            const file = document.getElementById('facArchivo').files[0];
-            if (file) formData.append('archivo', file);
-
-            await fetch('/api/facturas', { method: 'POST', body: formData });
-            modalFactura.hide();
-            await cargarFacturas();
-        }
-
-        async function eliminarFactura(id) {
-            if (confirm("¿Eliminar factura?")) {
-                await fetch(`/api/facturas/${id}`, { method: 'DELETE' });
-                await cargarFacturas();
-            }
-        }
-
-        // REPORTES
-        async function cargarReporte() {
-            try {
-                const res = await fetch('/api/reporte-admin');
-                const data = await res.json();
-                document.getElementById('repValInventario').innerText = `$${Number(data.valorTotalInventario || 0).toLocaleString('es-CL')}`;
-                document.getElementById('repTotalVentas').innerText = `$${Number(data.totalRecaudadoVentas || 0).toLocaleString('es-CL')}`;
-                document.getElementById('repUnidadesStock').innerText = data.totalPlantasUnidades || 0;
-                document.getElementById('repEfectivo').innerText = `$${Number(data.caja?.efectivo || 0).toLocaleString('es-CL')}`;
-            } catch (err) {
-                console.error("Error al cargar reportes", err);
-            }
-        }
-    </script>
+    cargarTabla();
+</script>
 </body>
 </html>
