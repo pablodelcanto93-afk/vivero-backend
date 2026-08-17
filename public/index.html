@@ -5,11 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Control - Vivero Sol y Sombra</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background-color: #f4f7f6; color: #333; }
+        
         header { background: #1b5e20; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
-        .logo-head { width: 45px; height: 45px; border-radius: 50%; vertical-align: middle; margin-right: 10px; }
-        .container { max-width: 1000px; margin: 30px auto; padding: 0 20px; }
+        .header-brand { display: flex; align-items: center; gap: 12px; }
+        .logo-head { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; }
+        
+        .header-user { display: flex; align-items: center; gap: 15px; }
+        .btn-logout { background: transparent; border: 1px solid white; color: white; padding: 6px 12px; border-radius: 4px; text-decoration: none; font-size: 0.9em; }
+        .btn-logout:hover { background: rgba(255,255,255,0.2); }
+
+        /* Barra de Navegación por Pestañas */
+        nav { background: #e8f5e9; border-bottom: 2px solid #a5d6a7; padding: 0 30px; display: flex; gap: 10px; overflow-x: auto; }
+        nav button { background: none; border: none; padding: 12px 18px; font-weight: bold; color: #2e7d32; cursor: pointer; border-bottom: 3px solid transparent; font-size: 0.95em; white-space: nowrap; }
+        nav button.active { border-bottom-color: #1b5e20; color: #1b5e20; background: rgba(255,255,255,0.5); }
+        nav button:hover { background: rgba(255,255,255,0.7); }
+
+        .container { max-width: 1100px; margin: 25px auto; padding: 0 20px; }
+        .section-tab { display: none; }
+        .section-tab.active { display: block; }
+
         .actions-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .btn-primary { background: #2e7d32; color: white; border: none; padding: 10px 18px; border-radius: 6px; font-weight: bold; cursor: pointer; }
         .btn-primary:hover { background: #1b5e20; }
@@ -21,7 +37,7 @@
 
         /* Modal */
         .modal-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 100; }
-        .modal { background: white; padding: 25px; border-radius: 10px; width: 100%; max-width: 500px; position: relative; }
+        .modal { background: white; padding: 25px; border-radius: 10px; width: 100%; max-width: 520px; position: relative; }
         .close-btn { position: absolute; top: 15px; right: 20px; font-size: 1.5em; cursor: pointer; }
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; }
         .form-group { display: flex; flex-direction: column; }
@@ -34,33 +50,64 @@
 <body>
 
 <header>
-    <div>
+    <div class="header-brand">
         <img src="/logo.png" class="logo-head" onerror="this.style.display='none'">
         <span style="font-size: 1.2em; font-weight: bold;">Vivero Sol y Sombra</span>
     </div>
-    <a href="/catalogo.html" target="_blank" style="color: white; text-decoration: none; font-weight: bold;">🌐 Ver Catálogo</a>
+    <div class="header-user">
+        <a href="/catalogo.html" target="_blank" style="color: white; text-decoration: none; font-weight: bold;">🌐 Ver Catálogo</a>
+        <a href="/login.html" class="btn-logout">🚪 Salir</a>
+    </div>
 </header>
 
+<nav>
+    <button class="active" onclick="cambiarTab('inventario', this)">📦 Inventario</button>
+    <button onclick="cambiarTab('pos', this)">🛒 Punto de Venta</button>
+    <button onclick="cambiarTab('ventas', this)">📊 Historial Ventas</button>
+    <button onclick="cambiarTab('finanzas', this)">💰 Ingresos / Egresos</button>
+</nav>
+
 <div class="container">
-    <div class="actions-bar">
-        <h2>Gestión de Inventario</h2>
-        <button class="btn-primary" onclick="abrirModal()">+ Agregar Planta</button>
+    <!-- SECCIÓN INVENTARIO -->
+    <div id="tab-inventario" class="section-tab active">
+        <div class="actions-bar">
+            <h2>Gestión de Inventario</h2>
+            <button class="btn-primary" onclick="abrirModal()">+ Agregar Planta</button>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Foto</th>
+                    <th>Nombre</th>
+                    <th>Categoría</th>
+                    <th>Precio</th>
+                    <th>Stock</th>
+                    <th>Ubicación</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="tablaPlantas"></tbody>
+        </table>
     </div>
 
-    <table>
-        <thead>
-            <tr>
-                <th>Foto</th>
-                <th>Nombre</th>
-                <th>Categoría</th>
-                <th>Precio</th>
-                <th>Stock</th>
-                <th>Ubicación</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody id="tablaPlantas"></tbody>
-    </table>
+    <!-- SECCIÓN PUNTO DE VENTA -->
+    <div id="tab-pos" class="section-tab">
+        <h2>Punto de Venta (POS)</h2>
+        <p style="margin-top: 10px; color: #666;">Selecciona los productos para registrar una nueva venta.</p>
+    </div>
+
+    <!-- SECCIÓN HISTORIAL -->
+    <div id="tab-ventas" class="section-tab">
+        <h2>Historial de Ventas</h2>
+        <p style="margin-top: 10px; color: #666;">Registro general de transacciones del vivero.</p>
+    </div>
+
+    <!-- SECCIÓN FINANZAS -->
+    <div id="tab-finanzas" class="section-tab">
+        <h2>Ingresos y Egresos</h2>
+        <p style="margin-top: 10px; color: #666;">Control financiero de compras y gastos operativos.</p>
+    </div>
 </div>
 
 <!-- Modal Agregar Planta -->
@@ -80,7 +127,7 @@
                 </div>
                 <div class="form-group">
                     <label>Categoría</label>
-                    <input type="text" name="categoria" placeholder="Frutal, Cítrico...">
+                    <input type="text" name="categoria" placeholder="Ej: Frutal, Nativo">
                 </div>
                 <div class="form-group">
                     <label>Precio ($) *</label>
@@ -92,7 +139,7 @@
                 </div>
                 <div class="form-group">
                     <label>Ubicación</label>
-                    <input type="text" name="ubicacion" placeholder="Ej: n1">
+                    <input type="text" name="ubicacion" placeholder="Ej: Nav. Sombra">
                 </div>
                 <div class="form-group full">
                     <label>Foto de la Planta</label>
@@ -105,6 +152,14 @@
 </div>
 
 <script>
+    function cambiarTab(tabName, btn) {
+        document.querySelectorAll('.section-tab').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('nav button').forEach(el => el.classList.remove('active'));
+        
+        document.getElementById(`tab-${tabName}`).classList.add('active');
+        btn.classList.add('active');
+    }
+
     async function cargarTabla() {
         try {
             const res = await fetch('/api/plantas');
