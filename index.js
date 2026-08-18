@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
@@ -8,9 +10,36 @@ const { Pool } = require('pg');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const DATABASE_URL = process.env.DATABASE_URL || 'postgresql://postgres:Pdelcanto1993@db.pqvmuqjkghbclginhdyn.supabase.co:5432/postgres';
+const DATABASE_URL = process.env.DATABASE_URL && process.env.DATABASE_URL.trim() ? process.env.DATABASE_URL.trim() : null;
 const DATA_DIR = process.env.DATA_DIR ? path.resolve(process.env.DATA_DIR) : __dirname;
 const UPLOADS_DIR = path.join(DATA_DIR, 'uploads');
+
+const pool = DATABASE_URL ? new Pool({
+    connectionString: DATABASE_URL,
+    ssl: { rejectUnauthorized: false }
+}) : null;
+
+function readJsonCollection(fileName, fallback = []) {
+    const filePath = path.join(DATA_DIR, fileName);
+    if (!fs.existsSync(filePath)) {
+        fs.writeFileSync(filePath, JSON.stringify(fallback, null, 2));
+        return Array.isArray(fallback) ? [...fallback] : [];
+    }
+
+    try {
+        const raw = fs.readFileSync(filePath, 'utf8');
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? parsed : fallback;
+    } catch (error) {
+        return Array.isArray(fallback) ? [...fallback] : [];
+    }
+}
+
+function writeJsonCollection(fileName, data) {
+    const filePath = path.join(DATA_DIR, fileName);
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+    return data;
+}
 
 if (!fs.existsSync(DATA_DIR)) {
     fs.mkdirSync(DATA_DIR, { recursive: true });
@@ -18,11 +47,6 @@ if (!fs.existsSync(DATA_DIR)) {
 if (!fs.existsSync(UPLOADS_DIR)) {
     fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 }
-
-const pool = new Pool({
-    connectionString: DATABASE_URL,
-    ssl: { rejectUnauthorized: false }
-});
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
@@ -160,6 +184,11 @@ async function crearTablasDB() {
 }
 
 async function initializeDatabase() {
+    if (!pool) {
+        console.log('No se encontró DATABASE_URL. Usando archivos JSON locales como respaldo.');
+        return;
+    }
+
     await pool.query('SELECT 1');
     await crearTablasDB();
     console.log('Base de datos PostgreSQL inicializada correctamente.');
