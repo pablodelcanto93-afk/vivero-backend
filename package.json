@@ -1,11 +1,13 @@
 {
   "dependencies": {
+    "cloudinary": "^1.41.3",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "express-session": "^1.19.0",
     "mongoose": "^9.9.2",
     "multer": "^2.2.0",
+    "multer-storage-cloudinary": "^4.0.0",
     "pdfkit": "^0.19.1",
     "pg": "^8.23.0"
   }

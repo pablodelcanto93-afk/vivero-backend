@@ -4,6 +4,8 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const multer = require('multer');
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const session = require('express-session');
 const PDFDocument = require('pdfkit');
 const { Pool } = require('pg');
@@ -13,6 +15,12 @@ const PORT = process.env.PORT || 3000;
 const DATABASE_URL = process.env.DATABASE_URL && process.env.DATABASE_URL.trim() ? process.env.DATABASE_URL.trim() : null;
 const DATA_DIR = process.env.DATA_DIR ? path.resolve(process.env.DATA_DIR) : __dirname;
 const UPLOADS_DIR = path.join(DATA_DIR, 'uploads');
+
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+});
 
 const pool = DATABASE_URL ? new Pool({
     connectionString: DATABASE_URL,
@@ -65,7 +73,16 @@ app.use(session({
     saveUninitialized: false
 }));
 
-const storage = multer.diskStorage({
+const plantStorage = new CloudinaryStorage({
+    cloudinary,
+    params: {
+        folder: 'vivero/plantas',
+        allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
+        resource_type: 'image'
+    }
+});
+const uploadPlanta = multer({ storage: plantStorage });
+const facturaStorage = multer.diskStorage({
     destination: (req, file, cb) => {
         if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
         cb(null, UPLOADS_DIR);
@@ -74,7 +91,7 @@ const storage = multer.diskStorage({
         cb(null, `${Date.now()}${path.extname(file.originalname)}`);
     }
 });
-const upload = multer({ storage });
+const uploadFactura = multer({ storage: facturaStorage });
 
 function fechaLocalISO(date = new Date()) {
     const d = new Date(date);
@@ -249,10 +266,10 @@ app.get('/api/plantas', async (req, res) => {
     }
 });
 
-app.post('/api/plantas', requireAuth, upload.single('foto'), async (req, res) => {
+app.post('/api/plantas', requireAuth, uploadPlanta.single('foto'), async (req, res) => {
     try {
         const { id, nombre, cientifico, categoria, ubicacion, precio, stock, riego, clima, cuidados } = req.body;
-        const fotoUrl = req.file ? `/uploads/${req.file.filename}` : null;
+        const fotoUrl = req.file ? req.file.path : null;
         const payload = {
             nombre: nombre || '',
             cientifico: cientifico || '',
@@ -494,7 +511,7 @@ app.get('/api/facturas', requireAdmin, async (req, res) => {
     }
 });
 
-app.post('/api/facturas', requireAdmin, upload.single('archivo'), async (req, res) => {
+app.post('/api/facturas', requireAdmin, uploadFactura.single('archivo'), async (req, res) => {
     try {
         const { proveedor, numFactura, montoNeto, fecha } = req.body;
         const neto = toNumber(montoNeto, 0);
