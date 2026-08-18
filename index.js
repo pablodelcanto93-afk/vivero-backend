@@ -27,6 +27,12 @@ const pool = new Pool({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
+app.get(['/', '/index', '/catalogo'], (req, res) => {
+    const indexPath = path.join(__dirname, 'public', 'index.html');
+    const catalogoPath = path.join(__dirname, 'public', 'catalogo.html');
+    const target = fs.existsSync(indexPath) ? indexPath : catalogoPath;
+    res.sendFile(target);
+});
 app.use('/uploads', express.static(UPLOADS_DIR));
 
 app.use(session({
