@@ -339,6 +339,47 @@ app.post('/api/plantas', requireAuth, uploadPlanta.single('foto'), async (req, r
     }
 });
 
+app.put('/api/plantas/:id', requireAuth, uploadPlanta.single('foto'), async (req, res) => {
+    try {
+        const { nombre, cientifico, categoria, ubicacion, precio, stock, riego, clima, cuidados } = req.body;
+        const existing = await pool.query('SELECT id, foto FROM plantas WHERE id = $1', [String(req.params.id)]);
+        if (existing.rowCount === 0) {
+            return res.status(404).json({ error: 'Planta no encontrada.' });
+        }
+
+        await pool.query(`
+            UPDATE plantas
+            SET nombre = $1,
+                cientifico = $2,
+                categoria = $3,
+                ubicacion = $4,
+                precio = $5,
+                stock = $6,
+                riego = $7,
+                clima = $8,
+                cuidados = $9,
+                foto = COALESCE($10, foto)
+            WHERE id = $11
+        `, [
+            nombre || '',
+            cientifico || '',
+            categoria || '',
+            ubicacion || '',
+            toNumber(precio, 0),
+            toNumber(stock, 0),
+            riego || '',
+            clima || '',
+            cuidados || '',
+            req.file ? req.file.path : null,
+            String(req.params.id)
+        ]);
+
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: 'No se pudo actualizar la planta.' });
+    }
+});
+
 app.delete('/api/plantas/:id', requireAuth, async (req, res) => {
     try {
         await pool.query('DELETE FROM plantas WHERE id = $1', [String(req.params.id)]);

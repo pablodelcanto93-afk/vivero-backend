@@ -179,6 +179,7 @@
                             <input type="file" id="fotoInput" accept="image/*" capture="environment">
                         </div>
                         <button type="submit" id="btnGuardar">Guardar Planta</button>
+                        <button type="button" id="btnCancelarEdicion" class="btn" style="display:none; background:#64748b; color:white;" onclick="cancelarEdicion()">Cancelar edición</button>
                     </form>
                     <div style="margin-top:15px; display:flex; justify-content:flex-end;">
                         <button type="button" class="btn btn-add" onclick="generarFichaCuidadosPDF()">🌿 Generar Ficha de Cuidados PDF</button>
@@ -404,6 +405,7 @@
                         <td>
                             <div style="display:flex; gap:5px; align-items:center;">
                                 <button class="btn btn-add" onclick="agregarAlTicket('${p.id}')">+ Añadir</button>
+                                <button class="btn" style="background:#f59e0b; color:white;" onclick="editarPlanta('${p.id}')">Editar</button>
                                 <button class="btn" style="background:#ef4444; color:white;" onclick="eliminarPlanta('${p.id}')">🗑️</button>
                             </div>
                         </td>
@@ -421,6 +423,36 @@
                     alert("Error al eliminar la planta.");
                 }
             }
+        }
+
+        function editarPlanta(id) {
+            const planta = inventario.find(x => String(x.id) === String(id));
+            if (!planta) return alert("No se encontró la planta.");
+
+            document.getElementById('plantaId').value = planta.id;
+            document.getElementById('nombre').value = planta.nombre || '';
+            document.getElementById('cientifico').value = planta.cientifico || '';
+            document.getElementById('categoria').value = planta.categoria || '';
+            document.getElementById('ubicacion').value = planta.ubicacion || '';
+            document.getElementById('precio').value = planta.precio ?? '';
+            document.getElementById('stock').value = planta.stock ?? '';
+            document.getElementById('riego').value = planta.riego || '';
+            document.getElementById('clima').value = planta.clima || '';
+            document.getElementById('cuidados').value = planta.cuidados || '';
+            document.getElementById('fotoInput').value = '';
+            document.getElementById('formTitulo').innerText = 'Editar Planta';
+            document.getElementById('btnGuardar').innerText = 'Actualizar Planta';
+            document.getElementById('btnCancelarEdicion').style.display = 'block';
+            seleccionarOpcion('inventario');
+            document.getElementById('nombre').focus();
+        }
+
+        function cancelarEdicion() {
+            document.getElementById('plantaForm').reset();
+            document.getElementById('plantaId').value = '';
+            document.getElementById('formTitulo').innerText = '+ Agregar Nueva Planta';
+            document.getElementById('btnGuardar').innerText = 'Guardar Planta';
+            document.getElementById('btnCancelarEdicion').style.display = 'none';
         }
 
         // GUARDA PLANTA Y RECARGA INVENTARIO / CATÁLOGO
@@ -441,11 +473,14 @@
             const fotoInput = document.getElementById('fotoInput');
             if (fotoInput.files[0]) formData.append('foto', fotoInput.files[0]);
 
-            const res = await fetch('/api/plantas', { method: 'POST', body: formData });
+            const plantaId = document.getElementById('plantaId').value;
+            const res = await fetch(plantaId ? `/api/plantas/${plantaId}` : '/api/plantas', {
+                method: plantaId ? 'PUT' : 'POST',
+                body: formData
+            });
             if (res.ok) {
-                alert("¡Planta guardada correctamente!");
-                document.getElementById('plantaForm').reset();
-                document.getElementById('plantaId').value = '';
+                alert(plantaId ? "¡Planta actualizada correctamente!" : "¡Planta guardada correctamente!");
+                cancelarEdicion();
                 await cargarInventario();
                 seleccionarOpcion('pos');
             } else {

@@ -6,7 +6,7 @@
     <title>Catálogo - Vivero Sol y Sombra</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; }
-        body { background-color: #f3f6f4; color: #2d3748; padding-bottom: 50px; }
+        body { background: #f3f6f4; color: #2d3748; padding-bottom: 50px; }
         
         .header {
             background: linear-gradient(135deg, #1b5e20, #2e7d32);
@@ -54,6 +54,33 @@
             outline: none;
         }
 
+        .filter-bar {
+            max-width: 900px;
+            margin: 0 auto 22px;
+            padding: 0 15px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .filter-btn {
+            border: 1px solid #b7d8bd;
+            background: white;
+            color: #256b32;
+            border-radius: 999px;
+            padding: 8px 15px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.2s, color 0.2s, transform 0.2s;
+        }
+
+        .filter-btn:hover, .filter-btn.active {
+            background: #256b32;
+            color: white;
+            transform: translateY(-1px);
+        }
+
         .grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
@@ -65,19 +92,46 @@
 
         .card {
             background: white;
-            border-radius: 10px;
+            border-radius: 14px;
             overflow: hidden;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            box-shadow: 0 8px 22px rgba(30, 80, 40, 0.09);
             display: flex;
             flex-direction: column;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
         }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 14px 28px rgba(30, 80, 40, 0.15);
+        }
+
+        .card-image-wrap { overflow: hidden; }
 
         .card img {
             width: 100%;
             height: 180px;
             object-fit: cover;
             background: #e0e0e0;
+            display: block;
+            transition: transform 0.35s ease;
         }
+
+        .card:hover img { transform: scale(1.06); }
+
+        .stock-badge {
+            display: inline-flex;
+            align-items: center;
+            align-self: flex-start;
+            border-radius: 999px;
+            font-size: 0.75em;
+            font-weight: bold;
+            padding: 4px 9px;
+            margin-bottom: 9px;
+        }
+
+        .stock-badge.in-stock { background: #dcfce7; color: #166534; }
+        .stock-badge.out-of-stock { background: #e5e7eb; color: #4b5563; }
 
         .card-body {
             padding: 15px;
@@ -115,6 +169,54 @@
 
         .btn-wsp:hover { background: #128c7e; }
         .empty { grid-column: 1 / -1; text-align: center; color: #777; padding: 40px; }
+
+        .modal-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 10;
+            background: rgba(15, 35, 20, 0.58);
+            padding: 20px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-backdrop.visible { display: flex; }
+
+        .modal {
+            position: relative;
+            width: min(520px, 100%);
+            max-height: 90vh;
+            overflow-y: auto;
+            background: white;
+            border-radius: 16px;
+            padding: 28px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+        }
+
+        .modal h2 { color: #1b5e20; margin-bottom: 5px; }
+        .modal-scientific { color: #64748b; font-style: italic; margin-bottom: 20px; }
+        .modal dl { display: grid; gap: 13px; }
+        .modal dt { color: #256b32; font-size: 0.78em; font-weight: bold; text-transform: uppercase; }
+        .modal dd { line-height: 1.5; margin-top: 3px; }
+
+        .modal-close {
+            position: absolute;
+            top: 10px;
+            right: 13px;
+            border: 0;
+            background: transparent;
+            color: #64748b;
+            cursor: pointer;
+            font-size: 1.8em;
+            line-height: 1;
+        }
+
+        @media (max-width: 520px) {
+            .header { padding: 24px 12px; }
+            .header-title h1 { font-size: 1.55em; }
+            .modal { padding: 24px 20px; }
+        }
     </style>
 </head>
 <body>
@@ -137,42 +239,83 @@
     <input type="text" id="buscar" placeholder="🔍 Buscar por planta o categoría..." onkeyup="filtrar()">
 </div>
 
+<div class="filter-bar" id="filtrosCategorias" aria-label="Filtrar por categoría"></div>
+
 <div class="grid" id="grid"></div>
+
+<div class="modal-backdrop" id="fichaModal" onclick="cerrarFicha(event)">
+    <article class="modal" role="dialog" aria-modal="true" aria-labelledby="fichaTitulo">
+        <button class="modal-close" type="button" aria-label="Cerrar ficha" onclick="cerrarFicha()">&times;</button>
+        <h2 id="fichaTitulo"></h2>
+        <p class="modal-scientific" id="fichaCientifico"></p>
+        <dl>
+            <div><dt>Riego</dt><dd id="fichaRiego"></dd></div>
+            <div><dt>Clima</dt><dd id="fichaClima"></dd></div>
+            <div><dt>Consejos de cuidado</dt><dd id="fichaCuidados"></dd></div>
+        </dl>
+    </article>
+</div>
 
 <script>
     let lista = [];
+    let categoriaActiva = 'Todas';
+
+    function escaparHtml(valor) {
+        return String(valor ?? '').replace(/[&<>'"]/g, caracter => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+        }[caracter]));
+    }
 
     async function cargar() {
         try {
             const res = await fetch('/api/plantas');
             lista = await res.json();
+            dibujarFiltros();
             dibujar(lista);
         } catch (e) {
             document.getElementById('grid').innerHTML = '<p class="empty">Error al cargar plantas.</p>';
         }
     }
 
+    function dibujarFiltros() {
+        const categorias = [...new Set(lista.map(p => String(p.categoria || '').trim()).filter(Boolean))];
+        const sugeridas = ['Frutales', 'Suculentas', 'Nativas', 'Substratos'];
+        const nombres = [...new Set([...sugeridas, ...categorias])];
+        document.getElementById('filtrosCategorias').innerHTML = ['Todas', ...nombres].map(categoria => `
+            <button type="button" class="filter-btn${categoria === categoriaActiva ? ' active' : ''}"
+                onclick="seleccionarCategoria('${escaparHtml(categoria)}')">${escaparHtml(categoria)}</button>
+        `).join('');
+    }
+
+    function seleccionarCategoria(categoria) {
+        categoriaActiva = categoria;
+        dibujarFiltros();
+        filtrar();
+    }
+
     function dibujar(datos) {
         const grid = document.getElementById('grid');
-        const disponibles = datos.filter(p => Number(p.stock) > 0);
 
-        if (disponibles.length === 0) {
-            grid.innerHTML = '<p class="empty">No hay plantas disponibles en este momento.</p>';
+        if (datos.length === 0) {
+            grid.innerHTML = '<p class="empty">No hay plantas que coincidan con la búsqueda.</p>';
             return;
         }
 
-        grid.innerHTML = disponibles.map(p => {
+        grid.innerHTML = datos.map(p => {
             const precio = Number(p.precio).toLocaleString('es-CL');
-            const msg = encodeURIComponent(`Hola, me interesa consultar por la planta ${p.nombre} ($${precio}) vista en el catálogo.`);
+            const enStock = Number(p.stock) > 0;
+            const msg = encodeURIComponent(`Hola, me interesa la planta ${p.nombre}.`);
             return `
-                <div class="card">
-                    <img src="${p.foto}" onerror="this.src='/logo.png'">
+                <div class="card" role="button" tabindex="0" onclick="abrirFicha('${p.id}')"
+                    onkeydown="if(event.key === 'Enter' || event.key === ' ') abrirFicha('${p.id}')">
+                    <div class="card-image-wrap"><img src="${escaparHtml(p.foto || '/logo.png')}" onerror="this.src='/logo.png'" alt="${escaparHtml(p.nombre)}"></div>
                     <div class="card-body">
-                        ${p.categoria ? `<span class="tag">${p.categoria}</span>` : ''}
-                        <div class="title">${p.nombre}</div>
-                        <div class="sub">${p.cientifico || ''}</div>
+                        <span class="stock-badge ${enStock ? 'in-stock' : 'out-of-stock'}">${enStock ? '● En Stock' : '● Agotado'}</span>
+                        ${p.categoria ? `<span class="tag">${escaparHtml(p.categoria)}</span>` : ''}
+                        <div class="title">${escaparHtml(p.nombre)}</div>
+                        <div class="sub">${escaparHtml(p.cientifico || '')}</div>
                         <div class="price">$${precio}</div>
-                        <a href="https://wa.me/56953450809?text=${msg}" target="_blank" class="btn-wsp">💬 Consultar por WhatsApp</a>
+                        <a href="https://wa.me/56953450809?text=${msg}" target="_blank" rel="noopener" class="btn-wsp" onclick="event.stopPropagation()">💬 Consultar por WhatsApp</a>
                     </div>
                 </div>
             `;
@@ -180,13 +323,36 @@
     }
 
     function filtrar() {
-        const q = document.getElementById('buscar').value.toLowerCase();
+        const q = document.getElementById('buscar').value.toLowerCase().trim();
         const res = lista.filter(p => 
-            p.nombre.toLowerCase().includes(q) || 
-            (p.categoria && p.categoria.toLowerCase().includes(q))
+            (categoriaActiva === 'Todas' || String(p.categoria || '').toLowerCase() === categoriaActiva.toLowerCase()) &&
+            (String(p.nombre || '').toLowerCase().includes(q) ||
+            String(p.categoria || '').toLowerCase().includes(q))
         );
         dibujar(res);
     }
+
+    function abrirFicha(id) {
+        const planta = lista.find(p => String(p.id) === String(id));
+        if (!planta) return;
+        document.getElementById('fichaTitulo').textContent = planta.nombre || 'Planta';
+        document.getElementById('fichaCientifico').textContent = planta.cientifico || 'Nombre científico no registrado';
+        document.getElementById('fichaRiego').textContent = planta.riego || 'Consultar según humedad del sustrato.';
+        document.getElementById('fichaClima').textContent = planta.clima || 'Consultar condiciones recomendadas.';
+        document.getElementById('fichaCuidados').textContent = planta.cuidados || 'No hay consejos registrados para esta planta.';
+        document.getElementById('fichaModal').classList.add('visible');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function cerrarFicha(event) {
+        if (event && event.target !== document.getElementById('fichaModal')) return;
+        document.getElementById('fichaModal').classList.remove('visible');
+        document.body.style.overflow = '';
+    }
+
+    document.addEventListener('keydown', event => {
+        if (event.key === 'Escape') cerrarFicha();
+    });
 
     cargar();
 </script>
