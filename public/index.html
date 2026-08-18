@@ -150,7 +150,10 @@
                             </select>
 
                             <div class="total">Total: $<span id="totalVenta">0</span></div>
-                            <button class="btn-finalizar" onclick="finalizarVenta()">Cobrar y Descontar Stock</button>
+                            <div style="display:flex; flex-wrap:wrap; gap:10px; margin-top:12px;">
+                                <button class="btn-finalizar" style="flex:1; min-width:160px;" onclick="finalizarVenta()">Cobrar y Descontar Stock</button>
+                                <button class="btn btn-add" style="padding:12px 14px; flex:1; min-width:160px;" onclick="generarCotizacionPDF()">📄 Cotización PDF</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -177,6 +180,9 @@
                         </div>
                         <button type="submit" id="btnGuardar">Guardar Planta</button>
                     </form>
+                    <div style="margin-top:15px; display:flex; justify-content:flex-end;">
+                        <button type="button" class="btn btn-add" onclick="generarFichaCuidadosPDF()">🌿 Generar Ficha de Cuidados PDF</button>
+                    </div>
                 </div>
             </div>
 
@@ -340,6 +346,12 @@
             document.getElementById('overlay').classList.toggle('activo');
         }
 
+        function obtenerFechaLocalCliente() {
+            const hoy = new Date();
+            const pad = (valor) => String(valor).padStart(2, '0');
+            return `${hoy.getFullYear()}-${pad(hoy.getMonth() + 1)}-${pad(hoy.getDate())}`;
+        }
+
         function seleccionarOpcion(sec) {
             mostrarSeccion(sec);
             if (sec === 'despachos') cargarDespachos();
@@ -361,8 +373,8 @@
                 document.querySelectorAll('.solo-admin').forEach(el => el.style.display = 'none');
             }
 
-            document.getElementById('fechaCaja').value = new Date().toISOString().split('T')[0];
-            document.getElementById('factFecha').value = new Date().toISOString().split('T')[0];
+            document.getElementById('fechaCaja').value = obtenerFechaLocalCliente();
+            document.getElementById('factFecha').value = obtenerFechaLocalCliente();
             cargarInventario();
         }
 
@@ -530,6 +542,64 @@
             }
         }
 
+        async function generarCotizacionPDF() {
+            if (ticket.length === 0) {
+                return alert('Primero agrega productos al ticket para generar una cotización.');
+            }
+
+            const payload = {
+                cliente: usuarioActual ? usuarioActual.nombre : 'Cliente general',
+                observaciones: 'Cotización emitida desde el sistema de gestión del vivero.',
+                items: ticket.map(item => ({
+                    nombre: item.nombre,
+                    cantidad: item.cantidad,
+                    precio: item.precio
+                }))
+            };
+
+            const res = await fetch('/api/cotizacion/pdf', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!res.ok) {
+                const error = await res.json().catch(() => ({ error: 'No se pudo generar la cotización PDF.' }));
+                return alert(error.error || 'No se pudo generar la cotización PDF.');
+            }
+
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+            window.open(url, '_blank');
+        }
+
+        async function generarFichaCuidadosPDF() {
+            const plantas = inventario.length ? inventario : await cargarInventarioYRetornar();
+            const payload = { plantas: plantas.slice(0, 20) };
+
+            const res = await fetch('/api/fichas/pdf', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!res.ok) {
+                const error = await res.json().catch(() => ({ error: 'No se pudo generar la ficha PDF.' }));
+                return alert(error.error || 'No se pudo generar la ficha PDF.');
+            }
+
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+            window.open(url, '_blank');
+        }
+
+        async function cargarInventarioYRetornar() {
+            const res = await fetch('/api/plantas');
+            inventario = await res.json();
+            renderPOS();
+            return inventario;
+        }
+
         async function cargarReporteAdmin() {
             const fecha = document.getElementById('fechaCaja').value;
             const res = await fetch(`/api/reporte-admin?fecha=${fecha}`);
@@ -645,7 +715,7 @@
             if (res.ok) {
                 alert("¡Factura guardada para respaldos del F29!");
                 document.getElementById('facturaForm').reset();
-                document.getElementById('factFecha').value = new Date().toISOString().split('T')[0];
+                document.getElementById('factFecha').value = obtenerFechaLocalCliente();
                 cargarFacturas();
             }
         });

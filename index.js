@@ -3,14 +3,24 @@ const fs = require('fs');
 const path = require('path');
 const multer = require('multer');
 const session = require('express-session');
+const PDFDocument = require('pdfkit');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const DATA_DIR = process.env.DATA_DIR ? path.resolve(process.env.DATA_DIR) : __dirname;
+const UPLOADS_DIR = path.join(DATA_DIR, 'uploads');
+
+if (!fs.existsSync(DATA_DIR)) {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+}
+if (!fs.existsSync(UPLOADS_DIR)) {
+    fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+}
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads', express.static(UPLOADS_DIR));
 
 app.use(session({
     secret: 'vivero_sol_y_sombra_secret_key_2026',
@@ -20,11 +30,10 @@ app.use(session({
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        const uploadPath = path.join(__dirname, 'uploads');
-        if (!fs.existsSync(uploadPath)) {
-            fs.mkdirSync(uploadPath, { recursive: true });
+        if (!fs.existsSync(UPLOADS_DIR)) {
+            fs.mkdirSync(UPLOADS_DIR, { recursive: true });
         }
-        cb(null, uploadPath);
+        cb(null, UPLOADS_DIR);
     },
     filename: (req, file, cb) => {
         cb(null, Date.now() + path.extname(file.originalname));
@@ -32,24 +41,82 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-const PLANTAS_FILE = path.join(__dirname, 'plantas.json');
-const VENTAS_FILE = path.join(__dirname, 'ventas.json');
-const DESPACHOS_FILE = path.join(__dirname, 'despachos.json');
-const GASTOS_FILE = path.join(__dirname, 'gastos.json');
-const FACTURAS_FILE = path.join(__dirname, 'facturas.json');
+const PLANTAS_FILE = path.join(DATA_DIR, 'plantas.json');
+const VENTAS_FILE = path.join(DATA_DIR, 'ventas.json');
+const DESPACHOS_FILE = path.join(DATA_DIR, 'despachos.json');
+const GASTOS_FILE = path.join(DATA_DIR, 'gastos.json');
+const FACTURAS_FILE = path.join(DATA_DIR, 'facturas.json');
 
-function leerJSON(file) {
-    if (!fs.existsSync(file)) return [];
+function asegurarArchivoJSON(file, valorInicial = []) {
+    if (!fs.existsSync(file)) {
+        fs.writeFileSync(file, JSON.stringify(valorInicial, null, 2), 'utf8');
+        return valorInicial;
+    }
+
+    const contenido = fs.readFileSync(file, 'utf8').trim();
+    if (!contenido) {
+        fs.writeFileSync(file, JSON.stringify(valorInicial, null, 2), 'utf8');
+        return valorInicial;
+    }
+
     try {
-        const data = fs.readFileSync(file, 'utf8');
-        return JSON.parse(data || '[]');
-    } catch (e) {
-        return [];
+        const parsed = JSON.parse(contenido);
+        return Array.isArray(parsed) ? parsed : valorInicial;
+    } catch (error) {
+        return valorInicial;
     }
 }
 
+function leerJSON(file) {
+    return asegurarArchivoJSON(file, []);
+}
+
 function guardarJSON(file, data) {
-    fs.writeFileSync(file, JSON.stringify(data, null, 2));
+    const dir = path.dirname(file);
+    if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+    }
+
+    const tempFile = `${file}.tmp`;
+    fs.writeFileSync(tempFile, JSON.stringify(data, null, 2), 'utf8');
+    fs.renameSync(tempFile, file);
+}
+
+function fechaLocalISO(date = new Date()) {
+    const d = new Date(date);
+    const offset = d.getTimezoneOffset();
+    return new Date(d.getTime() - offset * 60000).toISOString();
+}
+
+function fechaLocalInput(date = new Date()) {
+    const d = new Date(date);
+    const pad = (valor) => String(valor).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+function normalizarFechaLocal(fecha) {
+    if (!fecha) return '';
+    const texto = String(fecha);
+    if (/^\d{4}-\d{2}-\d{2}$/.test(texto)) return texto;
+
+    const date = new Date(texto);
+    if (Number.isNaN(date.getTime())) return texto.slice(0, 10);
+
+    const pad = (valor) => String(valor).padStart(2, '0');
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
+function archivoFecha() {
+    return new Date().toLocaleDateString('es-CL', {
+        day: '2-digit', month: '2-digit', year: 'numeric'
+    });
+}
+
+function formatearMonto(valor) {
+    return Number(valor || 0).toLocaleString('es-CL', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2
+    });
 }
 
 // LOGIN
@@ -165,7 +232,7 @@ app.post('/api/ventas', requireAuth, (req, res) => {
 
     ventas.push({
         id: Date.now().toString(),
-        fecha: new Date().toISOString(),
+        fecha: fechaLocalISO(),
         vendedor: req.session.user ? req.session.user.usuario : 'Desconocido',
         medioPago: medioPago || 'Efectivo',
         items,
@@ -188,7 +255,12 @@ app.get('/api/reporte-admin', requireAdmin, (req, res) => {
 
     let ventasFiltradas = ventas;
     if (fechaFiltro) {
-        ventasFiltradas = ventas.filter(v => v.fecha.startsWith(fechaFiltro));
+        const fechaFiltroLocal = String(fechaFiltro).slice(0, 10);
+        ventasFiltradas = ventas.filter(v => {
+            if (!v.fecha) return false;
+            const fechaVenta = normalizarFechaLocal(v.fecha);
+            return fechaVenta.startsWith(fechaFiltroLocal);
+        });
     }
 
     let totalEfectivo = 0, totalTransferencia = 0, totalDebito = 0, totalRecaudadoVentas = 0;
@@ -221,7 +293,7 @@ app.post('/api/gastos', requireAdmin, (req, res) => {
 
     gastos.push({
         id: Date.now().toString(),
-        fecha: new Date().toISOString(),
+        fecha: fechaLocalISO(),
         descripcion,
         categoria: categoria || 'Insumos',
         monto: Number(monto),
@@ -254,7 +326,7 @@ app.post('/api/facturas', requireAdmin, upload.single('archivo'), (req, res) => 
 
     facturas.push({
         id: Date.now().toString(),
-        fecha: fecha || new Date().toISOString().split('T')[0],
+        fecha: fecha || fechaLocalInput(),
         proveedor,
         numFactura,
         montoNeto: neto,
@@ -283,7 +355,7 @@ app.post('/api/despachos', requireAuth, (req, res) => {
 
     despachos.push({
         id: Date.now().toString(),
-        fechaCreado: new Date().toISOString(),
+        fechaCreado: fechaLocalISO(),
         cliente,
         direccion,
         telefono: telefono || '',
@@ -312,6 +384,145 @@ app.delete('/api/despachos/:id', requireAuth, (req, res) => {
     despachos = despachos.filter(d => String(d.id) !== String(req.params.id));
     guardarJSON(DESPACHOS_FILE, despachos);
     res.json({ success: true });
+});
+
+function generarPDFCotizacion(items, cliente, observaciones) {
+    const doc = new PDFDocument({ margin: 40, size: 'A4' });
+    const subtotal = items.reduce((acc, item) => acc + (Number(item.precio || 0) * Number(item.cantidad || 0)), 0);
+    const iva = subtotal * 0.19;
+    const total = subtotal + iva;
+
+    return {
+        doc,
+        subtotal,
+        iva,
+        total,
+        cliente,
+        observaciones
+    };
+}
+
+app.post(['/api/cotizacion/pdf', '/api/cotización/pdf'], (req, res) => {
+    try {
+        const items = Array.isArray(req.body.items) ? req.body.items : [];
+        const cliente = req.body.cliente || 'Cliente general';
+        const observaciones = req.body.observaciones || 'Cotización emitida desde el sistema de gestión de vivero.';
+
+        if (!items.length) {
+            return res.status(400).json({ error: 'No hay ítems para generar una cotización.' });
+        }
+
+        const { doc, subtotal, iva, total } = generarPDFCotizacion(items, cliente, observaciones);
+
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="cotizacion-${Date.now()}.pdf"`);
+        doc.pipe(res);
+
+        doc.fillColor('#1f5132').fontSize(22).text('Vivero Sol y Sombra', { align: 'left' });
+        doc.fillColor('#4d7c0f').fontSize(12).text('Cotización / Presupuesto', { align: 'left' });
+        doc.moveDown(0.8);
+
+        doc.fillColor('#374151').fontSize(10).text(`Cliente: ${cliente}`);
+        doc.text(`Fecha: ${archivoFecha()}`);
+        doc.text(`Observaciones: ${observaciones}`);
+
+        doc.moveDown(1);
+        doc.fillColor('#dfeee4').rect(40, doc.y, 515, 24).fill();
+        doc.fillColor('#183b2c').fontSize(10).text('ITEM', 50, doc.y + 7, { width: 210 });
+        doc.text('CANT.', 260, doc.y + 7, { width: 60 });
+        doc.text('P.UNIT.', 330, doc.y + 7, { width: 90 });
+        doc.text('TOTAL', 430, doc.y + 7, { width: 110, align: 'right' });
+
+        let currentY = doc.y + 30;
+        items.forEach((item, index) => {
+            const nombre = item.nombre || `Ítem ${index + 1}`;
+            const cantidad = Number(item.cantidad || 0);
+            const precio = Number(item.precio || 0);
+            const subtotalItem = cantidad * precio;
+
+            doc.fillColor('#111827').fontSize(10).text(nombre, 50, currentY, { width: 200 });
+            doc.text(String(cantidad), 260, currentY, { width: 60 });
+            doc.text(`$${formatearMonto(precio)}`, 330, currentY, { width: 90 });
+            doc.text(`$${formatearMonto(subtotalItem)}`, 430, currentY, { width: 110, align: 'right' });
+            currentY += 18;
+        });
+
+        const resumenY = currentY + 20;
+        doc.moveTo(40, resumenY).lineTo(555, resumenY).strokeColor('#cbd5e1').stroke();
+
+        doc.fillColor('#1f2937').fontSize(10);
+        doc.text('Subtotal:', 360, resumenY + 15, { width: 90, align: 'right' });
+        doc.text(`$${formatearMonto(subtotal)}`, 460, resumenY + 15, { width: 90, align: 'right' });
+        doc.text('IVA (19%):', 360, resumenY + 32, { width: 90, align: 'right' });
+        doc.text(`$${formatearMonto(iva)}`, 460, resumenY + 32, { width: 90, align: 'right' });
+        doc.fillColor('#1b4332').fontSize(12).font('Helvetica-Bold');
+        doc.text('TOTAL:', 360, resumenY + 52, { width: 90, align: 'right' });
+        doc.text(`$${formatearMonto(total)}`, 460, resumenY + 52, { width: 90, align: 'right' });
+
+        doc.font('Helvetica').fillColor('#475569').fontSize(9).text('Vivero Sol y Sombra • Productos y plantas ornamentales para jardín y exterior.', 40, 760, { align: 'center' });
+        doc.end();
+    } catch (error) {
+        res.status(500).json({ error: 'No se pudo generar la cotización PDF.' });
+    }
+});
+
+app.post(['/api/fichas/pdf', '/api/ficha/pdf'], (req, res) => {
+    try {
+        const plantas = Array.isArray(req.body.plantas) && req.body.plantas.length ? req.body.plantas : leerJSON(PLANTAS_FILE);
+
+        if (!plantas.length) {
+            return res.status(400).json({ error: 'No hay plantas para generar fichas.' });
+        }
+
+        const doc = new PDFDocument({ margin: 40, size: 'A4' });
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="fichas-cuidados-${Date.now()}.pdf"`);
+        doc.pipe(res);
+
+        doc.fillColor('#1f5132').fontSize(22).text('Vivero Sol y Sombra', { align: 'left' });
+        doc.fillColor('#4d7c0f').fontSize(12).text('Ficha técnica de cuidados', { align: 'left' });
+        doc.moveDown(0.7);
+        doc.fillColor('#475569').fontSize(10).text(`Fecha de emisión: ${archivoFecha()}`);
+
+        plantas.forEach((planta, index) => {
+            if (index > 0) doc.addPage();
+
+            const nombre = planta.nombre || 'Planta sin nombre';
+            const cientifico = planta.cientifico || 'No registrado';
+            const riego = planta.riego || 'Regar según humedad del sustrato, evitando encharcamientos.';
+            const sol = planta.sol || planta.clima || 'Luz brillante indirecta o semi sombra.';
+            const sustrato = planta.sustrato || 'Sustrato aireado, bien drenado y con materia orgánica.';
+            const poda = planta.poda || 'Poda ligera para remover ramas secas y mantener forma.';
+            const cuidados = planta.cuidados || 'Mantener condiciones estables, control de humedad y fertilización moderada.';
+
+            doc.fillColor('#e8f5e9').rect(40, doc.y, 515, 110).fill();
+            doc.fillColor('#1d4d3f').fontSize(18).font('Helvetica-Bold').text(nombre, 55, doc.y + 18, { width: 470 });
+            doc.fillColor('#3f3f46').fontSize(10).font('Helvetica').text(`Nombre científico: ${cientifico}`, 55, doc.y + 47, { width: 470 });
+            doc.text(`Categoría: ${planta.categoria || 'General'}`, 55, doc.y + 62, { width: 470 });
+            doc.text(`Ubicación: ${planta.ubicacion || 'Vivero'}`, 55, doc.y + 77, { width: 470 });
+
+            doc.moveDown(2.8);
+            doc.fillColor('#1f2937');
+            doc.list([
+                `Riego: ${riego}`,
+                `Sol: ${sol}`,
+                `Sustrato: ${sustrato}`,
+                `Poda: ${poda}`
+            ], { bulletRadius: 2, indent: 12, columns: 1 });
+
+            doc.moveDown(1);
+            doc.fillColor('#f7f9ef').rect(40, doc.y, 515, 120).fill();
+            doc.fillColor('#1f2937').fontSize(12).font('Helvetica-Bold').text('Cuidados recomendados', 55, doc.y + 12);
+            doc.fillColor('#374151').fontSize(10).font('Helvetica').text(cuidados, 55, doc.y + 32, { width: 480, align: 'justify' });
+
+            doc.moveDown(5);
+        });
+
+        doc.font('Helvetica').fillColor('#475569').fontSize(9).text('Fichas técnicas emitidas por Vivero Sol y Sombra.', 40, 760, { align: 'center' });
+        doc.end();
+    } catch (error) {
+        res.status(500).json({ error: 'No se pudo generar la ficha de cuidados PDF.' });
+    }
 });
 
 app.listen(PORT, () => console.log(`Servidor activo en puerto ${PORT}`));

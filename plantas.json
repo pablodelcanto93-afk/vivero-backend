@@ -6,7 +6,7 @@
     "categoria": "Frutal",
     "ubicacion": "Nav. Sombra",
     "precio": 5000,
-    "stock": 6,
+    "stock": 3,
     "foto": "/uploads/1786655979947.jpg"
   },
   {
@@ -16,7 +16,7 @@
     "categoria": "Nativo",
     "ubicacion": "Nav. Sombra",
     "precio": 8000,
-    "stock": 2,
+    "stock": 1,
     "foto": "/uploads/1786656064643.jpg"
   },
   {
@@ -26,7 +26,7 @@
     "categoria": "Nativo",
     "ubicacion": "Nav. Sombra",
     "precio": 8500,
-    "stock": 1,
+    "stock": 0,
     "foto": "/uploads/1786656104931.jpg"
   },
   {
@@ -106,7 +106,20 @@
     "categoria": "Rastreros",
     "ubicacion": "Nav. Sombra",
     "precio": 350,
-    "stock": 280,
+    "stock": 279,
     "foto": "/uploads/1786657895121.jpg"
+  },
+  {
+    "id": "1787013154196",
+    "nombre": "acer japonico",
+    "cientifico": "",
+    "categoria": "ornamental",
+    "ubicacion": "",
+    "precio": 1000,
+    "stock": 200,
+    "riego": "full",
+    "clima": "sol",
+    "cuidados": "se recomienda los frutales a bajo sol",
+    "foto": "/logo.png"
   }
 ]
