@@ -339,7 +339,7 @@ app.post('/api/plantas', requireAuth, uploadPlanta.single('foto'), async (req, r
     }
 });
 
-app.put('/api/plantas/:id', requireAuth, uploadPlanta.single('foto'), async (req, res) => {
+app.put('/api/plantas/:id', requireAuth, uploadPlanta.single('imagen'), async (req, res) => {
     try {
         const { nombre, cientifico, categoria, ubicacion, precio, stock, riego, clima, cuidados } = req.body;
         const existing = await pool.query('SELECT id, foto FROM plantas WHERE id = $1', [String(req.params.id)]);

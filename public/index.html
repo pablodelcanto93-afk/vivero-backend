@@ -470,12 +470,13 @@
             formData.append('clima', document.getElementById('clima').value);
             formData.append('cuidados', document.getElementById('cuidados').value);
 
-            const fotoInput = document.getElementById('fotoInput');
-            if (fotoInput.files[0]) formData.append('foto', fotoInput.files[0]);
-
             const plantaId = document.getElementById('plantaId').value;
-            const res = await fetch(plantaId ? `/api/plantas/${plantaId}` : '/api/plantas', {
-                method: plantaId ? 'PUT' : 'POST',
+            const fotoInput = document.getElementById('fotoInput');
+            const editando = Boolean(plantaId);
+            if (fotoInput.files[0]) formData.append(editando ? 'imagen' : 'foto', fotoInput.files[0]);
+
+            const res = await fetch(editando ? `/api/plantas/${encodeURIComponent(plantaId)}` : '/api/plantas', {
+                method: editando ? 'PUT' : 'POST',
                 body: formData
             });
             if (res.ok) {
