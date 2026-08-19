@@ -485,7 +485,8 @@
                 await cargarInventario();
                 seleccionarOpcion('pos');
             } else {
-                alert("Error al guardar la planta.");
+                const resData = await res.json();
+                alert(resData.error || resData.message || 'Error al guardar');
             }
         });
 
