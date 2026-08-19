@@ -348,14 +348,15 @@ app.put('/api/plantas/:id', requireAuth, uploadPlanta.single('imagen'), async (r
             return res.status(404).json({ error: 'Planta no encontrada.' });
         }
 
-        const precioNumero = parseFloat(String(precio ?? '0').replace(',', '.'));
+        const precioNumero = parseFloat(String(precio ?? '').replace(',', '.'));
+        const stockNumero = parseInt(String(stock ?? '').replace(',', '.'), 10);
         const valores = [
             nombre || '',
             cientifico || '',
             categoria || '',
             ubicacion || '',
             Number.isFinite(precioNumero) ? precioNumero : 0,
-            toNumber(stock, 0),
+            Number.isFinite(stockNumero) ? stockNumero : 0,
             riego || '',
             clima || '',
             cuidados || ''
@@ -379,7 +380,7 @@ app.put('/api/plantas/:id', requireAuth, uploadPlanta.single('imagen'), async (r
 
         res.json({ success: true });
     } catch (error) {
-        console.error(error);
+        console.error("Error en PUT /api/plantas:", error.message || error);
         res.status(500).json({ error: error.message });
     }
 });
