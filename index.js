@@ -342,42 +342,45 @@ app.post('/api/plantas', requireAuth, uploadPlanta.single('foto'), async (req, r
 app.put('/api/plantas/:id', requireAuth, uploadPlanta.single('imagen'), async (req, res) => {
     try {
         const { nombre, cientifico, categoria, ubicacion, precio, stock, riego, clima, cuidados } = req.body;
-        const existing = await pool.query('SELECT id, foto FROM plantas WHERE id = $1', [String(req.params.id)]);
+        const id = String(req.params.id);
+        const existing = await pool.query('SELECT id FROM plantas WHERE id = $1', [id]);
         if (existing.rowCount === 0) {
             return res.status(404).json({ error: 'Planta no encontrada.' });
         }
 
-        await pool.query(`
-            UPDATE plantas
-            SET nombre = $1,
-                cientifico = $2,
-                categoria = $3,
-                ubicacion = $4,
-                precio = $5,
-                stock = $6,
-                riego = $7,
-                clima = $8,
-                cuidados = $9,
-                foto = COALESCE($10, foto)
-            WHERE id = $11
-        `, [
+        const precioNumero = parseFloat(String(precio ?? '0').replace(',', '.'));
+        const valores = [
             nombre || '',
             cientifico || '',
             categoria || '',
             ubicacion || '',
-            toNumber(precio, 0),
+            Number.isFinite(precioNumero) ? precioNumero : 0,
             toNumber(stock, 0),
             riego || '',
             clima || '',
-            cuidados || '',
-            req.file ? req.file.path : null,
-            String(req.params.id)
-        ]);
+            cuidados || ''
+        ];
+        const columnas = [
+            'nombre', 'cientifico', 'categoria', 'ubicacion', 'precio',
+            'stock', 'riego', 'clima', 'cuidados'
+        ];
+
+        if (req.file) {
+            columnas.push('foto');
+            valores.push(req.file.path);
+        }
+
+        valores.push(id);
+        const asignaciones = columnas.map((columna, indice) => `${columna} = $${indice + 1}`);
+        await pool.query(
+            `UPDATE plantas SET ${asignaciones.join(', ')} WHERE id = $${valores.length}`,
+            valores
+        );
 
         res.json({ success: true });
     } catch (error) {
-        const mensaje = error instanceof Error ? error.message : String(error);
-        res.status(500).json({ error: mensaje });
+        console.error(error);
+        res.status(500).json({ error: error.message });
     }
 });
 
