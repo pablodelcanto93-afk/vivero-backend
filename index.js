@@ -386,22 +386,37 @@ app.put('/api/plantas/:id', requireAuth,
             clima || '',
             cuidados || fichaTecnica || ''
         ];
-        const columnas = [
-            'nombre', 'cientifico', 'categoria', 'ubicacion', 'precio',
-            'stock', 'riego', 'clima', 'cuidados'
-        ];
-
-        if (req.file) {
-            columnas.push('foto');
-            valores.push(req.file.path);
+        if (!req.file) {
+            await pool.query(`
+                UPDATE plantas
+                SET nombre = $1,
+                    cientifico = $2,
+                    categoria = $3,
+                    ubicacion = $4,
+                    precio = $5,
+                    stock = $6,
+                    riego = $7,
+                    clima = $8,
+                    cuidados = $9
+                WHERE id = $10
+            `, [...valores, id]);
+            return res.json({ success: true });
         }
 
-        valores.push(id);
-        const asignaciones = columnas.map((columna, indice) => `${columna} = $${indice + 1}`);
-        await pool.query(
-            `UPDATE plantas SET ${asignaciones.join(', ')} WHERE id = $${valores.length}`,
-            valores
-        );
+        await pool.query(`
+            UPDATE plantas
+            SET nombre = $1,
+                cientifico = $2,
+                categoria = $3,
+                ubicacion = $4,
+                precio = $5,
+                stock = $6,
+                riego = $7,
+                clima = $8,
+                cuidados = $9,
+                foto = $10
+            WHERE id = $11
+        `, [...valores, req.file.path, id]);
 
         res.json({ success: true });
     } catch (err) {
