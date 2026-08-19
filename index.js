@@ -341,6 +341,7 @@ app.post('/api/plantas', requireAuth, uploadPlanta.single('foto'), async (req, r
 
 app.put('/api/plantas/:id', requireAuth, uploadPlanta.single('imagen'), async (req, res) => {
     try {
+        console.log("Datos PUT:", req.params.id, req.body);
         const { nombre, cientifico, categoria, ubicacion, precio, stock, riego, clima, cuidados } = req.body;
         const id = String(req.params.id);
         const existing = await pool.query('SELECT id FROM plantas WHERE id = $1', [id]);
@@ -348,8 +349,8 @@ app.put('/api/plantas/:id', requireAuth, uploadPlanta.single('imagen'), async (r
             return res.status(404).json({ error: 'Planta no encontrada.' });
         }
 
-        const precioNumero = parseFloat(String(precio ?? '').replace(',', '.'));
-        const stockNumero = parseInt(String(stock ?? '').replace(',', '.'), 10);
+        const precioNumero = parseFloat(String(req.body.precio).replace(',', '.'));
+        const stockNumero = parseInt(req.body.stock, 10);
         const valores = [
             nombre || '',
             cientifico || '',
@@ -367,7 +368,7 @@ app.put('/api/plantas/:id', requireAuth, uploadPlanta.single('imagen'), async (r
         ];
 
         if (req.file) {
-            columnas.push('foto');
+            columnas.push('imagen');
             valores.push(req.file.path);
         }
 
@@ -379,9 +380,9 @@ app.put('/api/plantas/:id', requireAuth, uploadPlanta.single('imagen'), async (r
         );
 
         res.json({ success: true });
-    } catch (error) {
-        console.error("Error en PUT /api/plantas:", error.message || error);
-        res.status(500).json({ error: error.message });
+    } catch (err) {
+        console.error("ERROR DETALLADO PUT:", err.stack || err.message || err);
+        res.status(500).json({ error: err.message || "Error interno al actualizar la planta" });
     }
 });
 
