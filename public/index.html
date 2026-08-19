@@ -428,6 +428,9 @@
         function editarPlanta(id) {
             const planta = inventario.find(x => String(x.id) === String(id));
             if (!planta) return alert("No se encontró la planta.");
+            if (planta.id === undefined || planta.id === null || String(planta.id).trim() === '') {
+                return alert("La planta no tiene un ID válido.");
+            }
 
             document.getElementById('plantaId').value = planta.id;
             document.getElementById('nombre').value = planta.nombre || '';
@@ -470,9 +473,10 @@
             formData.append('clima', document.getElementById('clima').value);
             formData.append('cuidados', document.getElementById('cuidados').value);
 
-            const plantaId = document.getElementById('plantaId').value;
+            const plantaId = String(document.getElementById('plantaId').value || '').trim();
             const fotoInput = document.getElementById('fotoInput');
             const editando = Boolean(plantaId);
+            if (editando) alert("Enviando actualización...");
             if (fotoInput.files[0]) formData.append(editando ? 'imagen' : 'foto', fotoInput.files[0]);
 
             const res = await fetch(editando ? `/api/plantas/${encodeURIComponent(plantaId)}` : '/api/plantas', {
@@ -485,8 +489,12 @@
                 await cargarInventario();
                 seleccionarOpcion('pos');
             } else {
-                const resData = await res.json();
-                alert(resData.error || resData.message || 'Error al guardar');
+                let resData = {};
+                try {
+                    resData = await res.json();
+                } catch {
+                }
+                alert(resData.error || resData.message || `Error al guardar (HTTP ${res.status})`);
             }
         });
 
