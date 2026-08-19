@@ -376,7 +376,8 @@ app.put('/api/plantas/:id', requireAuth, uploadPlanta.single('imagen'), async (r
 
         res.json({ success: true });
     } catch (error) {
-        res.status(500).json({ error: 'No se pudo actualizar la planta.' });
+        const mensaje = error instanceof Error ? error.message : String(error);
+        res.status(500).json({ error: mensaje });
     }
 });
 
