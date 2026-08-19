@@ -339,10 +339,34 @@ app.post('/api/plantas', requireAuth, uploadPlanta.single('foto'), async (req, r
     }
 });
 
-app.put('/api/plantas/:id', requireAuth, uploadPlanta.single('imagen'), async (req, res) => {
+app.put('/api/plantas/:id', requireAuth,
+    (req, res, next) => {
+        uploadPlanta.single('imagen')(req, res, (err) => {
+            if (err) return next(err);
+            next();
+        });
+    },
+    (err, req, res, next) => {
+        console.error(err.message);
+        req.file = undefined;
+        next();
+    },
+    async (req, res) => {
     try {
         console.log("Datos PUT:", req.params.id, req.body);
-        const { nombre, cientifico, categoria, ubicacion, precio, stock, riego, clima, cuidados } = req.body;
+        const {
+            nombre,
+            cientifico,
+            nombre_cientifico: nombreCientifico,
+            categoria,
+            ubicacion,
+            precio,
+            stock,
+            riego,
+            clima,
+            cuidados,
+            ficha_tecnica: fichaTecnica
+        } = req.body;
         const id = String(req.params.id);
         const existing = await pool.query('SELECT id FROM plantas WHERE id = $1', [id]);
         if (existing.rowCount === 0) {
@@ -353,14 +377,14 @@ app.put('/api/plantas/:id', requireAuth, uploadPlanta.single('imagen'), async (r
         const stockNumero = parseInt(req.body.stock, 10);
         const valores = [
             nombre || '',
-            cientifico || '',
+            cientifico || nombreCientifico || '',
             categoria || '',
             ubicacion || '',
             Number.isFinite(precioNumero) ? precioNumero : 0,
             Number.isFinite(stockNumero) ? stockNumero : 0,
             riego || '',
             clima || '',
-            cuidados || ''
+            cuidados || fichaTecnica || ''
         ];
         const columnas = [
             'nombre', 'cientifico', 'categoria', 'ubicacion', 'precio',
@@ -368,7 +392,7 @@ app.put('/api/plantas/:id', requireAuth, uploadPlanta.single('imagen'), async (r
         ];
 
         if (req.file) {
-            columnas.push('imagen');
+            columnas.push('foto');
             valores.push(req.file.path);
         }
 
@@ -384,7 +408,8 @@ app.put('/api/plantas/:id', requireAuth, uploadPlanta.single('imagen'), async (r
         console.error("ERROR DETALLADO PUT:", err.stack || err.message || err);
         res.status(500).json({ error: err.message || "Error interno al actualizar la planta" });
     }
-});
+    }
+);
 
 app.delete('/api/plantas/:id', requireAuth, async (req, res) => {
     try {
