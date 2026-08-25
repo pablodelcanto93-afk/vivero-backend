@@ -6,13 +6,14 @@
     <title>Catálogo - Vivero Sol y Sombra</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; }
-        body { background: #f3f6f4; color: #2d3748; padding-bottom: 50px; }
+        body { background: #ebe4d8; color: #3f443b; padding-bottom: 50px; }
         
         .header {
-            background: linear-gradient(135deg, #1b5e20, #2e7d32);
+            background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('https://images.unsplash.com/photo-1546484396-fb3fc6f95f98?auto=format&fit=crop&w=1000&q=80') center/cover;
             color: white;
-            padding: 30px 15px;
+            padding: 34px 15px;
             text-align: center;
+            box-shadow: 0 3px 12px rgba(53, 41, 28, 0.2);
         }
 
         .header-title {
@@ -23,13 +24,14 @@
             margin-bottom: 15px;
         }
 
-        .logo { width: 60px; height: 60px; border-radius: 50%; border: 2px solid white; background: white; }
+        .logo { width: 72px; height: 72px; border-radius: 50%; border: 2px solid white; background: white; }
 
         .info-box {
-            background: rgba(0,0,0,0.2);
-            border: 1px solid rgba(255,255,255,0.3);
-            border-radius: 8px;
-            padding: 12px;
+            background: #f5efe6;
+            border: 1px solid #d1c7bd;
+            border-radius: 12px;
+            color: #4a4a3d;
+            padding: 14px 16px;
             max-width: 650px;
             margin: 0 auto;
             font-size: 0.9em;
@@ -37,62 +39,46 @@
             text-align: left;
         }
 
-        .info-box a { color: #81c784; font-weight: bold; }
+        .info-box a { color: #2d4a22; font-weight: bold; }
 
         .search-box {
-            max-width: 900px;
-            margin: 20px auto;
+            max-width: 940px;
+            margin: 24px auto 18px;
             padding: 0 15px;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 220px;
+            gap: 12px;
         }
 
-        .search-box input {
+        .search-box input, .search-box select {
             width: 100%;
-            padding: 12px 18px;
-            border: 2px solid #a5d6a7;
-            border-radius: 25px;
+            padding: 13px 16px;
+            border: 1px solid #c7b9a5;
+            border-radius: 8px;
             font-size: 1em;
             outline: none;
+            background: #fdfbf7;
+            color: #2d4a22;
         }
 
-        .filter-bar {
-            max-width: 900px;
-            margin: 0 auto 22px;
-            padding: 0 15px;
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .filter-btn {
-            border: 1px solid #b7d8bd;
-            background: white;
-            color: #256b32;
-            border-radius: 999px;
-            padding: 8px 15px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: background 0.2s, color 0.2s, transform 0.2s;
-        }
-
-        .filter-btn:hover, .filter-btn.active {
-            background: #256b32;
-            color: white;
-            transform: translateY(-1px);
+        .search-box input:focus, .search-box select:focus {
+            border-color: #617746;
+            box-shadow: 0 0 0 3px rgba(97, 119, 70, 0.15);
         }
 
         .grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
             gap: 20px;
-            max-width: 900px;
+            max-width: 940px;
             margin: 0 auto;
             padding: 0 15px;
         }
 
         .card {
-            background: white;
-            border-radius: 14px;
+            background: #fdfbf7;
+            border: 1px solid #d8cec1;
+            border-radius: 12px;
             overflow: hidden;
             box-shadow: 0 8px 22px rgba(30, 80, 40, 0.09);
             display: flex;
@@ -110,8 +96,10 @@
 
         .card img {
             width: 100%;
-            height: 180px;
+            height: 220px;
             object-fit: cover;
+            border-top-left-radius: 12px;
+            border-top-right-radius: 12px;
             background: #e0e0e0;
             display: block;
             transition: transform 0.35s ease;
@@ -151,23 +139,23 @@
             margin-bottom: 8px;
         }
 
-        .title { font-size: 1.1em; font-weight: bold; color: #1b5e20; }
+        .title { font-size: 1.1em; font-weight: bold; color: #2d4a22; }
         .sub { font-size: 0.85em; color: #666; font-style: italic; margin-bottom: 8px; }
-        .price { font-size: 1.25em; font-weight: bold; color: #111; margin-bottom: 12px; }
+        .price { font-size: 1.25em; font-weight: bold; color: #c85a32; margin-bottom: 12px; }
 
         .btn-wsp {
-            background: #25d366;
+            background: #697b45;
             color: white;
             text-decoration: none;
             padding: 10px;
-            border-radius: 6px;
+            border-radius: 8px;
             text-align: center;
             font-weight: bold;
             margin-top: auto;
             display: block;
         }
 
-        .btn-wsp:hover { background: #128c7e; }
+        .btn-wsp:hover { background: #4f6132; }
         .empty { grid-column: 1 / -1; text-align: center; color: #777; padding: 40px; }
 
         .modal-backdrop {
@@ -188,7 +176,7 @@
             width: min(520px, 100%);
             max-height: 90vh;
             overflow-y: auto;
-            background: white;
+            background: #fdfbf7;
             border-radius: 16px;
             padding: 28px;
             box-shadow: 0 20px 50px rgba(0,0,0,0.25);
@@ -215,6 +203,7 @@
         @media (max-width: 520px) {
             .header { padding: 24px 12px; }
             .header-title h1 { font-size: 1.55em; }
+            .search-box { grid-template-columns: 1fr; }
             .modal { padding: 24px 20px; }
         }
     </style>
@@ -237,9 +226,10 @@
 
 <div class="search-box">
     <input type="text" id="buscar" placeholder="🔍 Buscar por planta o categoría..." onkeyup="filtrar()">
+    <select id="filtroCategoria" aria-label="Filtrar por categoría" onchange="seleccionarCategoria(this.value)">
+        <option value="Todas">Todas las categorías</option>
+    </select>
 </div>
-
-<div class="filter-bar" id="filtrosCategorias" aria-label="Filtrar por categoría"></div>
 
 <div class="grid" id="grid"></div>
 
@@ -279,17 +269,16 @@
 
     function dibujarFiltros() {
         const categorias = [...new Set(lista.map(p => String(p.categoria || '').trim()).filter(Boolean))];
-        const sugeridas = ['Frutales', 'Suculentas', 'Nativas', 'Substratos'];
-        const nombres = [...new Set([...sugeridas, ...categorias])];
-        document.getElementById('filtrosCategorias').innerHTML = ['Todas', ...nombres].map(categoria => `
-            <button type="button" class="filter-btn${categoria === categoriaActiva ? ' active' : ''}"
-                onclick="seleccionarCategoria('${escaparHtml(categoria)}')">${escaparHtml(categoria)}</button>
+        const selector = document.getElementById('filtroCategoria');
+        selector.innerHTML = ['Todas', ...categorias].map(categoria => `
+            <option value="${escaparHtml(categoria)}"${categoria === categoriaActiva ? ' selected' : ''}>
+                ${categoria === 'Todas' ? 'Todas las categorías' : escaparHtml(categoria)}
+            </option>
         `).join('');
     }
 
     function seleccionarCategoria(categoria) {
         categoriaActiva = categoria;
-        dibujarFiltros();
         filtrar();
     }
 
