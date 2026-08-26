@@ -110,6 +110,7 @@
             border-top-right-radius: 12px;
             background: #e0e0e0;
             display: block;
+            cursor: pointer;
             transition: transform 0.35s ease;
         }
 
@@ -147,7 +148,7 @@
             margin-bottom: 8px;
         }
 
-        .title { font-size: 1.1em; font-weight: bold; color: #2d4a22; }
+        .title { font-size: 1.1em; font-weight: bold; color: #2d4a22; cursor: pointer; }
         .sub { font-size: 0.85em; color: #666; font-style: italic; margin-bottom: 8px; }
         .price { font-size: 1.25em; font-weight: bold; color: #c85a32; margin-bottom: 12px; }
 
@@ -241,15 +242,15 @@
 
 <div class="grid" id="grid"></div>
 
-<div class="modal-backdrop" id="fichaModal" onclick="cerrarFicha(event)">
-    <article class="modal" role="dialog" aria-modal="true" aria-labelledby="fichaTitulo">
-        <button class="modal-close" type="button" aria-label="Cerrar ficha" onclick="cerrarFicha()">&times;</button>
-        <h2 id="fichaTitulo"></h2>
-        <p class="modal-scientific" id="fichaCientifico"></p>
+<div class="modal-backdrop" id="modalPlanta" onclick="cerrarModal(event)">
+    <article class="modal" role="dialog" aria-modal="true" aria-labelledby="modalNombre">
+        <button class="modal-close" type="button" aria-label="Cerrar ficha" onclick="cerrarModal()">&times;</button>
+        <h2 id="modalNombre"></h2>
+        <p class="modal-scientific" id="modalCientifico"></p>
         <dl>
-            <div><dt>Riego</dt><dd id="fichaRiego"></dd></div>
-            <div><dt>Clima</dt><dd id="fichaClima"></dd></div>
-            <div><dt>Consejos de cuidado</dt><dd id="fichaCuidados"></dd></div>
+            <div><dt>💧 Riego</dt><dd id="modalRiego"></dd></div>
+            <div><dt>☀️ Clima</dt><dd id="modalClima"></dd></div>
+            <div><dt>🌱 Consejos de cuidado</dt><dd id="modalCuidados"></dd></div>
         </dl>
     </article>
 </div>
@@ -303,13 +304,13 @@
             const enStock = Number(p.stock) > 0;
             const msg = encodeURIComponent(`Hola, me interesa la planta ${p.nombre}.`);
             return `
-                <div class="card" role="button" tabindex="0" onclick="abrirFicha('${p.id}')"
-                    onkeydown="if(event.key === 'Enter' || event.key === ' ') abrirFicha('${p.id}')">
-                    <div class="card-image-wrap"><img src="${escaparHtml(p.foto || '/logo.png')}" onerror="this.src='/logo.png'" alt="${escaparHtml(p.nombre)}"></div>
+                <div class="card" role="button" tabindex="0" onclick="abrirDetallePlantaPorId('${p.id}')"
+                    onkeydown="if(event.key === 'Enter' || event.key === ' ') abrirDetallePlantaPorId('${p.id}')">
+                    <div class="card-image-wrap"><img src="${escaparHtml(p.foto || '/logo.png')}" onerror="this.src='/logo.png'" alt="${escaparHtml(p.nombre)}" onclick="abrirDetallePlantaPorId('${p.id}'); event.stopPropagation()"></div>
                     <div class="card-body">
                         <span class="stock-badge ${enStock ? 'in-stock' : 'out-of-stock'}">${enStock ? '● En Stock' : '● Agotado'}</span>
                         ${p.categoria ? `<span class="tag">${escaparHtml(p.categoria)}</span>` : ''}
-                        <div class="title">${escaparHtml(p.nombre)}</div>
+                        <div class="title" onclick="abrirDetallePlantaPorId('${p.id}'); event.stopPropagation()">${escaparHtml(p.nombre)}</div>
                         <div class="sub">${escaparHtml(p.cientifico || '')}</div>
                         <div class="price">$${precio}</div>
                         <a href="https://wa.me/56953450809?text=${msg}" target="_blank" rel="noopener" class="btn-wsp" onclick="event.stopPropagation()">💬 Consultar por WhatsApp</a>
@@ -329,26 +330,30 @@
         dibujar(res);
     }
 
-    function abrirFicha(id) {
-        const planta = lista.find(p => String(p.id) === String(id));
+    function abrirDetallePlanta(planta) {
         if (!planta) return;
-        document.getElementById('fichaTitulo').textContent = planta.nombre || 'Planta';
-        document.getElementById('fichaCientifico').textContent = planta.cientifico || 'Nombre científico no registrado';
-        document.getElementById('fichaRiego').textContent = planta.riego || 'Consultar según humedad del sustrato.';
-        document.getElementById('fichaClima').textContent = planta.clima || 'Consultar condiciones recomendadas.';
-        document.getElementById('fichaCuidados').textContent = planta.cuidados || 'No hay consejos registrados para esta planta.';
-        document.getElementById('fichaModal').classList.add('visible');
+        document.getElementById('modalNombre').textContent = planta.nombre || 'Planta';
+        document.getElementById('modalCientifico').textContent = planta.cientifico || 'Nombre científico no registrado';
+        document.getElementById('modalRiego').textContent = planta.riego || 'Consultar según humedad del sustrato.';
+        document.getElementById('modalClima').textContent = planta.clima || 'Consultar condiciones recomendadas.';
+        document.getElementById('modalCuidados').textContent = planta.cuidados || 'No hay consejos registrados para esta planta.';
+        document.getElementById('modalPlanta').classList.add('visible');
         document.body.style.overflow = 'hidden';
     }
 
-    function cerrarFicha(event) {
-        if (event && event.target !== document.getElementById('fichaModal')) return;
-        document.getElementById('fichaModal').classList.remove('visible');
+    function abrirDetallePlantaPorId(id) {
+        const planta = lista.find(p => String(p.id) === String(id));
+        abrirDetallePlanta(planta);
+    }
+
+    function cerrarModal(event) {
+        if (event && event.target !== document.getElementById('modalPlanta')) return;
+        document.getElementById('modalPlanta').classList.remove('visible');
         document.body.style.overflow = '';
     }
 
     document.addEventListener('keydown', event => {
-        if (event.key === 'Escape') cerrarFicha();
+        if (event.key === 'Escape') cerrarModal();
     });
 
     cargar();
