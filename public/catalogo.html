@@ -310,11 +310,11 @@
         grid.innerHTML = datos.map(p => {
             const precio = Number(p.precio).toLocaleString('es-CL');
             const enStock = Number(p.stock) > 0;
-            const msg = encodeURIComponent(`Hola, me interesa la planta ${p.nombre}.`);
+            const msg = encodeURIComponent(`Hola, me interesa la planta ${p.nombre} ($${precio}). ¿Tienen disponibilidad?`);
             return `
                 <div class="card" role="button" tabindex="0" onclick="abrirDetallePlantaPorId('${p.id}')"
                     onkeydown="if(event.key === 'Enter' || event.key === ' ') abrirDetallePlantaPorId('${p.id}')">
-                    <div class="card-image-wrap"><img src="${escaparHtml(p.foto || '/logo.png')}" onerror="this.src='/logo.png'" alt="${escaparHtml(p.nombre)}" onclick="abrirDetallePlantaPorId('${p.id}'); event.stopPropagation()"></div>
+                    <div class="card-image-wrap"><img src="${escaparHtml(p.foto || '/logo.png')}" onerror="this.src='/logo.png'" alt="${escaparHtml(p.nombre)}" style="cursor: pointer;" onclick="abrirDetallePlantaPorId('${p.id}'); event.stopPropagation()"></div>
                     <div class="card-body">
                         <span class="stock-badge ${enStock ? 'in-stock' : 'out-of-stock'}">${enStock ? '● En Stock' : '● Agotado'}</span>
                         ${p.categoria ? `<span class="tag">${escaparHtml(p.categoria)}</span>` : ''}
