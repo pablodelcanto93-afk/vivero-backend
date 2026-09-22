@@ -181,6 +181,7 @@
                         <button type="button" id="btnCancelarEdicion" class="btn" style="display:none; background:#64748b; color:white;" onclick="cancelarEdicion()">Cancelar edición</button>
                     </form>
                     <div style="margin-top:15px; display:flex; justify-content:flex-end; flex-wrap:wrap; gap:10px;">
+                        <button type="button" class="btn btn-add" onclick="window.location.href='/api/plantas/exportar?formato=csv';">📥 Descargar Respaldo</button>
                         <button type="button" class="btn btn-add" onclick="exportarInventario('json')">⬇️ Exportar JSON</button>
                         <button type="button" class="btn" style="background:#0284c7; color:white;" onclick="exportarInventario('csv')">📊 Exportar CSV</button>
                         <button type="button" class="btn btn-add" onclick="generarFichaCuidadosPDF()">🌿 Generar Ficha de Cuidados PDF</button>
