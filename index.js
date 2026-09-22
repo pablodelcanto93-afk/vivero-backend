@@ -133,6 +133,21 @@ function toNumber(value, fallback = 0) {
     return Number.isFinite(num) ? num : fallback;
 }
 
+function escapeCsvCell(value) {
+    const texto = value === null || value === undefined ? '' : String(value);
+    return `"${texto.replace(/"/g, '""')}"`;
+}
+
+async function obtenerPlantasActuales() {
+    if (!pool) return readJsonCollection('plantas.json', []);
+    try {
+        const { rows } = await pool.query('SELECT * FROM plantas ORDER BY nombre ASC');
+        return rows;
+    } catch (error) {
+        return readJsonCollection('plantas.json', []);
+    }
+}
+
 async function crearTablasDB() {
     await pool.query(`
         CREATE TABLE IF NOT EXISTS plantas (
@@ -259,10 +274,39 @@ function requireAdmin(req, res, next) {
 // PLANTAS
 app.get('/api/plantas', async (req, res) => {
     try {
-        const { rows } = await pool.query('SELECT * FROM plantas ORDER BY nombre ASC');
-        res.json(rows);
+        const plantas = await obtenerPlantasActuales();
+        res.json(plantas);
     } catch (error) {
         res.status(500).json({ error: 'No se pudieron cargar las plantas.' });
+    }
+});
+
+app.get('/api/plantas/exportar', requireAuth, async (req, res) => {
+    try {
+        const formato = String(req.query.formato || req.query.format || 'json').toLowerCase();
+        const plantas = await obtenerPlantasActuales();
+
+        if (!['json', 'csv'].includes(formato)) {
+            return res.status(400).json({ error: 'Formato no soportado. Usa json o csv.' });
+        }
+
+        const timestamp = new Date().toISOString().slice(0, 10);
+
+        if (formato === 'csv') {
+            const columnas = ['id', 'nombre', 'cientifico', 'categoria', 'ubicacion', 'precio', 'stock', 'riego', 'clima', 'cuidados', 'foto'];
+            const filas = plantas.map(planta => columnas.map(columna => escapeCsvCell(planta[columna] ?? '')).join(','));
+            const csv = [columnas.join(','), ...filas].join('\n');
+
+            res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+            res.setHeader('Content-Disposition', `attachment; filename="inventario-plantas-${timestamp}.csv"`);
+            return res.send(csv);
+        }
+
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.setHeader('Content-Disposition', `attachment; filename="inventario-plantas-${timestamp}.json"`);
+        return res.send(JSON.stringify(plantas, null, 2));
+    } catch (error) {
+        res.status(500).json({ error: 'No se pudo exportar el inventario.' });
     }
 });
 
